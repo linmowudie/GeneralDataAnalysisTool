@@ -1,6 +1,2 @@
-def main():
-    print("Hello from generaldataanalysistool!")
+from .Src import data_analyzer
 
-
-if __name__ == "__main__":
-    main()
