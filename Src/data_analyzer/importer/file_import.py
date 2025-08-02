@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union, Optional
 import logging
 
+
 class FileImport:
     # 文件类型映射
     default_file_type = {
@@ -22,7 +23,7 @@ class FileImport:
         self.path = Path(path)
         self.file_type = file_type.lower()  # 确保文件类型统一为小写
     
-    def select_import_type(self, **kwargs) -> Optional[pd.DataFrame]:
+    def select_import_type(self) -> Optional[pd.DataFrame]:
         """
         根据文件类型选择相应的读取方法，并读取文件。
         
@@ -45,7 +46,7 @@ class FileImport:
         read_method = getattr(pd, read_method_name)
         
         try:
-            df = read_method(self.path, **kwargs)
+            df = read_method(self.path)
             return df
         except Exception as e:
             logging.error(f"Error reading file: {e}")

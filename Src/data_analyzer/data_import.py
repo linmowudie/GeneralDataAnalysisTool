@@ -5,8 +5,15 @@ from .importer.db_import import DatabaseImport
 from .importer.file_import import FileImport
 import pandas as pd
 
+
 class DataImport(DatabaseImport, FileImport):
-    def __init__(self, file_resource: Union[str, Path], resource_type: str, db_connection_string: str, is_database: bool = False) -> None:
+    def __init__(
+            self, 
+            file_resource: Union[str, Path], 
+            resource_type: str, 
+            db_connection_string: str, 
+            is_database: bool = False          
+            ) -> None:
         """
         初始化 DataImport 实例。
         
@@ -16,6 +23,7 @@ class DataImport(DatabaseImport, FileImport):
         :param db_connection_string: 数据库连接信息
         """
         self.is_database = is_database
+
         if self.is_database:
             DatabaseImport.__init__(self, db_connection_string, resource_type)
         else:
@@ -32,7 +40,7 @@ class DataImport(DatabaseImport, FileImport):
             if self.is_database:
                 return self.select_db_import_type(**kwargs)
             else:
-                return self.select_import_type(**kwargs)
+                return self.select_import_type()
             
         except Exception as e:
             logging.error(f"Error importing data: {e}")

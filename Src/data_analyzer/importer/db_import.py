@@ -5,6 +5,7 @@ import logging
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.exc import SQLAlchemyError
 
+
 class DatabaseImport:
     """
     一个用于从各种数据库导入数据到 Pandas DataFrame 的类。
@@ -100,7 +101,7 @@ class DatabaseImport:
             logging.error(error_msg)
             raise ValueError(error_msg)
 
-    def select_db_import_type(self, query: str, **kwargs) -> Optional[pd.DataFrame]:
+    def select_db_import_type(self, query: str) -> Optional[pd.DataFrame]:
         """
         执行 SQL 查询并返回结果作为 Pandas DataFrame。
         
@@ -118,7 +119,7 @@ class DatabaseImport:
 
         try:
             # 使用 pandas.read_sql 执行查询
-            df = pd.read_sql(sql=query, con=self.engine, **kwargs)
+            df = pd.read_sql(sql=query, con=self.engine)
             logging.info(f"Successfully executed query on {self.db_type} database.")
             return df
 

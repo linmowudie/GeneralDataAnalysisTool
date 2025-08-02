@@ -3,14 +3,23 @@ from . import data_analyzer
 from . import data_visualization
 from . import reporting
 from . import log_setting
+import logging
+import pandas as pd
+from pathlib import Path
+from typing import Union, Optional
 
 class DataProcessingEngine:
     """
     数据处理引擎类
     提供统一接口供外部调用，封装完整的数据处理流程
     """
-    def __init__(self, resource_path=None, resource_type=None, 
-                 db_connection_string=None, is_database=False):
+    def __init__(
+            self, resource_path: Union[Path, str], 
+            resource_type: str, 
+            db_connection_string: str, 
+            quary: str,
+            is_database: bool = False
+            ):
         """
         初始化数据处理引擎
         
@@ -24,6 +33,7 @@ class DataProcessingEngine:
         self.resource_type = resource_type
         self.db_connection_string = db_connection_string
         self.is_database = is_database
+        self.quary = quary
         
         # 初始化中间数据
         self.imported_data = None
@@ -32,17 +42,16 @@ class DataProcessingEngine:
         self.visualized_plot = None
         
         # 初始化日志系统
-        self.logger = log_setting.setup_logger()
+        log_setting.setup_logging()
     
-    def import_data(self):
-        """数据导入阶段"""
-        # TODO: 实现数据导入逻辑
-        # 示例伪代码：
-        # if self.is_database:
-        #     self.imported_data = data_import.from_database(self.db_connection_string)
-        # else:
-        #     self.imported_data = data_import.from_file(self.resource_path)
-        pass
+    def import_data(self) -> None:
+        self.imported_data = data_import.DataImport(
+            file_resource=self.resource_path, 
+            resource_type=self.resource_type, 
+            db_connection_string=self.db_connection_string, 
+            is_database=self.is_database,           
+            ).import_data(quary=self.quary)
+  
     
     def clean_data(self):
         """数据清洗阶段"""
@@ -73,23 +82,15 @@ class DataProcessingEngine:
     def run_full_pipeline(self):
         """运行完整数据处理流程"""
         try:
-            self.logger.info("开始数据处理流程")
+            logging.info("开始数据处理流程")
             self.import_data()
             self.clean_data()
             self.analyze_data()
             self.visualize_data()
             report = self.generate_report()
-            self.logger.info("数据处理流程完成")
+            logging.info("数据处理流程完成")
             return report
         except Exception as e:
-            self.logger.error(f"数据处理流程失败: {str(e)}")
+            logging.error(f"数据处理流程失败: {str(e)}")
             raise
 
-# 兼容旧版main函数
-def main():
-    """主函数 - 示例用法"""
-    engine = DataProcessingEngine(
-        resource_path="data/sample.csv",
-        resource_type="csv"
-    )
-    engine.run_full_pipeline()

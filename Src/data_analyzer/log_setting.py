@@ -9,6 +9,6 @@ def setup_logging():
 
     logging.basicConfig(
         filename=log_file,
-        level=logging.ERROR,
+        level=logging.DEBUG,
         format='%(asctime)s - %(levelname)s - %(message)s'
     )
