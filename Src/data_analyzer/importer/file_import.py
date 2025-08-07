@@ -3,6 +3,7 @@ from pathlib import Path
 from typing import Union, Optional
 import logging
 
+logger = logging.getLogger(__name__)
 
 class FileImport:
     # 文件类型映射
@@ -31,16 +32,16 @@ class FileImport:
         :return: Pandas DataFrame 或 None
         """
         if self.file_type not in self.default_file_type:
-            logging.error(f"Unsupported file type: {self.file_type}")
-            raise ValueError(f"Unsupported file type: {self.file_type}")
+            logger.error(f"不支持文件类型: {self.file_type}")
+            raise ValueError(f"不支持文件类型: {self.file_type}")
         
         if not self.path.exists():
-            logging.error(f"The file {self.path} does not exist.")
-            raise FileNotFoundError(f"The file {self.path} does not exist.")
+            logger.error(f"文件 {self.path} 不存在。")
+            raise FileNotFoundError(f"文件 {self.path} 不存在.")
         
         if not self.path.is_file():
-            logging.error(f"The path {self.path} is a directory, not a file.")
-            raise IsADirectoryError(f"The path {self.path} is a directory, not a file.")
+            logger.error(f"{self.path}是一个文件夹 , 不是文件。")
+            raise IsADirectoryError(f"{self.path}是一个文件夹 , 不是文件。")
         
         read_method_name = self.default_file_type[self.file_type]
         read_method = getattr(pd, read_method_name)
@@ -49,6 +50,6 @@ class FileImport:
             df = read_method(self.path)
             return df
         except Exception as e:
-            logging.error(f"Error reading file: {e}")
-            print(f"Error reading file: {e}")
+            logger.error(f"文件读取错误：{e}")
+            print(f"文件读取错误：{e}")
             return None

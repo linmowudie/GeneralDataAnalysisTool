@@ -5,6 +5,7 @@ import logging
 from sqlalchemy import create_engine, Engine
 from sqlalchemy.exc import SQLAlchemyError
 
+logger = logging.getLogger(__name__)
 
 class DatabaseImport:
     """
@@ -42,8 +43,8 @@ class DatabaseImport:
         self.db_type = db_type.lower() if db_type else self._infer_db_type(connection_string)
         
         if self.db_type not in self.supported_databases:
-            error_msg = f"Unsupported database type: {self.db_type}. Supported types are: {list(self.supported_databases.keys())}"
-            logging.error(error_msg)
+            error_msg = f"不支持数据库类型{self.db_type}；可用类型：{list(self.supported_databases.keys())}"
+            logger.error(error_msg)
             raise ValueError(error_msg)
         
         self.engine: Optional[Engine] = None
@@ -94,11 +95,11 @@ class DatabaseImport:
                 connection_url = f"{dialect}://{self.connection_string}"
             
             self.engine = create_engine(connection_url)
-            logging.info(f"Database engine created successfully for {self.db_type}.")
+            logger.info(f"数据库引擎成功创建：{self.db_type}.")
 
         except Exception as e:
-            error_msg = f"Failed to create database engine for {self.db_type}: {e}"
-            logging.error(error_msg)
+            error_msg = f"{self.db_type}引擎创建失败: {e}"
+            logger.error(error_msg)
             raise ValueError(error_msg)
 
     def select_db_import_type(self, query: str) -> Optional[pd.DataFrame]:
@@ -113,34 +114,34 @@ class DatabaseImport:
         """
         if self.engine is None:
             error_msg = "Database engine is not available. Cannot execute query."
-            logging.error(error_msg)
+            logger.error(error_msg)
             print(error_msg)
             return None
 
         try:
             # 使用 pandas.read_sql 执行查询
             df = pd.read_sql(sql=query, con=self.engine)
-            logging.info(f"Successfully executed query on {self.db_type} database.")
+            logger.info(f"Successfully executed query on {self.db_type} database.")
             return df
 
         except SQLAlchemyError as e:
             # 捕获 SQLAlchemy 特定的异常
             error_msg = f"SQLAlchemy error executing query on {self.db_type}: {e}"
-            logging.error(error_msg)
+            logger.error(error_msg)
             print(error_msg)
             return None
 
         except pd.errors.DatabaseError as e:
             # 捕获 Pandas 数据库相关的错误
             error_msg = f"Database error while reading data from {self.db_type}: {e}"
-            logging.error(error_msg)
+            logger.error(error_msg)
             print(error_msg)
             return None
 
         except Exception as e:
             # 捕获其他可能的异常
             error_msg = f"Unexpected error reading data from {self.db_type}: {e}"
-            logging.error(error_msg)
+            logger.error(error_msg)
             print(error_msg)
             return None
 
@@ -150,7 +151,7 @@ class DatabaseImport:
         """
         if self.engine:
             self.engine.dispose()
-            logging.info("Database connection closed.")
+            logger.info("数据库连接关闭。")
             self.engine = None
 
     def __del__(self):

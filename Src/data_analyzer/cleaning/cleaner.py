@@ -1,314 +1,393 @@
+# cleaning/cleaner.py
 import pandas as pd
 from typing import List, Optional, Dict, Any, Callable
 from dataclasses import dataclass
 import logging
 from scipy.stats import zscore
 import numpy as np
+
+# -------------------------------
+# 日志配置（入口调用一次即可）
+# -------------------------------
 from ..log_setting import setup_logging
 
-setup_logging()
 logger = logging.getLogger(__name__)
 
+
 # --------------------------------------------------
-# 配置类（带参数注释）
+# 配置类（带参数注释 | 优化：使用 Google/NumPy 风格 Docstring）
 # --------------------------------------------------
 @dataclass
 class Config:
     """
-    清洗配置类。
-    
-    支持的参数可通过 params_list 传入，例如：
+    数据清洗配置类，用于控制清洗流程的各个参数。
+
+    支持通过字符串列表解析参数，例如：
         [
-            "columns=['A', 'B']",               # 仅保留指定列
-            "drop_duplicates=True",             # 是否去重
-            "duplicate_subset=['A']",           # 去重时参考的列
-            "handle_missing='fill'",            # 缺失值处理策略：'drop' | 'fill' | 'auto'
-            "fill_value=0",                     # 缺失值填充固定值（优先于 fill_method）
-            "fill_method='median'",             # 缺失值填充方法：'mean' | 'median' | 'mode' | 'ffill' | 'bfill'
-            "outlier_method='iqr'",             # 异常值处理方式：'iqr' | 'zscore' | 'none'
-            "outlier_threshold=1.5",            # 异常值阈值（用于 iqr/zscore）
-            "validate_schema=True",             # 是否启用数据验证
-            "schema_rules={'A': {'min': 0}}",   # 每列验证规则
-            "return_stats=False"                # 是否返回清洗统计（预留）
+            "columns=['A', 'B']",
+            "drop_duplicates=True",
+            "handle_missing='fill'",
+            "fill_method='median'",
+            "outlier_method='iqr'",
+            "schema_rules={'A': {'min': 0}}"
         ]
 
-    :param columns: 要保留的列名列表，若为 None 则保留所有列。
-    :param drop_duplicates: 是否删除重复行，默认为 True。
-    :param duplicate_subset: 执行去重时参考的列列表，若为 None 则基于所有列判断重复。
-    :param handle_missing: 缺失值处理策略，可选值：'drop'（删除含缺失的行）、'fill'（填充）、'auto'（自动选择）。
-    :param fill_value: 用于填充缺失值的固定值，若不为 None，则优先于 fill_method 使用。
-    :param fill_method: 填充缺失值的方法，可选：'mean'、'median'、'mode'、'ffill'、'bfill'。
-    :param outlier_method: 异常值检测与处理方法，可选：'iqr'（四分位距）、'zscore'（Z 分数）、'none'（不处理）。
-    :param outlier_threshold: 异常值判定的阈值。IQR 方法中为倍数，Z-score 中为标准差倍数。
-    :param custom_cleaners: 用户自定义清洗函数列表，每个函数接收并返回一个 DataFrame。
-    :param validate_schema: 是否根据 schema_rules 对数据进行验证和过滤。
-    :param schema_rules: 每列的验证规则字典，例如 {'A': {'min': 0, 'max': 100}, 'B': {'required': True}}。
-    :param return_stats: 是否返回清洗过程的统计信息（当前为预留功能，尚未实现）。
+    Attributes:
+        columns (Optional[List[str]]): 要保留的列名列表。None 表示保留所有列。
+        drop_duplicates (bool): 是否删除重复行。
+        duplicate_subset (Optional[List[str]]): 去重时参考的列。None 表示基于所有列。
+        handle_missing (str): 缺失值处理策略：'drop', 'fill', 'auto'。
+        fill_value (Any): 固定值填充缺失值（优先于 fill_method）。
+        fill_method (str): 填充方法：'mean', 'median', 'mode', 'ffill', 'bfill'。
+        outlier_method (str): 异常值处理方法：'iqr', 'zscore', 'none'。
+        outlier_threshold (float): 异常值阈值（IQR 倍数或 Z-score 标准差）。
+        custom_cleaners (Optional[List[Callable]]): 用户自定义清洗函数列表。
+        validate_schema (bool): 是否启用 schema 验证。
+        schema_rules (Optional[Dict]): 每列的验证规则，如 {'age': {'min': 0, 'max': 100}}。
+        return_stats (bool): 是否返回清洗统计（预留功能）。
     """
     columns: Optional[List[str]] = None
     drop_duplicates: bool = True
     duplicate_subset: Optional[List[str]] = None
-    handle_missing: str = 'auto'
+    handle_missing: str = 'auto'  # 支持 'drop', 'fill', 'auto'
     fill_value: Any = None
-    fill_method: str = 'mean'
-    outlier_method: str = 'iqr'
+    fill_method: str = 'mean'  # mean/median/mode/ffill/bfill
+    outlier_method: str = 'iqr'  # iqr/zscore/none
     outlier_threshold: float = 1.5
     custom_cleaners: Optional[List[Callable[[pd.DataFrame], pd.DataFrame]]] = None
     validate_schema: bool = False
     schema_rules: Optional[Dict[str, Dict[str, Any]]] = None
     return_stats: bool = False
 
+
 # --------------------------------------------------
-# 清洗类
+# 清洗类 | 优化：增强日志 + 安全 + 注释
 # --------------------------------------------------
 class CleanData:
+    """
+    数据清洗核心类，提供标准、严格、宽松及自定义清洗模式。
+    """
+
     def __init__(self, df: pd.DataFrame):
+        if df is None:
+            raise ValueError("输入 DataFrame 不能为 None")
+        if not isinstance(df, pd.DataFrame):
+            raise TypeError(f"期望 pd.DataFrame，但得到 {type(df)}")
+
+        logger.debug("CleanData 初始化，输入数据形状: %s", df.shape)
         self.df = df
+
     def strict(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        严格模式：对数据进行最彻底的清洗。
-        
-        功能说明：
-        - 删除所有包含缺失值（NaN）的行（dropna）。
-        - 删除所有完全重复的行（drop_duplicates）。
-        - 仅保留完整且唯一的记录，适用于对数据质量要求极高的场景。
-        
-        参数:
-            df (pd.DataFrame): 输入的原始数据框。
-            
-        返回:
-            pd.DataFrame: 清洗后的数据框，不含缺失值和重复行。
+        严格清洗模式：删除所有缺失值和重复行。
+
+        Args:
+            df (pd.DataFrame): 输入数据
+
+        Returns:
+            pd.DataFrame: 清洗后数据
+
+        Example:
+            >>> cleaner = CleanData(df)
+            >>> cleaned = cleaner.strict(df)
         """
-        return df.dropna().drop_duplicates()
+        logger.info("执行 strict 模式清洗")
+        logger.debug("strict 模式前数据形状: %s", df.shape)
+
+        df_cleaned = df.dropna().drop_duplicates()
+
+        logger.info("strict 模式完成，删除缺失值和重复行")
+        logger.debug("strict 模式后数据形状: %s", df_cleaned.shape)
+        return df_cleaned
 
     def standard(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        标准模式：采用常规策略处理缺失值和重复数据。
-        
-        功能说明：
-        - 创建数据框副本，避免修改原始数据。
-        - 删除完全重复的行。
-        - 对数值型列的缺失值，使用该列的中位数（median）填充。
-        - 对类别型（object）列的缺失值，使用该列的众数（mode）填充；
-          若众数为空（如全为空值），则填充为 'unknown' 字符串。
-        - 平衡了数据保留与质量，适用于大多数标准数据分析任务。
-        
-        参数:
-            df (pd.DataFrame): 输入的原始数据框。
-            
-        返回:
-            pd.DataFrame: 清洗并填充缺失值后的数据框，无重复行。
+        标准清洗模式：去重 + 智能填充缺失值（数值用中位数，类别用众数）。
+
+        Args:
+            df (pd.DataFrame): 输入数据
+
+        Returns:
+            pd.DataFrame: 清洗后数据
         """
+        logger.info("执行 standard 模式清洗")
+        logger.debug("standard 模式前数据形状: %s", df.shape)
+
         df = df.copy()
         df = df.drop_duplicates()
-        for col in df.select_dtypes(include='number').columns:
-            df[col].fillna(df[col].median(), inplace=True)
-        for col in df.select_dtypes(include='object').columns:
-            df[col].fillna(df[col].mode()[0] if not df[col].mode().empty else 'unknown', inplace=True)
+
+        numeric_cols = df.select_dtypes(include='number').columns
+        object_cols = df.select_dtypes(include='object').columns
+
+        for col in numeric_cols:
+            median_val = df[col].median()
+            df[col].fillna(median_val, inplace=True)
+            logger.debug("数值列 '%s' 使用中位数 %.2f 填充缺失值", col, median_val)
+
+        for col in object_cols:
+            mode_result = df[col].mode()
+            if not mode_result.empty:
+                df[col].fillna(mode_result[0], inplace=True)
+            else:
+                df[col].fillna('unknown', inplace=True)
+            logger.debug("类别列 '%s' 填充完成", col)
+
+        logger.info("standard 模式完成")
+        logger.debug("standard 模式后数据形状: %s", df.shape)
         return df
 
     def relaxed(self, df: pd.DataFrame) -> pd.DataFrame:
         """
-        宽松模式：仅处理重复数据，保留尽可能多的记录。
-        
-        功能说明：
-        - 仅删除完全重复的行（保留第一次出现的记录）。
-        - 不处理任何缺失值，保留 NaN。
-        - 适用于数据缺失较多但仍需保留所有信息的探索性分析阶段。
-        
-        参数:
-            df (pd.DataFrame): 输入的原始数据框。
-            
-        返回:
-            pd.DataFrame: 去重后的数据框，保留所有非重复行（含缺失值）。
+        宽松清洗模式：仅去重，保留缺失值。
+
+        Args:
+            df (pd.DataFrame): 输入数据
+
+        Returns:
+            pd.DataFrame: 去重后数据
         """
-        return df.drop_duplicates()
+        logger.info("执行 relaxed 模式清洗")
+        logger.debug("relaxed 模式前数据形状: %s", df.shape)
+
+        df_cleaned = df.drop_duplicates()
+
+        logger.info("relaxed 模式完成，仅删除重复行")
+        logger.debug("relaxed 模式后数据形状: %s", df_cleaned.shape)
+        return df_cleaned
 
     def custom(self, df: pd.DataFrame, params_list: List[str]) -> pd.DataFrame:
         """
-        自定义清洗模式。
-        如果所有参数无效，则回退到 standard 模式。
-        :param params_list: 自定义参数列表，格式为 "key=value"。
+        自定义清洗模式：解析参数并应用配置。
+
+        Args:
+            df (pd.DataFrame): 输入数据
+            params_list (List[str]): 参数列表，格式为 "key=value"
+
+        Returns:
+            pd.DataFrame: 清洗后数据
+
+        Notes:
+            - 使用安全解析，避免 eval 执行任意代码
+            - 无效参数将被忽略并记录警告
+            - 若无有效参数，则回退到 standard 模式
         """
+        logger.info("开始 custom 模式清洗，参数数量: %d", len(params_list))
         config = Config()
         valid_keys = []
 
+        # 安全解析参数（避免 eval）
         for param in params_list:
             try:
-                # 解析参数
-                key, value_str = param.split('=', 1)
+                key, raw_value = param.split('=', 1)
                 key = key.strip()
-                value = eval(value_str.strip(), {"__builtins__": {}}, {})
+                value = self._safe_eval(raw_value.strip())
 
-                # 检查参数
                 if hasattr(config, key):
                     setattr(config, key, value)
                     valid_keys.append(key)
-
+                    logger.debug("成功解析参数: %s = %s", key, value)
                 else:
-                    logger.warning(f"无效参数: {key}，已忽略。")
+                    logger.warning("无效参数名 '%s' 已忽略", key)
 
+            except ValueError:
+                logger.error("参数格式错误，缺少 '=': %s", param)
             except Exception as e:
-                logger.error(f"参数解析失败: {param}，错误: {e}")
+                logger.error("参数解析失败 '%s': %s", param, e)
 
         if not valid_keys:
-            logger.warning("所有自定义参数无效，回退到 standard 模式。")
-            return self.standard(df)
+            logger.warning("所有自定义参数无效，回退到 standard 模式")
+            return self.standard(df.copy())
 
+        logger.info("应用自定义配置，有效参数: %s", valid_keys)
         return self._apply_config(df, config)
+
+    def _safe_eval(self, value_str: str) -> Any:
+        """
+        安全地解析字符串为 Python 字面量（替代 eval）。
+        仅支持基本类型：str, int, float, bool, list, dict, None。
+
+        Args:
+            value_str (str): 要解析的字符串
+
+        Returns:
+            解析后的值
+
+        Raises:
+            ValueError: 解析失败
+        """
+        import ast
+        try:
+            return ast.literal_eval(value_str)
+        except (SyntaxError, ValueError):
+            # 如果不是字面量，视为字符串
+            return value_str.strip("'\"")
 
     def _apply_config(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
         """
-        根据配置执行数据清洗逻辑（主流程）。
+        根据配置对象执行完整的清洗流程。
 
-        :param df: 输入的原始数据框。
-        :param config: 数据清洗配置对象（Config 类实例）。
-        :return: 清洗后的数据框。
+        Args:
+            df (pd.DataFrame): 输入数据
+            config (Config): 清洗配置
+
+        Returns:
+            pd.DataFrame: 清洗后数据
         """
-        df = df.copy()
+        logger.debug("开始应用清洗配置")
+        df = df.copy()  # 保留原始数据
 
-        df = self._select_columns(df, config)
-        df = self._handle_duplicates(df, config)
-        df = self._handle_missing_values(df, config)
-        df = self._handle_outliers(df, config)
-        df = self._validate_schema_rules(df, config)
-        df = self._apply_custom_cleaners(df, config)
+        try:
+            df = self._select_columns(df, config)
+            df = self._handle_duplicates(df, config)
+            df = self._handle_missing_values(df, config)
+            df = self._handle_outliers(df, config)
+            df = self._validate_schema_rules(df, config)
+            df = self._apply_custom_cleaners(df, config)
+
+            logger.info("配置应用完成，最终数据形状: %s", df.shape)
+        except Exception as e:
+            logger.error("清洗流程中发生错误", exc_info=True)
+            raise
 
         return df
 
-
     def _select_columns(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        保留指定列，若列不存在则报错。
-
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 仅包含指定列的 DataFrame。
-        """
+        """保留指定列。"""
         if not config.columns:
             return df
 
         missing = [c for c in config.columns if c not in df.columns]
         if missing:
-            logger.error(f"列不存在: {missing}")
+            logger.error("指定列不存在: %s", missing)
             raise KeyError(f"列不存在: {missing}")
 
+        logger.info("保留列: %s", config.columns)
         return df[config.columns]
 
-
     def _handle_duplicates(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        根据配置删除重复行。
-
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 去重后的 DataFrame。
-        """
+        """处理重复行。"""
         if config.drop_duplicates:
+            subset_str = str(config.duplicate_subset) if config.duplicate_subset else "所有列"
+            logger.info("删除重复行，参考列: %s", subset_str)
             df = df.drop_duplicates(subset=config.duplicate_subset)
         return df
 
-
     def _handle_missing_values(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        处理缺失值：删除或填充。
+        """处理缺失值。"""
+        logger.info("处理缺失值，策略: %s", config.handle_missing)
 
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 缺失值处理后的 DataFrame。
-        """
         if config.handle_missing == 'drop':
-            return df.dropna()
+            initial_rows = len(df)
+            df = df.dropna()
+            logger.info("删除含缺失值的行，减少 %d 行", initial_rows - len(df))
+            return df
 
-        elif config.handle_missing == 'fill':
+        if config.handle_missing == 'fill':
             if config.fill_value is not None:
-                return df.fillna(config.fill_value)
+                df = df.fillna(config.fill_value)
+                logger.info("使用固定值 '%s' 填充缺失值", config.fill_value)
+                return df
 
-            # 填充数值型列
             numeric_cols = df.select_dtypes(include='number').columns
             for col in numeric_cols:
                 if config.fill_method == 'mean':
-                    df[col].fillna(df[col].mean(), inplace=True)
+                    val = df[col].mean()
                 elif config.fill_method == 'median':
-                    df[col].fillna(df[col].median(), inplace=True)
+                    val = df[col].median()
                 elif config.fill_method == 'mode':
                     mode = df[col].mode()
-                    df[col].fillna(mode[0] if not mode.empty else None, inplace=True)
+                    val = mode[0] if not mode.empty else np.nan
+                else:
+                    logger.warning("未知填充方法 '%s'，跳过列 '%s'", config.fill_method, col)
+                    continue
+
+                df[col].fillna(val, inplace=True)
+                logger.debug("列 '%s' 使用 '%s' (%s) 填充", col, config.fill_method, val)
+
         return df
 
-
     def _handle_outliers(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        根据配置处理异常值（IQR 或 Z-score 方法）。
+        """处理异常值。"""
+        if config.outlier_method == 'none':
+            return df
 
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 过滤异常值后的 DataFrame。
-        """
+        logger.info("检测并处理异常值，方法: %s, 阈值: %.2f", config.outlier_method, config.outlier_threshold)
+        initial_rows = len(df)
+        numeric_cols = df.select_dtypes(include='number').columns
+
         if config.outlier_method == 'iqr':
-            numeric_cols = df.select_dtypes(include='number').columns
             for col in numeric_cols:
                 Q1 = df[col].quantile(0.25)
                 Q3 = df[col].quantile(0.75)
                 IQR = Q3 - Q1
                 lower = Q1 - config.outlier_threshold * IQR
                 upper = Q3 + config.outlier_threshold * IQR
-                df = df[df[col].between(lower, upper)]
+                mask = df[col].between(lower, upper)
+                df = df[mask]
+                removed = initial_rows - len(df)
+                if removed > 0:
+                    logger.info("IQR 方法在列 '%s' 中移除 %d 个异常值", col, removed)
 
         elif config.outlier_method == 'zscore':
             numeric_cols = df.select_dtypes(include='number').columns
             for col in numeric_cols:
                 clean_data = df[col].dropna()
-                z_scores = zscore(clean_data, nan_policy='omit')
+                if len(clean_data) == 0:
+                    logger.warning("列 '%s' 中没有有效的数值数据，无法进行 Z-score 方法的异常值检测", col)
+                    continue
+                z_scores = np.array(zscore(clean_data, nan_policy='omit'))  # 明确转为 ndarray
                 mask = np.abs(z_scores) < config.outlier_threshold
-                reindexed_mask = mask.reindex(df.index, fill_value=True)
+                reindexed_mask = pd.Series(mask, index=clean_data.index).reindex(df.index, fill_value=True)
                 df = df[reindexed_mask]
+                
+            removed = initial_rows - len(df)
+            if removed > 0:
+                logger.info("Z-score 方法共移除 %d 个异常值", removed)
 
         return df
 
-
     def _validate_schema_rules(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        根据 schema_rules 验证并过滤数据（类型、范围等）。
-
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 验证通过的 DataFrame。
-        """
+        """验证并过滤数据。"""
         if not config.validate_schema or not config.schema_rules:
             return df
 
+        logger.info("执行 schema 验证，规则数量: %d", len(config.schema_rules))
         for col, rules in config.schema_rules.items():
             if col not in df.columns:
-                logger.warning(f"验证规则中列不存在: {col}")
+                logger.warning("验证规则中列 '%s' 不存在，跳过", col)
                 continue
 
-            # 类型转换
+            logger.debug("验证列 '%s': %s", col, rules)
+
             if 'dtype' in rules:
                 try:
                     df[col] = df[col].astype(rules['dtype'])
+                    logger.debug("列 '%s' 类型转换为 %s", col, rules['dtype'])
                 except Exception as e:
-                    logger.error(f"列 {col} 类型转换失败: {e}")
-                    raise TypeError(f"列 {col} 类型转换失败: {e}")
+                    logger.error("列 '%s' 类型转换失败: %s", col, e)
+                    raise TypeError(f"类型转换失败: {col}") from e
 
-            # 范围检查
             if 'min' in rules:
                 df = df[df[col] >= rules['min']]
+                logger.debug("列 '%s' 应用最小值约束: >= %.2f", col, rules['min'])
             if 'max' in rules:
                 df = df[df[col] <= rules['max']]
+                logger.debug("列 '%s' 应用最大值约束: <= %.2f", col, rules['max'])
 
         return df
 
-
     def _apply_custom_cleaners(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
-        """
-        应用用户自定义清洗函数列表。
+        """应用用户自定义清洗函数。"""
+        if not config.custom_cleaners:
+            return df
 
-        :param df: 输入数据框。
-        :param config: 配置对象。
-        :return: 经自定义函数处理后的 DataFrame。
-        """
-        if config.custom_cleaners:
-            for func in config.custom_cleaners:
+        logger.info("应用 %d 个自定义清洗函数", len(config.custom_cleaners))
+        for i, func in enumerate(config.custom_cleaners):
+            try:
                 df = func(df)
+                logger.debug("自定义函数 %d 执行成功", i+1)
+            except Exception as e:
+                logger.error("自定义函数 %d 执行失败: %s", i+1, e, exc_info=True)
+                raise
+
         return df

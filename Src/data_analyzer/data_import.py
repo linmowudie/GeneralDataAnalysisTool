@@ -5,6 +5,7 @@ from .importer.db_import import DatabaseImport
 from .importer.file_import import FileImport
 import pandas as pd
 
+logger = logging.getLogger(__name__)
 
 class DataImport(DatabaseImport, FileImport):
     def __init__(
@@ -43,6 +44,6 @@ class DataImport(DatabaseImport, FileImport):
                 return self.select_import_type()
             
         except Exception as e:
-            logging.error(f"Error importing data: {e}")
+            logger.error(f"Error importing data: {e}")
             print(f"Error importing data: {e}")
             return None
