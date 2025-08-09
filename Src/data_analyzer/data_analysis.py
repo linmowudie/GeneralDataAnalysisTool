@@ -23,7 +23,7 @@ class DataAnalyzer:
         is_return_model_predicting_set: bool = False,
         feature_cols_encoding: str = 'onehot',
         target_col_encoding: str = 'label',
-        test_set: Optional[pd.DataFrame] = None,
+        test_set: Optional[pd.DataFrame] = None
     ):
         """
         初始化数据分析模块
@@ -112,7 +112,6 @@ class DataAnalyzer:
             self.target_col_encoding,
             self.test_set
         )
-
-
+        result = analyzer.run()
 
         return result
