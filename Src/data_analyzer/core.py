@@ -1,4 +1,24 @@
-# data_engine.py
+"""
+Src/data_analyzer/core.py
+数据处理核心引擎模块
+
+该模块定义了 DataProcessingEngine 类，作为整个数据处理流程的统一入口与协调中心。
+通过封装数据导入、清洗、分析、可视化及报告生成等阶段，提供简洁、流畅的接口供外部调用。
+引擎采用状态管理方式维护各阶段中间结果，确保流程有序执行，并集成日志系统以支持过程追踪与问题排查。
+
+主要特性：
+- 流程化设计：支持从原始数据到分析结果的端到端处理
+- 阶段解耦：各处理阶段由独立模块实现，核心引擎负责调度
+- 状态管理：自动维护导入、清洗、分析等中间数据状态
+- 异常处理：每阶段均包含完善的错误捕获与日志记录
+- 易用性：对外暴露简洁方法，隐藏底层复杂性
+
+使用示例：
+    engine = DataProcessingEngine()
+    engine.import_data("data.csv", "csv")
+    engine.clean_data("auto", [])
+    engine.analyze_data(model=RandomForestClassifier())
+"""
 from . import data_import
 from . import data_analysis
 from . import data_cleaning
