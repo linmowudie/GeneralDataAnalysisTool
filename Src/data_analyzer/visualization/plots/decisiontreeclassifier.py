@@ -1,4 +1,12 @@
-# data_visualization/plots/decisiontreeclassifier.py
+# visualization/plots/decisiontreeclassifier.py
+"""
+Src/data_analyzer/visualization/plots/decisiontreeclassifier.py
+决策树分类器可视化模块
+
+该模块提供决策树分类器模型的可视化功能，
+包括决策树结构图的绘制。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, classification_report

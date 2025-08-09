@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/log_setting.py
+日志配置模块
+
+该模块提供日志系统配置功能，统一管理应用的日志格式、
+输出路径和日志级别等设置。
+"""
+
 import logging
 from pathlib import Path
 

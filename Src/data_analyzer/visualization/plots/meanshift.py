@@ -1,4 +1,12 @@
-# data_visualization/plots/meanshift.py
+# visualization/plots/meanshift.py
+"""
+Src/data_analyzer/visualization/plots/meanshift.py
+Mean Shift聚类可视化模块
+
+该模块提供Mean Shift聚类模型的可视化功能，
+包括聚类结果和聚类中心的可视化展示。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, Any

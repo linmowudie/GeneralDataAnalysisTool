@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/importer/db_import.py
+数据库导入模块
+
+该模块提供从各种数据库导入数据的功能，支持MySQL、PostgreSQL等
+常见数据库类型，通过SQLAlchemy实现数据库连接和查询。
+"""
+
 import pandas as pd
 from typing import Optional, Union
 from pathlib import Path

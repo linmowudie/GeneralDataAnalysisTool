@@ -1,17 +1,10 @@
 # -*- coding: utf-8 -*-
 """
-通用机器学习分析封装模块 AnalyzeData
-====================================
-功能：
-1. 支持回归 / 分类 / 聚类 / 数据变换 4 大类任务
-2. 支持自动编码、训练、评估、预测
-3. 支持外部测试集
-4. 支持按需返回训练集、预测结果、模型参数、评估指标
+Src/data_analyzer/analysis/analyzer.py
+数据分析器模块
 
-使用示例：
-    >>> ada = AnalyzeData(df, model='logisticregression', target_col='y')
-    >>> result = ada.run()
-    >>> print(result['scores'])
+该模块提供各种数据分析功能的实现，包括描述性统计、相关性分析、
+分组分析等常见的数据分析方法。
 """
 
 from __future__ import annotations

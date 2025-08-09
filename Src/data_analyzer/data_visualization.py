@@ -1,4 +1,4 @@
-# data_visualization/base.py
+# data_visualization.py
 import logging
 from typing import Dict, Any
 import matplotlib.pyplot as plt

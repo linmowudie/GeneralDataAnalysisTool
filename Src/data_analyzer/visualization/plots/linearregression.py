@@ -1,4 +1,12 @@
-# data_visualization/plots/linear_regression.py
+# visualization/plots/linear_regression.py
+"""
+Src/data_analyzer/visualization/plots/linearregression.py
+线性回归可视化模块
+
+该模块提供线性回归模型的可视化功能，
+包括回归线和数据点的可视化展示。
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

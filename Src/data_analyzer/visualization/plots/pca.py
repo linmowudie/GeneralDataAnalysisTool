@@ -1,4 +1,12 @@
-# data_visualization/plots/pca.py
+# visualization/plots/pca.py
+"""
+Src/data_analyzer/visualization/plots/pca.py
+主成分分析(PCA)可视化模块
+
+该模块提供主成分分析模型的可视化功能，
+包括降维结果和主成分分布的可视化展示。
+"""
+
 import matplotlib.pyplot as plt
 import numpy as np
 import pandas as pd

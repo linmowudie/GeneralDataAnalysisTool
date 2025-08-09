@@ -1,4 +1,12 @@
-# data_visualization/plots/logisticregression.py
+# visualization/plots/logisticregression.py
+"""
+Src/data_analyzer/visualization/plots/logisticregression.py
+逻辑回归可视化模块
+
+该模块提供逻辑回归模型的可视化功能，
+包括决策边界和分类结果的可视化展示。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np

@@ -1,4 +1,12 @@
-# data_visualization/plots/standardscaler.py
+# visualization/plots/standardscaler.py
+"""
+Src/data_analyzer/visualization/plots/standardscaler.py
+标准化缩放器可视化模块
+
+该模块提供标准化缩放器的可视化功能，
+包括数据标准化前后的分布对比图。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from typing import Dict, Any

@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/data_analysis.py
+数据分析模块
+
+该模块提供数据分析功能的统一接口，整合了各种分析方法，
+包括描述性统计、相关性分析等。
+"""
+
 import pandas as pd
 import logging
 from typing import List, Optional, Union

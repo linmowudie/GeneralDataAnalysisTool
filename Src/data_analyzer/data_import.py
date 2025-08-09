@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/data_import.py
+数据导入模块
+
+该模块提供统一的数据导入接口，支持从文件和数据库导入数据。
+整合了文件导入和数据库导入功能，提供一致的API。
+"""
+
 from pathlib import Path
 from typing import Union, Optional
 import logging

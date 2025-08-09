@@ -1,12 +1,20 @@
+"""
+Src/data_analyzer/data_cleaning.py
+数据清洗模块
+
+该模块提供多种数据清洗模式，包括标准、严格和宽松模式，
+也支持自定义参数进行数据清洗。继承自CleanData基类。
+"""
+
 # cleaning/clean_data_mode.py
 import pandas as pd
-from .cleaning import cleaner
+from .cleaning import CleanData
 from typing import Union
 import logging
 
 logger = logging.getLogger(__name__)  # 获取当前模块的logger
 
-class CleanDataMode(cleaner.CleanData):
+class CleanDataMode(CleanData):
     MODES = ["standard", "strict", "relaxed"]
 
     def __init__(self, df: pd.DataFrame, select_mode: str, params_list: list[str], is_freedom_params: bool = False):

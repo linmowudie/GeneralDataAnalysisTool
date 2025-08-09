@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/cleaning/cleaner.py
+数据清洗器模块
+
+该模块提供各种数据清洗功能的实现，包括缺失值处理、重复值处理、
+异常值检测与处理、数据类型转换等常见的数据清洗操作。
+"""
+
 # cleaning/cleaner.py
 import pandas as pd
 from typing import List, Optional, Dict, Any, Callable

@@ -1,4 +1,12 @@
-# data_visualization/plots/kmeans.py
+# visualization/plots/kmeans.py
+"""
+Src/data_analyzer/visualization/plots/kmeans.py
+K-Means聚类可视化模块
+
+该模块提供K-Means聚类模型的可视化功能，
+包括聚类结果散点图的绘制。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 import pandas as pd

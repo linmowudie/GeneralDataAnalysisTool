@@ -1,14 +1,19 @@
-# data_visualization/plots/kneighborsclassifier.py
+# visualization/plots/kneighborsclassifier.py
+"""
+Src/data_analyzer/visualization/plots/kneighborsclassifier.py
+K近邻分类器可视化模块
+
+该模块提供K近邻分类器模型的可视化功能，
+包括分类结果的可视化展示。
+"""
+
 import matplotlib.pyplot as plt
 import seaborn as sns
 from sklearn.metrics import confusion_matrix, roc_curve, auc
-from sklearn.preprocessing import label_binarize
 import numpy as np
-import pandas as pd
 from typing import Dict, Any
 from ..registry import plot_registry
 from matplotlib.figure import Figure
-from matplotlib import cm as mpl_cm
 
 
 @plot_registry.register("classification", "kneighborsclassifier")
@@ -55,7 +60,7 @@ def plot_kneighborsclassifier(params: Dict[str, Any]) -> Dict[str, Figure]:
         model = params.get("model_specific", {}).get("trained_model")
         if model:
             Z = model.predict(mesh).reshape(xx.shape)
-            ax3.contourf(xx, yy, Z, alpha=0.3, cmap= mpl_cm.coolwarm) # 忽略此错误
+            ax3.contourf(xx, yy, Z, alpha=0.3, cmap= plt.get_cmap('coolwarm')) 
             sns.scatterplot(x=feature.iloc[:, 0], y=feature.iloc[:, 1],
                             hue=target, palette="Set2", ax=ax3, edgecolor="k")
             ax3.set(title="Decision Boundary", xlabel=feature.columns[0], ylabel=feature.columns[1])

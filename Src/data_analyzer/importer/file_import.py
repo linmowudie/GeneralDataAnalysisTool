@@ -1,3 +1,11 @@
+"""
+Src/data_analyzer/importer/file_import.py
+文件导入模块
+
+该模块提供从各种文件格式导入数据的功能，支持CSV、Excel、JSON等
+常见数据文件格式。
+"""
+
 import pandas as pd
 from pathlib import Path
 from typing import Union, Optional
