@@ -10,11 +10,13 @@ Src/data_analyzer/visualization/plots/logisticregression.py
 import matplotlib.pyplot as plt
 import seaborn as sns
 import numpy as np
-from sklearn.metrics import confusion_matrix, roc_curve, auc
+from sklearn.metrics import confusion_matrix, roc_curve, auc, classification_report
 from typing import Dict, Any
 from ..registry import plot_registry
 from matplotlib.figure import Figure
+import logging
 
+logger = logging.getLogger(__name__)
 
 @plot_registry.register("classification", "logisticregression")
 def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
@@ -26,39 +28,65 @@ def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
     shape_style = params.get("shape_style", {})
     point_colors = shape_style.get("points", {}).get("colors", ["tab:blue"])
 
-    # 1. 混淆矩阵
-    cm = confusion_matrix(target, predict)
-    fig1, ax1 = plt.subplots(figsize=(5, 4))
-    sns.heatmap(cm, annot=True, fmt="d", cmap="Purples", ax=ax1)
-    ax1.set(title="Confusion Matrix", xlabel="Predicted", ylabel="Actual")
-    figures["confusion_matrix"] = fig1
+    try:
+        # 1. 混淆矩阵
+        cm = confusion_matrix(target, predict)
+        fig1, ax1 = plt.subplots(figsize=(6, 5))
+        sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax1)
+        ax1.set(title=label_style.get("title", "Confusion Matrix") or "Confusion Matrix", 
+                xlabel="Predicted", ylabel="Actual")
+        figures["confusion_matrix"] = fig1
 
-    # 2. ROC 曲线
-    y_score = params.get("model_specific", {}).get("y_score")
-    if y_score is not None:
-        fpr, tpr, _ = roc_curve(target, y_score)
-        roc_auc = auc(fpr, tpr)
-        fig2, ax2 = plt.subplots()
-        ax2.plot(fpr, tpr, color=point_colors[0], lw=2,
-                 label=f"ROC curve (AUC = {roc_auc:.2f})")
-        ax2.plot([0, 1], [0, 1], "k--", lw=1)
-        ax2.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05],
-                title="ROC Curve", xlabel="False Positive Rate", ylabel="True Positive Rate")
-        ax2.legend(loc="lower right")
-        figures["roc_curve"] = fig2
+        # 2. ROC 曲线
+        y_score = params.get("model_specific", {}).get("y_score")
+        if y_score is not None:
+            fpr, tpr, _ = roc_curve(target, y_score)
+            roc_auc = auc(fpr, tpr)
+            fig2, ax2 = plt.subplots(figsize=(8, 6))
+            ax2.plot(fpr, tpr, color=point_colors[0], lw=2,
+                     label=f"ROC curve (AUC = {roc_auc:.3f})")
+            ax2.plot([0, 1], [0, 1], "k--", lw=1)
+            ax2.set(xlim=[0.0, 1.0], ylim=[0.0, 1.05],
+                    title="ROC Curve", xlabel="False Positive Rate", ylabel="True Positive Rate")
+            ax2.legend(loc="lower right")
+            ax2.grid(True, alpha=0.3)
+            figures["roc_curve"] = fig2
+        else:
+            logger.warning("未提供y_score，跳过ROC曲线绘制")
 
-    # 3. 回归系数（柱状图）
-    model = params.get("model_specific", {}).get("trained_model")
-    if model and hasattr(model, "coef_"):
-        coef = model.coef_.ravel()
-        top_n = min(15, len(coef))
-        idx = np.argsort(np.abs(coef))[-top_n:]
-        fig3, ax3 = plt.subplots(figsize=(6, 4))
-        ax3.barh(range(top_n), coef[idx], color=point_colors[0])
-        ax3.set_yticks(range(top_n))
-        ax3.set_yticklabels([feature.columns[i] for i in idx])
-        ax3.invert_yaxis()
-        ax3.set(title="Top 15 |Coefficients|")
-        figures["coefficients"] = fig3
+        # 3. 回归系数（柱状图）
+        model = params.get("model_specific", {}).get("trained_model")
+        if model and hasattr(model, "coef_"):
+            coef = model.coef_.ravel()
+            # 确保特征列存在
+            if hasattr(feature, 'columns') and len(feature.columns) > 0:
+                top_n = min(15, len(coef))
+                idx = np.argsort(np.abs(coef))[-top_n:]
+                fig3, ax3 = plt.subplots(figsize=(8, max(4, top_n * 0.3)))  # 根据特征数量调整高度
+                bars = ax3.barh(range(top_n), coef[idx], color=point_colors[0])
+                ax3.set_yticks(range(top_n))
+                ax3.set_yticklabels([feature.columns[i] for i in idx])
+                ax3.invert_yaxis()
+                ax3.set(title="Feature Coefficients (Top 15 by Absolute Value)")
+                ax3.set_xlabel("Coefficient Value")
+                ax3.grid(True, alpha=0.3)
+                
+                # 在每个条形上添加数值标签
+                for i, (bar, coeff) in enumerate(zip(bars, coef[idx])):
+                    ax3.text(bar.get_width() + (0.01 * np.sign(coeff) * np.max(np.abs(coef))), 
+                            bar.get_y() + bar.get_height()/2, 
+                            f'{coeff:.3f}', 
+                            ha='left' if coeff >= 0 else 'right', 
+                            va='center')
+                
+                figures["coefficients"] = fig3
+            else:
+                logger.warning("特征列信息不可用，跳过系数图绘制")
+        else:
+            logger.warning("模型或系数信息不可用，跳过系数图绘制")
 
+    except Exception as e:
+        logger.error(f"逻辑回归可视化过程中出现错误: {str(e)}")
+        raise
+    
     return figures

@@ -4,7 +4,10 @@ from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
-from .visualization.registry import PlotRegistry
+from .visualization.registry import plot_registry
+
+# 确保导入所有可视化插件
+from .visualization.plots import linearregression, logisticregression, kmeans
 
 logger = logging.getLogger(__name__)
 
@@ -26,7 +29,7 @@ class DataVisualization:
             - model_specific: 模型特定参数 (如聚类中心、解释方差等)
         """
         self.param_dict = param_dict
-        self.registry = PlotRegistry()
+        self.registry = plot_registry
         
     def validate_params(self) -> None:
         """验证必要参数"""
