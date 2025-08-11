@@ -129,15 +129,15 @@ class CleanData:
 
         for col in numeric_cols:
             median_val = df[col].median()
-            df[col].fillna(median_val, inplace=True)
+            df[col] = df[col].fillna(median_val)
             logger.debug("数值列 '%s' 使用中位数 %.2f 填充缺失值", col, median_val)
 
         for col in object_cols:
             mode_result = df[col].mode()
             if not mode_result.empty:
-                df[col].fillna(mode_result[0], inplace=True)
+                df[col] = df[col].fillna(mode_result[0])
             else:
-                df[col].fillna('unknown', inplace=True)
+                df[col] = df[col].fillna('unknown')
             logger.debug("类别列 '%s' 填充完成", col)
 
         logger.info("standard 模式完成")
@@ -290,28 +290,20 @@ class CleanData:
             logger.info("删除含缺失值的行，减少 %d 行", initial_rows - len(df))
             return df
 
-        if config.handle_missing == 'fill':
+        elif config.handle_missing == 'fill':
             if config.fill_value is not None:
-                df = df.fillna(config.fill_value)
-                logger.info("使用固定值 '%s' 填充缺失值", config.fill_value)
-                return df
+                return df.fillna(config.fill_value)
 
+            # 填充数值型列
             numeric_cols = df.select_dtypes(include='number').columns
             for col in numeric_cols:
                 if config.fill_method == 'mean':
-                    val = df[col].mean()
+                    df[col] = df[col].fillna(df[col].mean())
                 elif config.fill_method == 'median':
-                    val = df[col].median()
+                    df[col] = df[col].fillna(df[col].median())
                 elif config.fill_method == 'mode':
                     mode = df[col].mode()
-                    val = mode[0] if not mode.empty else np.nan
-                else:
-                    logger.warning("未知填充方法 '%s'，跳过列 '%s'", config.fill_method, col)
-                    continue
-
-                df[col].fillna(val, inplace=True)
-                logger.debug("列 '%s' 使用 '%s' (%s) 填充", col, config.fill_method, val)
-
+                    df[col] = df[col].fillna(mode[0] if not mode.empty else None)
         return df
 
     def _handle_outliers(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:

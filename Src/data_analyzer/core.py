@@ -32,6 +32,7 @@ import pandas as pd
 from pathlib import Path
 from typing import Optional, Any, Union, List
 from matplotlib.figure import Figure  # 用于类型提示
+from typing import Dict
 
 
 class DataProcessingEngine:
@@ -46,7 +47,8 @@ class DataProcessingEngine:
         self.imported_data: Optional[pd.DataFrame] = None
         self.cleaned_data: Optional[pd.DataFrame] = None
         self.analyzed_data: Optional[dict] = None
-        self.visualized_plot: Optional[Figure] = None
+        self.visualized_plot: Optional[Dict[str, Figure]] = None
+        self.report_data: Optional[Dict] = None
 
         # 初始化日志
         self.logger = log_setting.setup_logging()
@@ -71,7 +73,8 @@ class DataProcessingEngine:
             is_database: 是否为数据库源
         """
         try:
-            if db_connection_string is None:
+            # 只有在是数据库源时才需要数据库连接字符串
+            if is_database and db_connection_string is None:
                 self.logger.error("数据库连接字符串不能为空")
                 raise ValueError("数据库连接字符串不能为空")
 
@@ -194,4 +197,158 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
 
-   
+    def visualize_data(self, param_dict: Optional[Dict[str, Any]] = None) -> None:
+        """
+        数据可视化阶段
+
+        Args:
+            param_dict: 可视化参数字典，如果为None则使用分析结果中的默认参数
+        """
+        if self.analyzed_data is None:
+            error_msg = "请先进行数据分析"
+            self.logger.error(error_msg)
+            raise ValueError(error_msg)
+
+        try:
+            # 如果没有提供参数字典，则根据分析结果构建默认参数
+            if param_dict is None:
+                param_dict = self._build_default_visualization_params()
+            
+            # 检查是否至少有特征数据
+            if 'feature' not in param_dict or param_dict['feature'] is None:
+                self.logger.warning("没有足够的数据进行可视化，跳过可视化步骤")
+                self.visualized_plot = {}
+                return
+            
+            visualizer = data_visualization.DataVisualization(param_dict)
+            self.visualized_plot = visualizer.plot_chart()
+            self.logger.info("数据可视化完成")
+
+        except Exception as e:
+            error_msg = f"数据可视化失败: {str(e)}"
+            self.logger.error(error_msg, exc_info=True)
+            self.visualized_plot = {}  # 确保即使失败也有默认值
+            raise ValueError(error_msg) from e
+
+    def _build_default_visualization_params(self) -> Dict[str, Any]:
+        """
+        根据分析结果构建默认的可视化参数
+        """
+        # 检查是否有分析数据
+        if not self.analyzed_data:
+            raise ValueError("没有可用的分析数据用于可视化")
+        
+        # 从分析结果中提取必要信息
+        trained_model = self.analyzed_data.get('trained_model')
+        task_type = self.analyzed_data.get('task_type', 'unknown')
+        
+        # 构建默认参数字典
+        param_dict = {
+            "task_type": task_type,
+            "model_name": trained_model.__class__.__name__.lower() if trained_model else "unknown",
+        }
+        
+        # 添加可用的数据
+        if 'X_train' in self.analyzed_data and self.analyzed_data['X_train'] is not None:
+            param_dict['feature'] = self.analyzed_data['X_train']
+        elif 'X_test' in self.analyzed_data and self.analyzed_data['X_test'] is not None:
+            param_dict['feature'] = self.analyzed_data['X_test']
+            
+        if 'y_train' in self.analyzed_data and self.analyzed_data['y_train'] is not None:
+            param_dict['target'] = self.analyzed_data['y_train']
+        elif 'y_test' in self.analyzed_data and self.analyzed_data['y_test'] is not None:
+            param_dict['target'] = self.analyzed_data['y_test']
+            
+        if 'predictions' in self.analyzed_data and self.analyzed_data['predictions'] is not None:
+            param_dict['predict'] = self.analyzed_data['predictions']
+            
+        return param_dict
+
+    def generate_report(self) -> None:
+        """
+        生成分析报告
+        """
+        try:
+            # 准备报告数据
+            model_params = self.analyzed_data.get('model_params') if self.analyzed_data else None
+            model_scores = self.analyzed_data.get('scores') if self.analyzed_data else None
+            model_predictions = self.analyzed_data.get('predictions') if self.analyzed_data else None
+            
+            report_generator = reporting.Report(
+                model_params=model_params,
+                model_scores=model_scores,
+                visualizations=self.visualized_plot,
+                model_predictions=model_predictions
+            )
+            
+            self.report_data = report_generator.return_report()
+            self.logger.info("分析报告生成完成")
+
+        except Exception as e:
+            error_msg = f"报告生成失败: {str(e)}"
+            self.logger.error(error_msg, exc_info=True)
+            raise ValueError(error_msg) from e
+
+    def get_report(self) -> Optional[Dict]:
+        """
+        获取生成的报告数据
+
+        Returns:
+            报告数据字典或None（如果尚未生成报告）
+        """
+        return self.report_data
+
+    def run_complete_process(
+        self,
+        import_params: Dict[str, Any],
+        clean_params: Dict[str, Any],
+        analyze_params: Dict[str, Any],
+        visualize_params: Optional[Dict[str, Any]] = None
+    ) -> Dict[str, Any]:
+        """
+        运行完整的数据处理流程
+
+        Args:
+            import_params: 数据导入参数
+            clean_params: 数据清洗参数
+            analyze_params: 数据分析参数
+            visualize_params: 数据可视化参数（可选）
+
+        Returns:
+            包含所有处理结果的字典
+        """
+        try:
+            # 数据导入
+            self.import_data(**import_params)
+            
+            # 数据清洗
+            self.clean_data(**clean_params)
+            
+            # 数据分析
+            self.analyze_data(**analyze_params)
+            
+            # 数据可视化（可选）
+            if visualize_params is not None:
+                self.visualize_data(visualize_params)
+            else:
+                self.visualize_data()
+                
+            # 生成报告
+            self.generate_report()
+            
+            # 返回完整结果
+            result = {
+                "imported_data": self.imported_data,
+                "cleaned_data": self.cleaned_data,
+                "analyzed_data": self.analyzed_data,
+                "visualized_plot": self.visualized_plot,
+                "report": self.report_data
+            }
+            
+            self.logger.info("完整数据处理流程执行完成")
+            return result
+            
+        except Exception as e:
+            error_msg = f"完整数据处理流程执行失败: {str(e)}"
+            self.logger.error(error_msg, exc_info=True)
+            raise ValueError(error_msg) from e

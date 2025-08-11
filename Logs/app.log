@@ -1,0 +1,127 @@
+2025-08-11 12:00:52,391 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:00:52,397 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:01:56,866 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:01:56,869 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:01:56,871 - Src.data_analyzer.log_setting - ERROR - import_data:77 - 数据库连接字符串不能为空
+2025-08-11 12:01:56,871 - Src.data_analyzer.log_setting - ERROR - import_data:93 - 数据导入失败: 数据库连接字符串不能为空
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 78, in import_data
+    raise ValueError("数据库连接字符串不能为空")
+ValueError: 数据库连接字符串不能为空
+2025-08-11 12:01:56,872 - Src.data_analyzer.log_setting - ERROR - run_complete_process:335 - 完整数据处理流程执行失败: 数据导入失败: 数据库连接字符串不能为空
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 78, in import_data
+    raise ValueError("数据库连接字符串不能为空")
+ValueError: 数据库连接字符串不能为空
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 304, in run_complete_process
+    self.import_data(**import_params)
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 94, in import_data
+    raise ValueError(error_msg) from e
+ValueError: 数据导入失败: 数据库连接字符串不能为空
+2025-08-11 12:02:30,791 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:02:30,794 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:02:30,795 - Src.data_analyzer.log_setting - INFO - import_data:90 - 数据导入成功，共 100 行，4 列
+2025-08-11 12:02:30,795 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-08-11 12:02:30,795 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-08-11 12:02:30,795 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-08-11 12:02:30,796 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-08-11 12:02:30,796 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-08-11 12:02:30,796 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-08-11 12:02:30,797 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-08-11 12:02:30,797 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-08-11 12:02:30,797 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-08-11 12:02:30,797 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target' 使用中位数 0.00 填充缺失值
+2025-08-11 12:02:30,797 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-08-11 12:02:30,798 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-08-11 12:02:30,798 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-08-11 12:02:30,798 - Src.data_analyzer.log_setting - INFO - clean_data:124 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-08-11 12:02:30,798 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:198 - 提取特征矩阵和目标列中...
+2025-08-11 12:02:30,799 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:215 - 类别编码中...
+2025-08-11 12:02:30,799 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:268 - 划分数据集中...
+2025-08-11 12:02:30,802 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:300 - 初始化模型: logisticregression
+2025-08-11 12:02:30,802 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:321 - 训练模型中...
+2025-08-11 12:02:30,805 - Src.data_analyzer.analysis.analyzer - INFO - run:460 - 分析流程执行完成。
+2025-08-11 12:02:30,805 - Src.data_analyzer.log_setting - INFO - analyze_data:192 - 数据分析完成
+2025-08-11 12:02:30,805 - Src.data_analyzer.log_setting - ERROR - visualize_data:223 - 数据可视化失败: Missing required parameter: feature
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 218, in visualize_data
+    self.visualized_plot = visualizer.plot_chart()
+                           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\data_visualization.py", line 46, in plot_chart
+    self.validate_params()
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\data_visualization.py", line 36, in validate_params
+    raise ValueError(f"Missing required parameter: {param}")
+ValueError: Missing required parameter: feature
+2025-08-11 12:02:30,806 - Src.data_analyzer.log_setting - ERROR - run_complete_process:336 - 完整数据处理流程执行失败: 数据可视化失败: Missing required parameter: feature
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 218, in visualize_data
+    self.visualized_plot = visualizer.plot_chart()
+                           ^^^^^^^^^^^^^^^^^^^^^^^
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\data_visualization.py", line 46, in plot_chart
+    self.validate_params()
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\data_visualization.py", line 36, in validate_params
+    raise ValueError(f"Missing required parameter: {param}")
+ValueError: Missing required parameter: feature
+
+The above exception was the direct cause of the following exception:
+
+Traceback (most recent call last):
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 317, in run_complete_process
+    self.visualize_data()
+  File "d:\Python\PythonCode\GeneralDataAnalysisTool\Src\data_analyzer\core.py", line 224, in visualize_data
+    raise ValueError(error_msg) from e
+ValueError: 数据可视化失败: Missing required parameter: feature
+2025-08-11 12:02:56,799 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:02:56,803 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:02:56,807 - Src.data_analyzer.log_setting - INFO - import_data:90 - 数据导入成功，共 100 行，4 列
+2025-08-11 12:02:56,807 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-08-11 12:02:56,807 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-08-11 12:02:56,807 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-08-11 12:02:56,807 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-08-11 12:02:56,807 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-08-11 12:02:56,807 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-08-11 12:02:56,809 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-08-11 12:02:56,810 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-08-11 12:02:56,810 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-08-11 12:02:56,810 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target' 使用中位数 0.00 填充缺失值
+2025-08-11 12:02:56,810 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-08-11 12:02:56,811 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-08-11 12:02:56,811 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-08-11 12:02:56,811 - Src.data_analyzer.log_setting - INFO - clean_data:124 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-08-11 12:02:56,811 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:198 - 提取特征矩阵和目标列中...
+2025-08-11 12:02:56,812 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:215 - 类别编码中...
+2025-08-11 12:02:56,812 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:268 - 划分数据集中...
+2025-08-11 12:02:56,814 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:300 - 初始化模型: logisticregression
+2025-08-11 12:02:56,814 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:321 - 训练模型中...
+2025-08-11 12:02:56,819 - Src.data_analyzer.analysis.analyzer - INFO - run:460 - 分析流程执行完成。
+2025-08-11 12:02:56,819 - Src.data_analyzer.log_setting - INFO - analyze_data:192 - 数据分析完成
+2025-08-11 12:02:56,819 - Src.data_analyzer.log_setting - INFO - generate_report:268 - 分析报告生成完成
+2025-08-11 12:04:03,199 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-08-11 12:04:03,201 - Src.data_analyzer.log_setting - INFO - import_data:90 - 数据导入成功，共 1020 行，5 列
+2025-08-11 12:04:03,201 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (1020, 5)
+2025-08-11 12:04:03,202 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-08-11 12:04:03,202 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-08-11 12:04:03,202 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-08-11 12:04:03,202 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-08-11 12:04:03,202 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (1020, 5)
+2025-08-11 12:04:03,203 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'age' 使用中位数 50.00 填充缺失值
+2025-08-11 12:04:03,204 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'income' 使用中位数 51035.08 填充缺失值
+2025-08-11 12:04:03,204 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'education_years' 使用中位数 14.00 填充缺失值
+2025-08-11 12:04:03,204 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'work_experience' 使用中位数 20.00 填充缺失值
+2025-08-11 12:04:03,204 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'high_income' 使用中位数 0.50 填充缺失值
+2025-08-11 12:04:03,204 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-08-11 12:04:03,205 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (1000, 5)
+2025-08-11 12:04:03,205 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-08-11 12:04:03,205 - Src.data_analyzer.log_setting - INFO - clean_data:124 - 数据清洗完成，清洗后数据形状: (1000, 5)
+2025-08-11 12:04:03,206 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:198 - 提取特征矩阵和目标列中...
+2025-08-11 12:04:03,206 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:215 - 类别编码中...
+2025-08-11 12:04:03,207 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:268 - 划分数据集中...
+2025-08-11 12:04:03,209 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:300 - 初始化模型: logisticregression
+2025-08-11 12:04:03,209 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:321 - 训练模型中...
+2025-08-11 12:04:03,214 - Src.data_analyzer.analysis.analyzer - INFO - run:460 - 分析流程执行完成。
+2025-08-11 12:04:03,214 - Src.data_analyzer.log_setting - INFO - analyze_data:192 - 数据分析完成
+2025-08-11 12:04:03,216 - Src.data_analyzer.log_setting - INFO - generate_report:285 - 分析报告生成完成

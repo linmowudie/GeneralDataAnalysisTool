@@ -167,3 +167,4 @@ class DatabaseImport:
         析构函数，确保在对象销毁时关闭连接。
         """
         self.close_connection()
+
