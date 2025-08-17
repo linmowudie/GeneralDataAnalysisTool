@@ -135,6 +135,7 @@ class AnalyzeData:
         feature_cols_encoding: str = 'onehot',
         target_col_encoding: str = 'label',
         test_set: Optional[pd.DataFrame] = None,
+        model_params: Optional[Dict[str, Any]] = None,  # 新增参数，用于传入额外的模型参数
     ):
         """
         参数说明
@@ -154,6 +155,7 @@ class AnalyzeData:
         feature_cols_encoding : 类别型特征编码方式，可选 'onehot' / 'label'
         target_col_encoding : 目标列编码方式，目前仅支持 'label'
         test_set : 外部测试集 DataFrame，可包含目标列
+        model_params : 额外的模型参数，将覆盖默认参数
         """
 
         # ===== 输入保存 =====
@@ -172,6 +174,7 @@ class AnalyzeData:
         self.feature_cols_encoding = feature_cols_encoding
         self.target_col_encoding = target_col_encoding
         self.test_set = test_set
+        self.model_params_input = model_params or {}  # 保存传入的额外模型参数
 
         # ===== 运行时变量初始化 =====
         self.X: Optional[pd.DataFrame] = None
@@ -301,6 +304,10 @@ class AnalyzeData:
         config = MODEL_CONFIG[self.model_name]
         model_class = config['class']
         params = config['default_params'].copy()
+
+        # 允许传入的额外参数覆盖默认参数
+        for param, value in self.model_params_input.items():
+            params[param] = value
 
         # 允许实例属性覆盖默认参数
         for param in config['init_params']:

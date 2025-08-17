@@ -1,0 +1,15 @@
+{
+  // 1. 明确指定 Python 解释器路径，避免 VSCode 扫描所有环境
+  "python.defaultInterpreterPath": ".venv\\Scripts\\python.exe",
+
+  // 2. 禁用自动扫描 Conda、Pipenv、Poetry 等其他环境管理器（大幅提速）
+  "python.environment.disableEnvironmentFetchers": true,
+
+  // 3. 可选：关闭终端自动激活虚拟环境（防止反复执行 Activate.ps1）
+  // 如果你希望手动激活，或通过其他方式管理环境，可以开启
+  "python.terminal.activateEnvironment": true,
+
+  // 4. 可选：指定 Conda 路径为空，进一步阻止 Conda 扫描
+  "python.condaPath": "",
+  "python.terminal.activateEnvInCurrentTerminal": true,
+}

@@ -72,6 +72,7 @@ class DataProcessingEngine:
             query: SQL 查询语句（仅用于数据库）
             is_database: 是否为数据库源
         """
+        self.logger.info("core: 开始导入数据")
         try:
             # 只有在是数据库源时才需要数据库连接字符串
             if is_database and db_connection_string is None:
@@ -94,6 +95,8 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
 
+        self.logger.info("core: 数据导入完成")
+
     def clean_data(
         self,
         select_mode: str,
@@ -108,6 +111,8 @@ class DataProcessingEngine:
             params_list: 参数列表，如要处理的列名或规则
             is_freedom_params: 是否为自由格式参数
         """
+        self.logger.info("core: 开始数据清洗")
+
         if self.imported_data is None:
             error_msg = "请先导入数据"
             self.logger.error(error_msg)
@@ -128,6 +133,8 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
 
+        self.logger.info("core: 数据清洗完成")
+
     def analyze_data(
         self,
         model: str,
@@ -144,6 +151,7 @@ class DataProcessingEngine:
         feature_cols_encoding: str = 'onehot',
         target_col_encoding: str = 'label',
         test_set: Optional[pd.DataFrame] = None,
+        model_params: Optional[Dict[str, Any]] = None
     ) -> None:
         """
         数据分析阶段
@@ -163,7 +171,10 @@ class DataProcessingEngine:
             feature_cols_encoding: 特征列编码映射
             target_col_encoding: 标签列编码映射
             test_set: 外部测试集（可选）
+            model_params: 模型参数字典，用于覆盖默认参数
         """
+        self.logger.info("core: 开始数据分析")
+
         if self.cleaned_data is None:
             error_msg = "请先进行数据清洗"
             self.logger.error(error_msg)
@@ -185,7 +196,8 @@ class DataProcessingEngine:
                 is_return_model_predicting_set=is_return_model_predicting_set,
                 feature_cols_encoding=feature_cols_encoding,
                 target_col_encoding=target_col_encoding,
-                test_set=test_set
+                test_set=test_set,
+                model_params=model_params
             )
             result = analyzer.analyze()
             self.analyzed_data = result  # 可根据 analyze 返回内容调整
@@ -197,6 +209,8 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
 
+        self.logger.info("core: 数据分析完成")
+
     def visualize_data(self, param_dict: Optional[Dict[str, Any]] = None) -> None:
         """
         数据可视化阶段
@@ -204,6 +218,8 @@ class DataProcessingEngine:
         Args:
             param_dict: 可视化参数字典，如果为None则使用分析结果中的默认参数
         """
+        self.logger.info("core: 开始数据可视化")
+
         if self.analyzed_data is None:
             error_msg = "请先进行数据分析"
             self.logger.error(error_msg)
@@ -229,6 +245,8 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             self.visualized_plot = {}  # 确保即使失败也有默认值
             raise ValueError(error_msg) from e
+        
+        self.logger.info("core: 数据可视化完成")
 
     def _build_default_visualization_params(self) -> Dict[str, Any]:
         """
@@ -268,6 +286,8 @@ class DataProcessingEngine:
         """
         生成分析报告
         """
+        self.logger.info("core: 开始生成报告")
+
         try:
             # 准备报告数据
             model_params = self.analyzed_data.get('model_params') if self.analyzed_data else None
@@ -288,6 +308,8 @@ class DataProcessingEngine:
             error_msg = f"报告生成失败: {str(e)}"
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
+        
+        self.logger.info("core: 报告生成完成")
 
     def get_report(self) -> Optional[Dict]:
         """
@@ -317,6 +339,8 @@ class DataProcessingEngine:
         Returns:
             包含所有处理结果的字典
         """
+
+        self.logger.info("core: 开始完整数据处理流程")
         try:
             # 数据导入
             self.import_data(**import_params)

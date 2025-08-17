@@ -8,7 +8,7 @@ Src/data_analyzer/data_analysis.py
 
 import pandas as pd
 import logging
-from typing import List, Optional, Union
+from typing import List, Optional, Union, Dict, Any
 from .analysis.analyzer import AnalyzeData
 
 logger = logging.getLogger(__name__)
@@ -31,7 +31,8 @@ class DataAnalyzer:
         is_return_model_predicting_set: bool = False,
         feature_cols_encoding: str = 'onehot',
         target_col_encoding: str = 'label',
-        test_set: Optional[pd.DataFrame] = None
+        test_set: Optional[pd.DataFrame] = None,
+        model_params: Optional[Dict[str, Any]] = None
     ):
         """
         初始化数据分析模块
@@ -51,6 +52,7 @@ class DataAnalyzer:
         :param feature_cols_encoding: 特征列中类别变量的编码方式（如 'onehot', 'label'）
         :param target_col_encoding: 目标列编码方式（分类任务中使用，如 'label'）
         :param test_set: 测试集数据集，默认为 None
+        :param model_params: 模型参数字典，用于覆盖默认参数
         """
         # 执行输入验证
         self._validate_inputs(df, target_col, feature_cols)
@@ -71,7 +73,10 @@ class DataAnalyzer:
         self.feature_cols_encoding = feature_cols_encoding
         self.target_col_encoding = target_col_encoding
         self.test_set = test_set  
+        self.model_params = model_params or {}
 
+        logger.info("初始化数据分析模块完成")
+        
     @staticmethod
     def _validate_inputs(
         df: Union[pd.DataFrame, None],
@@ -118,7 +123,8 @@ class DataAnalyzer:
             self.is_return_model_predicting_set,
             self.feature_cols_encoding,
             self.target_col_encoding,
-            self.test_set
+            self.test_set,
+            self.model_params
         )
         result = analyzer.run()
 
