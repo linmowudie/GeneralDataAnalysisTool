@@ -10,8 +10,6 @@ from pathlib import Path
 from typing import Union, Optional
 import logging
 import pandas as pd
-
-# 只导入类，不再继承
 from .importer.db_import import DatabaseImport
 from .importer.file_import import FileImport
 
@@ -62,6 +60,8 @@ class DataImport:
         :param kwargs: 传递给具体导入方法的参数
         :return: Pandas DataFrame 或 None
         """
+        logger.info(f"开始导入数据")
+
         try:
             if self.is_database:
                 if self._db_importer is None:
@@ -75,6 +75,9 @@ class DataImport:
             logger.error(f"导入错误: {e}")
             print(f"导入错误: {e}")
             return None
+        
+        finally:
+            logger.info(f"数据导入完成")
 
     def close_connection(self) -> None:
         """关闭数据库连接（如果是数据库模式）"""
