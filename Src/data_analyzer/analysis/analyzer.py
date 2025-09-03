@@ -12,6 +12,7 @@ from __future__ import annotations
 # ===== 标准库 =====
 import logging
 import random
+import json
 from typing import Any, Callable, Dict, List, Optional, Union
 
 # ===== 第三方库 =====
@@ -32,6 +33,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.neighbors import KNeighborsClassifier
 from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
 from sklearn.tree import DecisionTreeClassifier
+import os
 
 # 日志配置：保持模块名，方便排查
 logger = logging.getLogger(__name__)
@@ -39,56 +41,34 @@ logger = logging.getLogger(__name__)
 # =========================================================
 # 1. 模型注册中心：新增模型只需在此处追加即可
 # =========================================================
-MODEL_CONFIG: Dict[str, Dict[str, Any]] = {
-    'linearregression': {
-        'class': LinearRegression,
-        'type': 'regression',
-        'init_params': ['fit_intercept'],
-        'default_params': {'fit_intercept': True}
-    },
-    'logisticregression': {
-        'class': LogisticRegression,
-        'type': 'classification',
-        'init_params': ['C', 'max_iter', 'fit_intercept'],
-        'default_params': {'C': 1.0, 'max_iter': 1000, 'fit_intercept': True, 'solver': 'liblinear'}
-    },
-    'decisiontreeclassifier': {
-        'class': DecisionTreeClassifier,
-        'type': 'classification',
-        'init_params': ['max_depth', 'min_samples_split', 'random_state'],
-        'default_params': {'max_depth': None, 'min_samples_split': 2, 'random_state': 42}
-    },
-    'kneighborsclassifier': {
-        'class': KNeighborsClassifier,
-        'type': 'classification',
-        'init_params': ['n_neighbors'],
-        'default_params': {'n_neighbors': 5}
-    },
-    'kmeans': {
-        'class': KMeans,
-        'type': 'clustering',
-        'init_params': ['n_clusters', 'random_state'],
-        'default_params': {'n_clusters': 3, 'random_state': 42}
-    },
-    'meanshift': {
-        'class': MeanShift,
-        'type': 'clustering',
-        'init_params': ['bandwidth'],
-        'default_params': {'bandwidth': None}
-    },
-    'standardscaler': {
-        'class': StandardScaler,
-        'type': 'transformer',
-        'init_params': [],
-        'default_params': {}
-    },
-    'pca': {
-        'class': PCA,
-        'type': 'transformer',
-        'init_params': ['n_components'],
-        'default_params': {'n_components': 2}
-    },
+
+# 模型映射字典
+_model_map = {
+    'LinearRegression': LinearRegression,
+    'LogisticRegression': LogisticRegression,
+    'DecisionTreeClassifier': DecisionTreeClassifier,
+    'KNeighborsClassifier': KNeighborsClassifier,
+    'KMeans': KMeans,
+    'MeanShift': MeanShift,
+    'StandardScaler': StandardScaler,
+    'PCA': PCA,
 }
+
+def load_model_config():
+    """从JSON文件加载模型配置"""
+    config_path = os.path.join(os.path.dirname(__file__), 'model_config.json')
+    with open(config_path, 'r', encoding='utf-8') as f:
+        config = json.load(f)
+    
+    # 将字符串类名替换为实际的类引用
+    for model_name, model_info in config.items():
+        class_name = model_info['class']
+        if class_name in _model_map:
+            model_info['class'] = _model_map[class_name]
+    
+    return config
+
+MODEL_CONFIG: Dict[str, Dict[str, Any]] = load_model_config()
 
 # =========================================================
 # 2. 评估指标映射表：不同任务类型对应不同指标
