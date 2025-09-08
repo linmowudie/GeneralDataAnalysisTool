@@ -26,3 +26,31 @@ dependencies = [
     "statsmodels>=0.14.5",
     "uvicorn[standard]>=0.35.0",
 ]
+
+[tool.unimport]
+
+sources = [
+    "Src",
+    "main.py",
+    "tests",
+    "examples"
+]
+
+requirements = [
+    "requirements.txt"
+]
+
+exclude = [
+    "Logs/",           # 日志目录，无Python代码
+    "Data/",           # 数据目录，无Python代码
+    "Notebooks/",      # Jupyter notebooks (unimport 默认不检查 .ipynb)
+    "docs/",           # 文档
+    "test_images/",    # 图片
+    "Src/generaldataanalysistool.egg-info/", # 构建产物
+    "__pycache__",     # Python 缓存
+    "\\.git",          # Git 目录
+]
+
+include_star_import = true
+
+check_init_files = true

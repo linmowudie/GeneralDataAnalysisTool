@@ -1,0 +1,87 @@
+项目结构（排除 uv 等开发环境）：D:\Python\PythonCode\GeneralDataAnalysisTool
+
+├── Data/
+│   ├── generator.py
+│   ├── iris.csv
+│   ├── iris.html
+│   ├── iris.json
+│   ├── iris.xlsx
+│   └── iris_test.db
+├── Logs/
+│   └── app.log
+├── Notebooks/
+├── Src/
+│   ├── data_analyzer/
+│   │   ├── analysis/
+│   │   │   ├── analyzer.py
+│   │   │   └── model_config.json
+│   │   ├── cleaning/
+│   │   │   ├── __init__.py
+│   │   │   └── cleaner.py
+│   │   ├── importer/
+│   │   │   ├── db_import.py
+│   │   │   └── file_import.py
+│   │   ├── visualization/
+│   │   │   ├── plots/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── decisiontreeclassifier.py
+│   │   │   │   ├── kmeans.py
+│   │   │   │   ├── kneighborsclassifier.py
+│   │   │   │   ├── linearregression.py
+│   │   │   │   ├── logisticregression.py
+│   │   │   │   ├── meanshift.py
+│   │   │   │   ├── pca.py
+│   │   │   │   └── standardscaler.py
+│   │   │   ├── __init__.py
+│   │   │   └── registry.py
+│   │   ├── __init__.py
+│   │   ├── core.py
+│   │   ├── data_analysis.py
+│   │   ├── data_cleaning.py
+│   │   ├── data_import.py
+│   │   ├── data_visualization.py
+│   │   ├── log_setting.py
+│   │   └── reporting.py
+│   ├── generaldataanalysistool.egg-info/
+│   │   ├── PKG-INFO
+│   │   ├── SOURCES.txt
+│   │   ├── dependency_links.txt
+│   │   ├── requires.txt
+│   │   └── top_level.txt
+│   └── __init__.py
+├── docs/
+│   └── api_documentation.md
+├── examples/
+│   └── core_example.py
+├── test_images/
+│   ├── iris_cluster_scatter.png
+│   ├── iris_cluster_scatter_3v2.png
+│   └── iris_cluster_sizes.png
+├── tests/
+│   ├── __init__.py
+│   ├── test_all_analysis_models.py
+│   ├── test_all_models.py
+│   ├── test_all_modules.py
+│   ├── test_all_visualization_models.py
+│   ├── test_core.py
+│   ├── test_data_analysis.py
+│   ├── test_data_cleaning.py
+│   ├── test_data_import.py
+│   ├── test_data_visualization.py
+│   ├── test_db_import.py
+│   ├── test_mysql_detailed.py
+│   └── test_mysql_import.py
+├── .gitignore
+├── .python-version
+├── README.md
+├── __init__.py
+├── count_lines.py
+├── iris.csv
+├── main.py
+├── pyproject.toml
+├── requirements.txt
+├── test_compare_data.csv
+├── test_iris_clustering.py
+├── uv.lock
+└── 通用数据分析工具项目架构图.png
+PS D:\Python\PythonCode>

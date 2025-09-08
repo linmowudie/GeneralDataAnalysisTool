@@ -1,93 +1,134 @@
+# Data/generator.py
 """
-save_sklearn_dataset.py
-将 sklearn 内置数据集导出为 CSV 和 Excel 文件
+用于生成和保存sklearn自带数据集到Data文件夹
 """
 
+import numpy as np
 import pandas as pd
-from sklearn import datasets
+from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes, load_linnerud
+from sklearn.datasets import fetch_california_housing
 import os
 
-# -------------------------------
-# 配置区
-# -------------------------------
-DATASET_NAME = 'iris'  # 可选: 'iris', 'wine', 'breast_cancer', 'diabetes', 'boston' (旧版本), 'digits' 等
-OUTPUT_DIR = 'Data'  # 输出目录
-
-# 确保输出目录存在
-os.makedirs(OUTPUT_DIR, exist_ok=True)
-
-# -------------------------------
-# 加载数据集函数
-# -------------------------------
-def load_dataset(name: str) -> pd.DataFrame:
+def save_dataset_as_csv(data, target, feature_names, target_names, filename):
     """
-    根据名称加载 sklearn 数据集并转换为 DataFrame
+    将数据集保存为CSV文件
     """
-    if name == 'iris':
-        data = datasets.load_iris()
-    elif name == 'wine':
-        data = datasets.load_wine()
-    elif name == 'breast_cancer':
-        data = datasets.load_breast_cancer()
-    elif name == 'diabetes':
-        data = datasets.load_diabetes()
-    elif name == 'digits':
-        data = datasets.load_digits()
-        # 数字图像数据较特殊，这里只取前100张展平为特征
-        n_samples = 100
-        flat_images = data.images[:n_samples].reshape(n_samples, -1)
-        df = pd.DataFrame(flat_images)
-        df['target'] = data.target[:n_samples]
-        print(f"Digits 数据集较特殊，仅导出前 {n_samples} 个样本用于演示。")
-        return df
-    else:
-        raise ValueError(f"不支持的数据集: {name}")
+    # 创建特征数据框
+    df = pd.DataFrame(data, columns=feature_names)
+    
+    # 添加目标变量
+    df['target'] = target
+    
+    # 如果有目标名称，也添加进去
+    if target_names is not None:
+        if len(target_names) > 1 and len(target_names) == len(target):
+            df['target_name'] = [target_names[i] for i in target]
+        elif len(target_names) > 1:
+            df['target_name'] = [target_names[int(i)] for i in target]
+        else:
+            df['target_name'] = target
+    
+    # 保存为CSV
+    filepath = os.path.join(os.path.dirname(__file__), filename)
+    df.to_csv(filepath, index=False)
+    print(f"数据集已保存到: {filepath}")
+    print(f"数据形状: {df.shape}")
+    print(f"列名: {list(df.columns)}")
 
-    # 构造 DataFrame
-    df = pd.DataFrame(data.data, columns=data.feature_names)
-    df['target'] = data.target
-
-    # 如果有目标名称，也可以添加一列便于理解（可选）
-    if hasattr(data, 'target_names'):
-        df['target_name'] = data.target_names[data.target]
-
-    return df
-
-# -------------------------------
-# 主程序
-# -------------------------------
-def main():
+def generate_all_datasets():
+    """
+    生成所有sklearn自带数据集并保存为CSV文件
+    """
+    print("开始生成sklearn数据集...")
+    
+    # 1. Iris数据集 (已经存在)
+    print("\n1. Iris数据集")
     try:
-        print(f"正在加载 sklearn 数据集: {DATASET_NAME}")
-        df = load_dataset(DATASET_NAME)
-
-        print(f"数据集形状: {df.shape}")
-        print(f"前几行数据:\n{df.head()}\n")
-
-        # 保存为 CSV
-        csv_file = os.path.join(OUTPUT_DIR, f"{DATASET_NAME}.csv")
-        df.to_csv(csv_file, index=False)
-        print(f"✅ 已保存为 CSV: {csv_file}")
-
-        # 保存为 Excel（需要 openpyxl）
-        excel_file = os.path.join(OUTPUT_DIR, f"{DATASET_NAME}.xlsx")
-        df.to_excel(excel_file, index=False, sheet_name='Data')
-        print(f"✅ 已保存为 Excel: {excel_file}")
-
-        # 保存为 JSON
-        json_file = os.path.join(OUTPUT_DIR, f"{DATASET_NAME}.json")
-        df.to_json(json_file, orient='records', indent=2)
-        print(f"✅ 已保存为 JSON: {json_file}")
-        
-        # 保存为 HTML
-        html_file = os.path.join(OUTPUT_DIR, f"{DATASET_NAME}.html")
-        df.to_html(html_file, index=False)
-        print(f"✅ 已保存为 HTML: {html_file}")
-
-        print(f"\n所有文件已保存到目录: {os.path.abspath(OUTPUT_DIR)}")
-
+        iris = load_iris()
+        save_dataset_as_csv(
+            iris.data, 
+            iris.target, 
+            iris.feature_names, 
+            iris.target_names, 
+            'iris_sklearn.csv'
+        )
     except Exception as e:
-        print(f"❌ 出错: {e}")
+        print(f"生成Iris数据集时出错: {e}")
+    
+    # 2. Wine数据集
+    print("\n2. Wine数据集")
+    try:
+        wine = load_wine()
+        save_dataset_as_csv(
+            wine.data, 
+            wine.target, 
+            wine.feature_names, 
+            wine.target_names, 
+            'wine.csv'
+        )
+    except Exception as e:
+        print(f"生成Wine数据集时出错: {e}")
+    
+    # 3. Breast Cancer数据集
+    print("\n3. Breast Cancer数据集")
+    try:
+        cancer = load_breast_cancer()
+        save_dataset_as_csv(
+            cancer.data, 
+            cancer.target, 
+            cancer.feature_names, 
+            cancer.target_names, 
+            'breast_cancer.csv'
+        )
+    except Exception as e:
+        print(f"生成Breast Cancer数据集时出错: {e}")
+    
+    # 4. Diabetes数据集
+    print("\n4. Diabetes数据集")
+    try:
+        diabetes = load_diabetes()
+        save_dataset_as_csv(
+            diabetes.data, 
+            diabetes.target, 
+            diabetes.feature_names, 
+            None, 
+            'diabetes.csv'
+        )
+    except Exception as e:
+        print(f"生成Diabetes数据集时出错: {e}")
+    
+    # 5. California Housing数据集
+    print("\n5. California Housing数据集")
+    try:
+        housing = fetch_california_housing()
+        save_dataset_as_csv(
+            housing.data, 
+            housing.target, 
+            housing.feature_names, 
+            None, 
+            'california_housing.csv'
+        )
+    except Exception as e:
+        print(f"生成California Housing数据集时出错: {e}")
+    
+    # 6. Linnerud数据集 (多输出回归)
+    print("\n6. Linnerud数据集")
+    try:
+        linnerud = load_linnerud()
+        # 这是一个多输出数据集，需要特殊处理
+        df = pd.DataFrame(linnerud.data, columns=linnerud.feature_names)
+        # 添加目标变量（多个）
+        for i, name in enumerate(linnerud.target_names):
+            df[name] = linnerud.target[:, i]
+        filepath = os.path.join(os.path.dirname(__file__), 'linnerud.csv')
+        df.to_csv(filepath, index=False)
+        print(f"Linnerud数据集已保存到: {filepath}")
+        print(f"数据形状: {df.shape}")
+        print(f"列名: {list(df.columns)}")
+    except Exception as e:
+        print(f"生成Linnerud数据集时出错: {e}")
+    
+    print("\n所有数据集生成完成!")
 
 if __name__ == "__main__":
-    main()
+    generate_all_datasets()

@@ -1199,3 +1199,527 @@ ValueError: 数据可视化失败: Missing required parameter: feature
 2025-08-30 13:31:08,979 - Src.data_analyzer.analysis.analyzer - INFO - run:467 - 分析流程执行完成。
 2025-08-30 13:31:08,979 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
 2025-08-30 13:31:08,979 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:06,919 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:06,921 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:06,921 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:06,941 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:06,941 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:06,941 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:06,941 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:06,941 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:06,941 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:06,941 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:06,941 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:06,941 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:06,941 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:06,952 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:06,960 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:06,960 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:06,960 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:06,960 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:06,960 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:06,960 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:06,960 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:06,960 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:06,960 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:06,968 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: linearregression
+2025-09-04 18:38:06,968 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:06,984 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:06,984 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:06,984 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:07,002 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:07,002 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:07,002 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:07,005 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:07,005 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:07,007 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:07,007 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:07,007 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:07,007 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:07,007 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:07,007 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:07,007 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:07,007 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:07,007 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:07,007 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:07,017 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: logisticregression
+2025-09-04 18:38:07,017 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:07,024 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:07,024 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:07,024 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:07,024 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:07,024 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:07,024 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:07,039 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:07,039 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:07,039 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:07,039 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:07,039 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:07,039 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:07,039 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:07,039 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:07,039 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:07,039 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:07,043 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:07,043 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:07,043 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:07,043 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:07,045 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:07,045 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:07,045 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:07,045 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:07,045 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:07,045 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:07,045 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:07,045 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:07,045 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:07,045 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:07,045 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:07,051 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: decisiontreeclassifier
+2025-09-04 18:38:07,051 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:07,057 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:07,057 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:07,057 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:07,063 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:07,063 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:07,063 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:07,065 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:07,065 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:07,065 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:07,065 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:07,065 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:07,065 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:07,065 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:07,065 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:07,065 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:07,065 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:07,067 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:07,067 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:07,067 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:07,068 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:07,068 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:07,068 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:07,068 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:07,068 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:07,068 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:07,068 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:07,068 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:07,068 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:07,068 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:07,070 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:07,070 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:07,070 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: kneighborsclassifier
+2025-09-04 18:38:07,072 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:07,082 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:07,082 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:07,082 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:07,089 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:07,089 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:07,089 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:07,089 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:07,089 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，4 列
+2025-09-04 18:38:07,089 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:07,089 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-09-04 18:38:07,091 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:07,091 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:07,091 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 0.05 填充缺失值
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.15 填充缺失值
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.14 填充缺失值
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:07,091 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-09-04 18:38:07,091 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:07,091 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-09-04 18:38:07,091 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:07,091 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:07,091 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:07,091 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:07,093 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:07,093 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:07,093 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: kmeans
+2025-09-04 18:38:07,093 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,379 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,379 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,380 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,382 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,382 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,382 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,383 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,383 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，4 列
+2025-09-04 18:38:09,383 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,383 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,383 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-09-04 18:38:09,383 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,383 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,383 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,383 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,384 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 0.05 填充缺失值
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.15 填充缺失值
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.14 填充缺失值
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,385 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-09-04 18:38:09,385 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,385 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-09-04 18:38:09,385 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,385 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,385 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,385 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,385 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,387 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,387 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: meanshift
+2025-09-04 18:38:09,387 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,583 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,583 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,583 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,588 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,588 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,588 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,590 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,590 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,590 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,590 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,590 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,590 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,590 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,590 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,590 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,590 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,590 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,592 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,592 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,592 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,592 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,592 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,592 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,593 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,593 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,594 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,594 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: standardscaler
+2025-09-04 18:38:09,594 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,596 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,596 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,596 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,599 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,599 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,599 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,602 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,602 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,602 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,602 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,602 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,602 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,602 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,602 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,602 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,602 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,604 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,604 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,604 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,604 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,604 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,604 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,604 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,606 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,606 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,606 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: pca
+2025-09-04 18:38:09,606 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,615 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,615 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,615 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,620 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,620 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,620 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,620 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,620 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,620 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,620 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,620 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,620 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,620 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,622 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,622 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,622 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,622 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:09,622 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:09,622 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:09,625 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:09,625 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,625 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,625 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,625 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,625 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,625 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,625 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,625 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,625 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,626 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,626 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,627 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: linearregression
+2025-09-04 18:38:09,628 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,630 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,630 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,630 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,632 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,632 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,632 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,634 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,634 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,634 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,634 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,634 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,634 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,634 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:09,634 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:09,637 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:09,637 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,637 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,637 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,637 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,637 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,637 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,637 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,637 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,637 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,637 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,637 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,639 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: logisticregression
+2025-09-04 18:38:09,639 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,641 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,641 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,641 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,645 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,645 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,645 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,647 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,647 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,647 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,647 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,647 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,647 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,647 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,647 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,647 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,647 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,647 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:09,647 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:09,649 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:09,649 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:09,649 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,649 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,649 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,649 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,649 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,649 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,649 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,649 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,649 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,649 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,649 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,651 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: decisiontreeclassifier
+2025-09-04 18:38:09,651 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,654 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,654 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,654 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,655 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,655 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,655 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,657 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,657 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,657 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,657 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,657 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,657 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,657 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,657 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,657 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,657 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.13 填充缺失值
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.08 填充缺失值
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 0.10 填充缺失值
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_class' 使用中位数 1.00 填充缺失值
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,659 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,659 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,659 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,659 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,659 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,659 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,659 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,659 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,659 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,660 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: kneighborsclassifier
+2025-09-04 18:38:09,660 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,663 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,663 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,663 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,666 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,666 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,666 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,668 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,668 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，4 列
+2025-09-04 18:38:09,668 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,668 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,668 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-09-04 18:38:09,668 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,668 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,668 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,668 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,668 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-09-04 18:38:09,668 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 0.05 填充缺失值
+2025-09-04 18:38:09,668 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.15 填充缺失值
+2025-09-04 18:38:09,670 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.14 填充缺失值
+2025-09-04 18:38:09,670 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,670 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,670 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-09-04 18:38:09,670 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,670 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-09-04 18:38:09,670 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,670 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,670 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,670 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,671 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,671 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,671 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: kmeans
+2025-09-04 18:38:09,671 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,678 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,678 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,678 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,680 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,680 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,680 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,680 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,680 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，4 列
+2025-09-04 18:38:09,680 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,680 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,680 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 4)
+2025-09-04 18:38:09,680 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,680 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,680 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,680 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,680 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 4)
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 0.05 填充缺失值
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 0.15 填充缺失值
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.14 填充缺失值
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,682 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 4)
+2025-09-04 18:38:09,682 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,682 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 4)
+2025-09-04 18:38:09,682 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,682 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,682 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,682 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,682 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,684 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,684 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: meanshift
+2025-09-04 18:38:09,684 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,798 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,798 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,798 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,810 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,810 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,810 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,812 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,812 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,812 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,812 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,812 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,812 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,812 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,812 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,812 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,812 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,814 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:09,814 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:09,814 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:09,815 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:09,815 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,815 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,815 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,815 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,815 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,815 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,815 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,815 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,815 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,815 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,815 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,815 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: standardscaler
+2025-09-04 18:38:09,815 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,817 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,817 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,817 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
+2025-09-04 18:38:09,819 - Src.data_analyzer.log_setting - DEBUG - __init__:55 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-09-04 18:38:09,819 - Src.data_analyzer.log_setting - INFO - import_data:75 - core: 开始导入数据
+2025-09-04 18:38:09,819 - Src.data_analyzer.data_import - INFO - import_data:63 - 开始导入数据
+2025-09-04 18:38:09,820 - Src.data_analyzer.data_import - INFO - import_data:80 - 数据导入完成
+2025-09-04 18:38:09,820 - Src.data_analyzer.log_setting - INFO - import_data:91 - 数据导入成功，共 100 行，5 列
+2025-09-04 18:38:09,820 - Src.data_analyzer.log_setting - INFO - import_data:98 - core: 数据导入完成
+2025-09-04 18:38:09,820 - Src.data_analyzer.log_setting - INFO - clean_data:114 - core: 开始数据清洗
+2025-09-04 18:38:09,820 - Src.data_analyzer.cleaning.cleaner - DEBUG - __init__:85 - CleanData 初始化，输入数据形状: (100, 5)
+2025-09-04 18:38:09,820 - Src.data_analyzer.data_cleaning - DEBUG - __init__:27 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: []
+2025-09-04 18:38:09,820 - Src.data_analyzer.data_cleaning - INFO - clean_data:31 - 开始数据清洗流程
+2025-09-04 18:38:09,820 - Src.data_analyzer.data_cleaning - INFO - clean_data:39 - 使用预设模式清洗数据: standard
+2025-09-04 18:38:09,820 - Src.data_analyzer.cleaning.cleaner - INFO - standard:121 - 执行 standard 模式清洗
+2025-09-04 18:38:09,820 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:122 - standard 模式前数据形状: (100, 5)
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature1' 使用中位数 -0.10 填充缺失值
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature2' 使用中位数 -0.06 填充缺失值
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'feature3' 使用中位数 -0.05 填充缺失值
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:133 - 数值列 'target_reg' 使用中位数 5.77 填充缺失值
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:141 - 类别列 'category' 填充完成
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - INFO - standard:143 - standard 模式完成
+2025-09-04 18:38:09,822 - Src.data_analyzer.cleaning.cleaner - DEBUG - standard:144 - standard 模式后数据形状: (100, 5)
+2025-09-04 18:38:09,822 - Src.data_analyzer.data_cleaning - INFO - clean_data:59 - 数据清洗成功完成
+2025-09-04 18:38:09,822 - Src.data_analyzer.log_setting - INFO - clean_data:129 - 数据清洗完成，清洗后数据形状: (100, 5)
+2025-09-04 18:38:09,822 - Src.data_analyzer.log_setting - INFO - clean_data:136 - core: 数据清洗完成
+2025-09-04 18:38:09,822 - Src.data_analyzer.log_setting - INFO - analyze_data:176 - core: 开始数据分析
+2025-09-04 18:38:09,822 - Src.data_analyzer.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-09-04 18:38:09,822 - Src.data_analyzer.analysis.analyzer - INFO - _prepare_feature_and_target:181 - 提取特征矩阵和目标列中...
+2025-09-04 18:38:09,824 - Src.data_analyzer.analysis.analyzer - INFO - _encode_categorical_variables:198 - 类别编码中...
+2025-09-04 18:38:09,824 - Src.data_analyzer.analysis.analyzer - INFO - _split_dataset:251 - 划分数据集中...
+2025-09-04 18:38:09,824 - Src.data_analyzer.analysis.analyzer - INFO - _initialize_model:283 - 初始化模型: pca
+2025-09-04 18:38:09,824 - Src.data_analyzer.analysis.analyzer - INFO - _train_model:308 - 训练模型中...
+2025-09-04 18:38:09,826 - Src.data_analyzer.analysis.analyzer - INFO - run:447 - 分析流程执行完成。
+2025-09-04 18:38:09,826 - Src.data_analyzer.log_setting - INFO - analyze_data:204 - 数据分析完成
+2025-09-04 18:38:09,826 - Src.data_analyzer.log_setting - INFO - analyze_data:212 - core: 数据分析完成
