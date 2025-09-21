@@ -3,13 +3,14 @@ Src/data_analyzer/data_import.py
 数据导入模块
 
 该模块提供统一的数据导入接口，支持从文件和数据库导入数据。
-使用组合模式替代继承，避免耦合问题。
+使用组合模式替代继承，避免耦合问题。支持大文件读取优化。
 """
 
 from pathlib import Path
 from typing import Union, Optional
 import logging
 import pandas as pd
+import os
 from .importer.db_import import DatabaseImport
 from .importer.file_import import FileImport
 
@@ -53,10 +54,11 @@ class DataImport:
         else:
             self._file_importer = FileImport(file_resource, resource_type)
 
-    def import_data(self, **kwargs) -> Optional[pd.DataFrame]:
+    def import_data(self, chunksize: Optional[int] = None, **kwargs) -> Optional[pd.DataFrame]:
         """
         执行数据导入。
 
+        :param chunksize: 分块读取大小，用于大文件处理
         :param kwargs: 传递给具体导入方法的参数
         :return: Pandas DataFrame 或 None
         """
@@ -70,7 +72,14 @@ class DataImport:
             else:
                 if self._file_importer is None:
                     raise RuntimeError("文件导入器未初始化")
-                return self._file_importer.select_import_type()
+                
+                # 获取文件大小，如果大于100MB则启用分块读取
+                file_size_mb = os.path.getsize(self.file_resource) / (1024 * 1024)
+                if chunksize is None and file_size_mb > 100:
+                    logger.info(f"检测到大文件 ({file_size_mb:.2f} MB)，启用分块读取")
+                    chunksize = 10000  # 默认分块大小为10000行
+                    
+                return self._file_importer.select_import_type(chunksize=chunksize)
         except Exception as e:
             logger.error(f"导入错误: {e}")
             print(f"导入错误: {e}")

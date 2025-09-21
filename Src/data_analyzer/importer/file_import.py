@@ -3,7 +3,7 @@ Src/data_analyzer/importer/file_import.py
 文件导入模块
 
 该模块提供从各种文件格式导入数据的功能，支持CSV、Excel、JSON等
-常见数据文件格式。
+常见数据文件格式，并针对大文件提供分块读取功能以避免内存溢出。
 """
 
 import pandas as pd
@@ -32,11 +32,12 @@ class FileImport:
         self.path = Path(path)
         self.file_type = file_type.lower()  # 确保文件类型统一为小写
     
-    def select_import_type(self) -> Optional[pd.DataFrame]:
+    def select_import_type(self, chunksize: Optional[int] = None) -> Optional[pd.DataFrame]:
         """
         根据文件类型选择相应的读取方法，并读取文件。
+        对于大文件，支持分块读取以避免内存溢出。
         
-        :param kwargs: 传递给 pandas 读取函数的额外参数
+        :param chunksize: 分块大小，None表示一次性读取整个文件
         :return: Pandas DataFrame 或 None
         """
         if self.file_type not in self.default_file_type:
@@ -55,7 +56,15 @@ class FileImport:
         read_method = getattr(pd, read_method_name)
         
         try:
-            df = read_method(self.path)
+            # 如果指定了chunksize且是CSV文件，则分块读取
+            if chunksize is not None and self.file_type == 'csv':
+                chunks = []
+                for chunk in read_method(self.path, chunksize=chunksize):
+                    chunks.append(chunk)
+                df = pd.concat(chunks, ignore_index=True)
+                logger.info(f"分块读取完成，共 {len(chunks)} 块，合并后 {len(df)} 行")
+            else:
+                df = read_method(self.path)
             return df
         except Exception as e:
             logger.error(f"文件读取错误：{e}")

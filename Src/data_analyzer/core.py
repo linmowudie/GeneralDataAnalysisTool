@@ -25,6 +25,7 @@ from . import data_cleaning
 from . import data_visualization
 from . import reporting
 from . import log_setting
+from .temp_storage.manager import TempStorageManager
 
 import logging
 import random
@@ -50,6 +51,9 @@ class DataProcessingEngine:
         self.visualized_plot: Optional[Dict[str, Figure]] = None
         self.report_data: Optional[Dict] = None
 
+        # 初始化临时存储管理器
+        self.temp_storage = TempStorageManager()
+        
         # 初始化日志
         self.logger = log_setting.setup_logging()
         self.logger.debug("DataProcessingEngine 初始化完成，等待执行数据处理任务。")
@@ -88,6 +92,8 @@ class DataProcessingEngine:
             self.imported_data = importer.import_data(query=query)
 
             if self.imported_data is not None:
+                # 保存导入的数据到临时存储
+                self.temp_storage.save_data(self.imported_data, 'imported', 'imported_data.pkl')
                 self.logger.info("数据导入成功，共 %d 行，%d 列", self.imported_data.shape[0], self.imported_data.shape[1])
 
         except Exception as e:
@@ -113,10 +119,13 @@ class DataProcessingEngine:
         """
         self.logger.info("core: 开始数据清洗")
 
+        # 如果没有导入的数据，尝试从临时存储加载
         if self.imported_data is None:
-            error_msg = "请先导入数据"
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self.imported_data = self.temp_storage.load_data('imported', 'imported_data.pkl')
+            if self.imported_data is None:
+                error_msg = "请先导入数据"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
 
         try:
             cleaner = data_cleaning.CleanDataMode(
@@ -126,6 +135,9 @@ class DataProcessingEngine:
                 is_freedom_params
             )
             self.cleaned_data = cleaner.clean_data()
+            
+            # 保存清洗后的数据到临时存储
+            self.temp_storage.save_data(self.cleaned_data, 'cleaned', 'cleaned_data.pkl')
             self.logger.info("数据清洗完成，清洗后数据形状: %s", str(self.cleaned_data.shape))
 
         except Exception as e:
@@ -175,10 +187,13 @@ class DataProcessingEngine:
         """
         self.logger.info("core: 开始数据分析")
 
+        # 如果没有清洗的数据，尝试从临时存储加载
         if self.cleaned_data is None:
-            error_msg = "请先进行数据清洗"
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self.cleaned_data = self.temp_storage.load_data('cleaned', 'cleaned_data.pkl')
+            if self.cleaned_data is None:
+                error_msg = "请先进行数据清洗"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
 
         try:
             analyzer = data_analysis.DataAnalyzer(
@@ -201,6 +216,9 @@ class DataProcessingEngine:
             )
             result = analyzer.analyze()
             self.analyzed_data = result  # 可根据 analyze 返回内容调整
+            
+            # 保存分析结果到临时存储
+            self.temp_storage.save_data(self.analyzed_data, 'analyzed', 'analyzed_data.pkl')
             self.logger.info("数据分析完成")
 
 
@@ -220,10 +238,13 @@ class DataProcessingEngine:
         """
         self.logger.info("core: 开始数据可视化")
 
+        # 如果没有分析的数据，尝试从临时存储加载
         if self.analyzed_data is None:
-            error_msg = "请先进行数据分析"
-            self.logger.error(error_msg)
-            raise ValueError(error_msg)
+            self.analyzed_data = self.temp_storage.load_data('analyzed', 'analyzed_data.pkl')
+            if self.analyzed_data is None:
+                error_msg = "请先进行数据分析"
+                self.logger.error(error_msg)
+                raise ValueError(error_msg)
 
         try:
             # 如果没有提供参数字典，则根据分析结果构建默认参数
@@ -238,6 +259,9 @@ class DataProcessingEngine:
             
             visualizer = data_visualization.DataVisualization(param_dict)
             self.visualized_plot = visualizer.plot_chart()
+            
+            # 保存可视化结果到临时存储
+            self.temp_storage.save_data(self.visualized_plot, 'visualized', 'visualized_data.pkl')
             self.logger.info("数据可视化完成")
 
         except Exception as e:
@@ -254,7 +278,10 @@ class DataProcessingEngine:
         """
         # 检查是否有分析数据
         if not self.analyzed_data:
-            raise ValueError("没有可用的分析数据用于可视化")
+            # 尝试从临时存储加载
+            self.analyzed_data = self.temp_storage.load_data('analyzed', 'analyzed_data.pkl')
+            if not self.analyzed_data:
+                raise ValueError("没有可用的分析数据用于可视化")
         
         # 从分析结果中提取必要信息
         trained_model = self.analyzed_data.get('trained_model')
@@ -290,9 +317,17 @@ class DataProcessingEngine:
 
         try:
             # 准备报告数据
+            # 如果没有分析的数据，尝试从临时存储加载
+            if not self.analyzed_data:
+                self.analyzed_data = self.temp_storage.load_data('analyzed', 'analyzed_data.pkl')
+                
             model_params = self.analyzed_data.get('model_params') if self.analyzed_data else None
             model_scores = self.analyzed_data.get('scores') if self.analyzed_data else None
             model_predictions = self.analyzed_data.get('predictions') if self.analyzed_data else None
+            
+            # 如果没有可视化数据，尝试从临时存储加载
+            if not self.visualized_plot:
+                self.visualized_plot = self.temp_storage.load_data('visualized', 'visualized_data.pkl')
             
             report_generator = reporting.Report(
                 model_params=model_params,
@@ -376,3 +411,27 @@ class DataProcessingEngine:
             error_msg = f"完整数据处理流程执行失败: {str(e)}"
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
+        finally:
+            # 清理中间数据
+            self.cleanup()
+            
+    def cleanup(self) -> None:
+        """
+        清理中间数据和优化内存
+        """
+        self.logger.info("开始清理中间数据")
+        
+        # 清空内存中的数据引用
+        self.imported_data = None
+        self.cleaned_data = None
+        self.analyzed_data = None
+        self.visualized_plot = None
+        self.report_data = None
+        
+        # 清理磁盘上的临时数据
+        self.temp_storage.clear_all_data()
+        
+        # 优化内存
+        self.temp_storage.optimize_memory()
+        
+        self.logger.info("中间数据清理完成")
