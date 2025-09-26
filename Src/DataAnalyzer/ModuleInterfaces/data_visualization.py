@@ -4,10 +4,10 @@ from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 
-from .visualization.registry import plot_registry
+from ..visualization.registry import plot_registry
 
 # 确保导入所有可视化插件
-from .visualization.plots import linearregression, logisticregression, kmeans
+from ..visualization.plots import linearregression, logisticregression, kmeans
 
 logger = logging.getLogger(__name__)
 

@@ -1,6 +1,6 @@
 # visualization/plots/pca.py
 """
-Src/data_analyzer/visualization/plots/pca.py
+Src/DataAnalyzer/visualization/plots/pca.py
 主成分分析(PCA)可视化模块
 
 该模块提供主成分分析模型的可视化功能，

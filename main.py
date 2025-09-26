@@ -1,5 +1,4 @@
-from .Src.data_analyzer import core
+from Src.DataAnalyzer import core
 
 if __name__ == '__main__':
-    core.main()
-
+    print(core.DataProcessingEngine())

@@ -1,6 +1,6 @@
 # visualization/plots/standardscaler.py
 """
-Src/data_analyzer/visualization/plots/standardscaler.py
+Src/DataAnalyzer/visualization/plots/standardscaler.py
 标准化缩放器可视化模块
 
 该模块提供标准化缩放器的可视化功能，

@@ -3480,3 +3480,4 @@ TypeError: 清洗方法必须返回 DataFrame，但返回了 <class 'str'>
 2025-09-21 18:57:30,160 - Src.data_analyzer.temp_storage.manager - INFO - load_data:110 - 从 Src\data_analyzer\temp_storage\imported\test_dict.pkl 加载数据
 2025-09-21 18:57:30,161 - Src.data_analyzer.temp_storage.manager - INFO - __init__:41 - TempStorageManager 初始化完成
 2025-09-21 18:57:30,182 - Src.data_analyzer.temp_storage.manager - INFO - save_data:67 - 保存大数据DataFrame到 Src\data_analyzer\temp_storage\imported\large_data.parquet
+2025-09-26 18:16:57,861 - Src.DataAnalyzer.log_setting - DEBUG - __init__:59 - DataProcessingEngine 初始化完成，等待执行数据处理任务。

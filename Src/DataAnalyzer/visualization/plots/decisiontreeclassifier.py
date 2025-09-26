@@ -1,6 +1,6 @@
 # visualization/plots/decisiontreeclassifier.py
 """
-Src/data_analyzer/visualization/plots/decisiontreeclassifier.py
+Src/DataAnalyzer/visualization/plots/decisiontreeclassifier.py
 决策树分类器可视化模块
 
 该模块提供决策树分类器模型的可视化功能，

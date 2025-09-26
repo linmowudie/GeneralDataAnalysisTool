@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.abspath(__file__)))
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.core import DataProcessingEngine
+from Src.DataAnalyzer.core import DataProcessingEngine
 
 def create_sample_data():
     """创建示例数据集"""

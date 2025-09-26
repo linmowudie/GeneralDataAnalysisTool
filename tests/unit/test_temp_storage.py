@@ -17,7 +17,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.temp_storage.manager import TempStorageManager
+from Src.DataAnalyzer.TempStorage.manager import TempStorageManager
 
 
 class TestTempStorageManager(unittest.TestCase):
@@ -25,7 +25,7 @@ class TestTempStorageManager(unittest.TestCase):
 
     def setUp(self):
         """测试前准备"""
-        self.base_path = "Src/data_analyzer/temp_storage"
+        self.base_path = "Src/DataAnalyzer/TempStorage"
         self.manager = TempStorageManager(self.base_path)
         
     def test_initialization(self):

@@ -5,8 +5,8 @@ GeneralDataAnalysisTool 包初始化文件
 """
 
 try:
-    # 尝试从Src.data_analyzer导入核心模块
-    from Src.data_analyzer.core import DataProcessingEngine
+    # 尝试从Src.DataAnalyzer导入核心模块
+    from Src.DataAnalyzer.core import DataProcessingEngine
     
     __all__ = [
         'DataProcessingEngine'

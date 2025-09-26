@@ -1,5 +1,5 @@
 """
-Src/data_analyzer/visualization/registry.py
+Src/DataAnalyzer/visualization/registry.py
 可视化注册表模块
 
 该模块提供一个注册表系统，用于管理和注册各种图表类型的绘制函数，

@@ -16,7 +16,7 @@ if PROJECT_ROOT not in sys.path:
 # ==================================================
 
 # 导入需要的模块
-from Src.data_analyzer.analysis.analyzer import analyze_data
+from Src.DataAnalyzer.analysis.analyzer import analyze_data
 
 def load_iris_data():
     """加载iris数据集"""

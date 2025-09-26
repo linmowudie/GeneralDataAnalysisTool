@@ -1,6 +1,6 @@
 # visualization/plots/kneighborsclassifier.py
 """
-Src/data_analyzer/visualization/plots/kneighborsclassifier.py
+Src/DataAnalyzer/visualization/plots/kneighborsclassifier.py
 K近邻分类器可视化模块
 
 该模块提供K近邻分类器模型的可视化功能，

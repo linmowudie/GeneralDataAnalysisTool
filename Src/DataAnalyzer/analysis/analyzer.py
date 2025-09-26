@@ -1,6 +1,6 @@
 # -*- coding: utf-8 -*-
 """
-Src/data_analyzer/analysis/analyzer.py
+Src/DataAnalyzer/analysis/analyzer.py
 数据分析器模块
 
 该模块提供各种数据分析功能的实现，包括描述性统计、相关性分析、

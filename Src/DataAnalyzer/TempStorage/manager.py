@@ -20,7 +20,7 @@ class TempStorageManager:
     用于在磁盘上临时存储处理过程中的大数据，避免内存溢出
     """
     
-    def __init__(self, base_path: str = "Src/data_analyzer/temp_storage"):
+    def __init__(self, base_path: str = "Src/DataAnalyzer/TempStorage"):
         """
         初始化中间数据存储管理器
         

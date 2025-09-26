@@ -1,5 +1,5 @@
 """
-Src/data_analyzer/importer/db_import.py
+Src/DataAnalyzer/importer/db_import.py
 数据库导入模块
 
 该模块提供从各种数据库导入数据的功能，支持MySQL、PostgreSQL等

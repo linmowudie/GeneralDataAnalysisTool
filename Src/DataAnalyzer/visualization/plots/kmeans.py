@@ -1,6 +1,6 @@
 # visualization/plots/kmeans.py
 """
-Src/data_analyzer/visualization/plots/kmeans.py
+Src/DataAnalyzer/visualization/plots/kmeans.py
 K-Means聚类可视化模块
 
 该模块提供K-Means聚类模型的可视化功能，

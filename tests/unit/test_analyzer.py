@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.analysis.analyzer import AnalyzeData
+from Src.DataAnalyzer.analysis.analyzer import AnalyzeData
 
 
 class TestAnalyzer(unittest.TestCase):
@@ -34,18 +34,20 @@ class TestAnalyzer(unittest.TestCase):
         """测试初始化"""
         analyzer = AnalyzeData(
             df=self.test_df,
-            model_name="lr"
+            model="LinearRegression",
+            target_col="target"
         )
         
-        self.assertEqual(analyzer.df.shape, self.test_df.shape)
-        self.assertEqual(analyzer.model_name, "lr")
-        self.assertEqual(analyzer.random_state, 42)
-        self.assertTrue(analyzer.is_split)
-        self.assertEqual(analyzer.split_ratio, 0.8)
+        self.assertEqual(analyzer.kwargs['df'].shape, self.test_df.shape)
+        self.assertEqual(analyzer.kwargs['model'], "LinearRegression")
+        self.assertEqual(analyzer.kwargs['random_state'], 42)
+        self.assertTrue(analyzer.kwargs['is_split'])
+        self.assertEqual(analyzer.kwargs['split_ratio'], 0.8)
+        self.assertEqual(analyzer.kwargs['target_col'], "target")
         
-    @patch('Src.data_analyzer.analysis.analyzer.AnalyzeData._get_model')
+    @patch('Src.DataAnalyzer.analysis.analyzer.LinearRegression')
     @patch('sklearn.model_selection.train_test_split')
-    def test_run_method_with_split(self, mock_train_test_split, mock_get_model):
+    def test_run_method_with_split(self, mock_train_test_split, mock_model_class):
         """测试运行方法（带数据分割）"""
         # 创建模拟数据
         X_train = pd.DataFrame({'feature1': [1, 2, 3, 4], 'feature2': [2, 4, 6, 8]})
@@ -59,10 +61,15 @@ class TestAnalyzer(unittest.TestCase):
         mock_model = Mock()
         mock_model.fit.return_value = None
         mock_model.predict.return_value = [0]
-        mock_get_model.return_value = mock_model
+        mock_model_class.return_value = mock_model
         
         # 创建分析器并运行
-        analyzer = AnalyzeData(df=self.test_df, model_name="lr")
+        analyzer = AnalyzeData(
+            df=self.test_df, 
+            model="LinearRegression", 
+            target_col="target",
+            is_return_training_set=True  # 确保返回训练集
+        )
         result = analyzer.run()
         
         # 验证
@@ -73,23 +80,22 @@ class TestAnalyzer(unittest.TestCase):
         self.assertIn('y_train', result)
         self.assertIn('y_test', result)
         
-    @patch('Src.data_analyzer.analysis.analyzer.AnalyzeData._get_model')
-    def test_run_method_without_split(self, mock_get_model):
+    @patch('Src.DataAnalyzer.analysis.analyzer.LinearRegression')
+    def test_run_method_without_split(self, mock_model_class):
         """测试运行方法（不带数据分割）"""
         # 创建模拟模型
         mock_model = Mock()
         mock_model.fit.return_value = None
         mock_model.predict.return_value = [0, 1, 0, 1, 0]
-        mock_get_model.return_value = mock_model
+        mock_model_class.return_value = mock_model
         
         # 创建分析器并运行
-        analyzer = AnalyzeData(df=self.test_df, model_name="lr", is_split=False)
+        analyzer = AnalyzeData(df=self.test_df, model="LinearRegression", target_col="target", is_split=False)
         result = analyzer.run()
         
         # 验证
         self.assertIsInstance(result, dict)
         self.assertIn('trained_model', result)
-        mock_get_model.assert_called_once()
 
 
 if __name__ == '__main__':

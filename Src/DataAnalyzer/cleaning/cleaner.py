@@ -1,5 +1,5 @@
 """
-Src/data_analyzer/cleaning/cleaner.py
+Src/DataAnalyzer/cleaning/cleaner.py
 数据清洗器模块
 
 该模块提供各种数据清洗功能的实现，包括缺失值处理、重复值处理、
@@ -17,7 +17,7 @@ import numpy as np
 # -------------------------------
 # 日志配置（入口调用一次即可）
 # -------------------------------
-from ..log_setting import setup_logging
+from ..Configs.log_setting import setup_logging
 
 logger = logging.getLogger(__name__)
 

@@ -12,4 +12,5 @@
   // 4. 可选：指定 Conda 路径为空，进一步阻止 Conda 扫描
   "python.condaPath": "",
   "python.terminal.activateEnvInCurrentTerminal": true,
+  "python.analysis.typeCheckingMode": "off",
 }

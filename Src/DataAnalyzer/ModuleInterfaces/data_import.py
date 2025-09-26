@@ -11,8 +11,8 @@ from typing import Union, Optional
 import logging
 import pandas as pd
 import os
-from .importer.db_import import DatabaseImport
-from .importer.file_import import FileImport
+from ..importer.db_import import DatabaseImport
+from ..importer.file_import import FileImport
 
 logger = logging.getLogger(__name__)
 
