@@ -57,6 +57,7 @@ DataProcessingEngine()
 - `feature_cols_encoding` (str): 特征列编码映射，默认为 'onehot'
 - `target_col_encoding` (str): 标签列编码映射，默认为 'label'
 - `test_set` (Optional[pd.DataFrame]): 外部测试集（可选）
+- `model_params` (Optional[Dict[str, Any]]): 模型参数字典，用于覆盖默认参数
 
 ##### visualize_data()
 
@@ -153,7 +154,7 @@ CleanDataMode(df: pd.DataFrame, select_mode: str, params_list: list[str], is_fre
 #### 构造函数
 
 ```python
-DataAnalyzer(df: pd.DataFrame, model: str, random_state: int = 42, is_split: bool = True, split_ratio: float = 0.8, feature_cols: Optional[List[str]] = None, target_col: Optional[str] = None, is_return_model_param: bool = False, metrics_list: Optional[List[str]] = None, is_return_model_score: bool = True, is_return_training_set: bool = False, is_return_model_predicting_set: bool = False, feature_cols_encoding: str = 'onehot', target_col_encoding: str = 'label', test_set: Optional[pd.DataFrame] = None)
+DataAnalyzer(df: pd.DataFrame, model: str, random_state: int = 42, is_split: bool = True, split_ratio: float = 0.8, feature_cols: Optional[List[str]] = None, target_col: Optional[str] = None, is_return_model_param: bool = False, metrics_list: Optional[List[str]] = None, is_return_model_score: bool = True, is_return_training_set: bool = False, is_return_model_predicting_set: bool = False, feature_cols_encoding: str = 'onehot', target_col_encoding: str = 'label', test_set: Optional[pd.DataFrame] = None, model_params: Optional[Dict[str, Any]] = None)
 ```
 
 **参数:**
@@ -172,6 +173,7 @@ DataAnalyzer(df: pd.DataFrame, model: str, random_state: int = 42, is_split: boo
 - `feature_cols_encoding` (str): 特征列中类别变量的编码方式，默认为 'onehot'
 - `target_col_encoding` (str): 目标列编码方式，默认为 'label'
 - `test_set` (Optional[pd.DataFrame]): 测试集数据集，默认为 None
+- `model_params` (Optional[Dict[str, Any]]): 模型参数字典，用于覆盖默认参数
 
 #### 方法
 
@@ -196,10 +198,10 @@ DataAnalyzer(df: pd.DataFrame, model: str, random_state: int = 42, is_split: boo
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='linearregression')
+analyzer = DataAnalyzer(df, model='LinearRegression')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='linearregression', fit_intercept=False)
+analyzer = DataAnalyzer(df, model='LinearRegression', model_params={'fit_intercept': False})
 ```
 
 ##### LogisticRegression (逻辑回归)
@@ -215,10 +217,10 @@ analyzer = DataAnalyzer(df, model='linearregression', fit_intercept=False)
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='logisticregression')
+analyzer = DataAnalyzer(df, model='LogisticRegression')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='logisticregression', C=0.5, max_iter=500)
+analyzer = DataAnalyzer(df, model='LogisticRegression', model_params={'C': 0.5, 'max_iter': 500})
 ```
 
 ##### DecisionTreeClassifier (决策树分类器)
@@ -233,10 +235,10 @@ analyzer = DataAnalyzer(df, model='logisticregression', C=0.5, max_iter=500)
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='decisiontreeclassifier')
+analyzer = DataAnalyzer(df, model='DecisionTreeClassifier')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='decisiontreeclassifier', max_depth=5, min_samples_split=10)
+analyzer = DataAnalyzer(df, model='DecisionTreeClassifier', model_params={'max_depth': 5, 'min_samples_split': 10})
 ```
 
 ##### KNeighborsClassifier (K近邻分类器)
@@ -249,10 +251,10 @@ analyzer = DataAnalyzer(df, model='decisiontreeclassifier', max_depth=5, min_sam
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='kneighborsclassifier')
+analyzer = DataAnalyzer(df, model='KNeighborsClassifier')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='kneighborsclassifier', n_neighbors=3)
+analyzer = DataAnalyzer(df, model='KNeighborsClassifier', model_params={'n_neighbors': 3})
 ```
 
 ##### KMeans (K均值聚类)
@@ -266,10 +268,10 @@ analyzer = DataAnalyzer(df, model='kneighborsclassifier', n_neighbors=3)
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='kmeans')
+analyzer = DataAnalyzer(df, model='KMeans')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='kmeans', n_clusters=5)
+analyzer = DataAnalyzer(df, model='KMeans', model_params={'n_clusters': 5})
 ```
 
 ##### MeanShift (均值漂移聚类)
@@ -282,10 +284,10 @@ analyzer = DataAnalyzer(df, model='kmeans', n_clusters=5)
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='meanshift')
+analyzer = DataAnalyzer(df, model='MeanShift')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='meanshift', bandwidth=2.0)
+analyzer = DataAnalyzer(df, model='MeanShift', model_params={'bandwidth': 2.0})
 ```
 
 ##### StandardScaler (标准化缩放器)
@@ -298,7 +300,7 @@ analyzer = DataAnalyzer(df, model='meanshift', bandwidth=2.0)
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='standardscaler')
+analyzer = DataAnalyzer(df, model='StandardScaler')
 ```
 
 ##### PCA (主成分分析)
@@ -311,10 +313,10 @@ analyzer = DataAnalyzer(df, model='standardscaler')
 **示例:**
 ```python
 # 使用默认参数
-analyzer = DataAnalyzer(df, model='pca')
+analyzer = DataAnalyzer(df, model='PCA')
 
 # 指定参数
-analyzer = DataAnalyzer(df, model='pca', n_components=3)
+analyzer = DataAnalyzer(df, model='PCA', model_params={'n_components': 3})
 ```
 
 ### 5. DataVisualization (数据可视化)

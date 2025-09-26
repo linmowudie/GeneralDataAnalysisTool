@@ -1,4 +1,4 @@
-项目结构（排除 uv 等开发环境）：D:\Python\PythonCode\GeneralDataAnalysisTool
+项目结构（排除 uv 等开发环境）：E:\ProjectCode\GeneralDataAnalysisTool
 
 ├── Data/
 │   ├── generator.py
@@ -11,9 +11,17 @@
 │   └── app.log
 ├── Notebooks/
 ├── Src/
-│   ├── data_analyzer/
+│   ├── DataAnalyzer/
+│   │   ├── TempStorage/
+│   │   │   ├── __init__.py
+│   │   │   └── manager.py
 │   │   ├── analysis/
 │   │   │   ├── analyzer.py
+│   │   │   ├── base_analyzer.py
+│   │   │   ├── classification.py
+│   │   │   ├── clustering.py
+│   │   │   ├── dimensionality_reduction.py
+│   │   │   ├── regression.py
 │   │   │   └── model_config.json
 │   │   ├── cleaning/
 │   │   │   ├── __init__.py
@@ -42,41 +50,34 @@
 │   │   ├── data_visualization.py
 │   │   ├── log_setting.py
 │   │   └── reporting.py
-│   ├── generaldataanalysistool.egg-info/
-│   │   ├── PKG-INFO
-│   │   ├── SOURCES.txt
-│   │   ├── dependency_links.txt
-│   │   ├── requires.txt
-│   │   └── top_level.txt
-│   └── __init__.py
+│   ├── __init__.py
 ├── docs/
 │   └── api_documentation.md
 ├── examples/
-│   └── core_example.py
+│   ├── comprehensive_dataset_analysis.py
+│   ├── core_example.py
+│   ├── iris_comprehensive_analysis.py
+│   └── mongodb_data_analysis_example.py
 ├── test_images/
-│   ├── iris_cluster_scatter.png
-│   ├── iris_cluster_scatter_3v2.png
-│   └── iris_cluster_sizes.png
 ├── tests/
+│   ├── unit/
+│   │   ├── __init__.py
+│   │   ├── test_analyzer.py
+│   │   ├── test_core_engine.py
+│   │   ├── test_data_analysis.py
+│   │   ├── test_data_cleaning.py
+│   │   ├── test_data_import.py
+│   │   ├── test_data_visualization.py
+│   │   ├── test_file_import.py
+│   │   ├── test_reporting.py
+│   │   └── test_temp_storage.py
 │   ├── __init__.py
-│   ├── test_all_analysis_models.py
-│   ├── test_all_models.py
-│   ├── test_all_modules.py
-│   ├── test_all_visualization_models.py
-│   ├── test_core.py
-│   ├── test_data_analysis.py
-│   ├── test_data_cleaning.py
-│   ├── test_data_import.py
-│   ├── test_data_visualization.py
-│   ├── test_db_import.py
-│   ├── test_mysql_detailed.py
-│   └── test_mysql_import.py
+│   └── run_tests.py
 ├── .gitignore
 ├── .python-version
 ├── README.md
 ├── __init__.py
 ├── count_lines.py
-├── iris.csv
 ├── main.py
 ├── pyproject.toml
 ├── requirements.txt
@@ -84,4 +85,3 @@
 ├── test_iris_clustering.py
 ├── uv.lock
 └── 通用数据分析工具项目架构图.png
-PS D:\Python\PythonCode>
