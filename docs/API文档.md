@@ -74,6 +74,7 @@ DataProcessingEngine()
 
 **参数:**
 - `param_dict` (Optional[Dict[str, Any]]): 可视化参数字典，如果为None则使用分析结果中的默认参数
+  - `interactive` (bool): 是否使用交互式可视化，默认为 False
 
 ##### generate_report()
 
@@ -350,6 +351,7 @@ DataVisualization(param_dict: Dict[str, Any])
   - `shape_style`: 形状样式 {points: {size: int, colors: list}, lines: {width: float, styles: list}}
   - `font_style`: 字体样式
   - `model_specific`: 模型特定参数 (如聚类中心、解释方差等)
+  - `interactive`: 是否使用交互式可视化 (布尔值，默认为False)
 
 #### 方法
 
@@ -362,11 +364,26 @@ DataVisualization(param_dict: Dict[str, Any])
 生成图表。
 
 **返回:**
-- Dict[str, Figure]: 生成的图表字典
+- Dict[str, Union[Figure, go.Figure]]: 生成的图表字典
 
 ##### apply_global_styles()
 
 应用全局绘图样式。
+
+### 交互式可视化功能
+
+数据分析工具现在支持交互式可视化功能，基于 Plotly 库实现。通过设置 `interactive=True` 参数，可以生成具有以下特性的交互式图表：
+
+- 鼠标悬停显示详细信息
+- 图表缩放和平移
+- 数据系列的选择和取消选择
+- 3D图表的旋转和视角调整
+- 可导出为HTML文件在浏览器中查看
+
+交互式可视化支持以下模型类型：
+- 回归模型 (regression): linearregression
+- 聚类模型 (clustering): kmeans
+- 变换器 (transformer): 3d, surface
 
 ### 各模型可视化参数说明
 
@@ -655,6 +672,39 @@ param_dict = {
     },
     "model_specific": {
         "explained_variance_ratio": explained_variance_ratio
+    }
+}
+```
+
+#### 3D可视化 (3D Visualization)
+
+可视化类型:
+1. 3D散点图
+2. 3D曲面图
+
+**参数:**
+- `feature`: 特征矩阵 (pandas.DataFrame) - 需要至少3列特征
+- `label_style`: 标签样式字典
+  - `x`: X轴标签
+  - `y`: Y轴标签
+  - `z`: Z轴标签
+  - `title`: 图表标题
+
+**示例:**
+```python
+param_dict = {
+    "task_type": "transformer",
+    "model_name": "3d",
+    "feature": pd.DataFrame({
+        'x': np.random.randn(100),
+        'y': np.random.randn(100),
+        'z': np.random.randn(100)
+    }),
+    "label_style": {
+        "title": "3D散点图",
+        "x": "X轴",
+        "y": "Y轴",
+        "z": "Z轴"
     }
 }
 ```

@@ -8,3 +8,26 @@ wheels/
 
 # Virtual environments
 .venv
+
+# Logs
+*.log
+*.log.*
+
+# Caches
+.cache
+.pytest_cache
+.mypy_cache
+.coverage
+.coverage.*
+.pytest_cache
+.tox
+.nox
+.build
+.eggs
+
+# IDEs
+.idea
+.vscode
+.project
+.classpath
+.tmproj

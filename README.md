@@ -24,6 +24,10 @@
 - 支持散点图、折线图、柱状图等多种图表类型
 - 可自定义图表样式和标签
 - 高质量图像输出（PNG, SVG等格式）
+- **交互式可视化支持**（新增）
+  - 基于Plotly的交互式图表
+  - 3D可视化功能
+  - 支持缩放、旋转、悬停等交互操作
 
 ### 系统特性
 - 模块化设计，易于扩展
@@ -85,8 +89,12 @@ engine.clean_data(select_mode='standard', params_list=[])
 # 分析数据
 engine.analyze_data(model='kmeans', target_col='target')
 
-# 可视化结果
+# 可视化结果（静态图表）
 engine.visualize_data()
+
+# 可视化结果（交互式图表）
+param_dict = {"interactive": True}  # 启用交互式可视化
+engine.visualize_data(param_dict)
 
 # 生成报告
 engine.generate_report()
@@ -108,6 +116,7 @@ uvicorn main:app --reload
 - [iris_comprehensive_analysis.py](examples/iris_comprehensive_analysis.py) - IRIS数据集综合分析示例
 - [comprehensive_dataset_analysis.py](examples/comprehensive_dataset_analysis.py) - 综合数据集分析示例
 - [mongodb_data_analysis_example.py](examples/mongodb_data_analysis_example.py) - MongoDB数据分析示例
+- [interactive_visualization_example.py](examples/interactive_visualization_example.py) - 交互式可视化示例（新增）
 
 ## 项目结构
 
@@ -121,6 +130,8 @@ GeneralDataAnalysisTool/
 │       ├── cleaning/     # 数据清洗模块
 │       ├── importer/     # 数据导入模块
 │       ├── visualization/# 数据可视化模块
+│       │   ├── plots/           # 静态图表实现
+│       │   └── interactive_plots/ # 交互式图表实现
 │       └── ...           # 其他核心模块
 ├── tests/                # 测试文件目录
 ├── examples/             # 使用示例目录

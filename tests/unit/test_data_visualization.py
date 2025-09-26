@@ -36,6 +36,19 @@ class TestDataVisualization(unittest.TestCase):
             'predict': pd.Series([0, 1, 1, 1, 0])
         }
         
+        # 创建交互式测试数据
+        self.interactive_test_params = {
+            'task_type': 'regression',
+            'model_name': 'linearregression',
+            'feature': pd.DataFrame({
+                'feature1': [1, 2, 3, 4, 5],
+                'feature2': [2, 4, 6, 8, 10]
+            }),
+            'target': pd.Series([0, 1, 0, 1, 0]),
+            'predict': pd.Series([0, 1, 1, 1, 0]),
+            'interactive': True
+        }
+        
     def test_initialization(self):
         """测试初始化"""
         visualizer = DataVisualization(self.test_params)
@@ -61,6 +74,25 @@ class TestDataVisualization(unittest.TestCase):
         # 应该抛出ValueError异常
         with self.assertRaises(ValueError):
             visualizer.plot_chart()
+            
+    def test_interactive_visualization_initialization(self):
+        """测试交互式可视化初始化"""
+        visualizer = DataVisualization(self.interactive_test_params)
+        
+        self.assertEqual(visualizer.param_dict, self.interactive_test_params)
+        self.assertTrue(visualizer.param_dict.get("interactive", False))
+        
+    def test_static_vs_interactive_visualization(self):
+        """测试静态和交互式可视化的切换"""
+        # 静态可视化
+        static_visualizer = DataVisualization(self.test_params)
+        
+        # 交互式可视化
+        interactive_visualizer = DataVisualization(self.interactive_test_params)
+        
+        # 验证参数设置
+        self.assertFalse(static_visualizer.param_dict.get("interactive", False))
+        self.assertTrue(interactive_visualizer.param_dict.get("interactive", False))
 
 
 if __name__ == '__main__':

@@ -3,11 +3,17 @@ import logging
 from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
+import plotly.graph_objects as go
 
 from ..visualization.registry import plot_registry
+from ..visualization.interactive_registry import interactive_plot_registry
 
 # 确保导入所有可视化插件
 from ..visualization.plots import linearregression, logisticregression, kmeans
+from ..visualization.plots import three_d  # 3D可视化模块
+from ..visualization.interactive_plots import linearregression as interactive_linearregression
+from ..visualization.interactive_plots import kmeans as interactive_kmeans
+from ..visualization.interactive_plots import three_d as interactive_three_d  # 交互式3D可视化模块
 
 logger = logging.getLogger(__name__)
 
@@ -27,9 +33,11 @@ class DataVisualization:
             - shape_style: 形状样式 {points: {size: int, colors: list}, lines: {width: float, styles: list}}
             - font_style: 字体样式
             - model_specific: 模型特定参数 (如聚类中心、解释方差等)
+            - interactive: 是否使用交互式可视化 (布尔值，默认为False)
         """
         self.param_dict = param_dict
         self.registry = plot_registry
+        self.interactive_registry = interactive_plot_registry
         
     def validate_params(self) -> None:
         """验证必要参数"""
@@ -48,6 +56,16 @@ class DataVisualization:
         """生成图表"""
         self.validate_params()
         
+        # 检查是否需要生成交互式图表
+        use_interactive = self.param_dict.get("interactive", False)
+        
+        if use_interactive:
+            return self._plot_interactive_chart()
+        else:
+            return self._plot_static_chart()
+    
+    def _plot_static_chart(self) -> Dict[str, Figure]:
+        """生成静态图表"""
         task_type = self.param_dict["task_type"]
         model_name = self.param_dict["model_name"].lower()
         
@@ -62,6 +80,21 @@ class DataVisualization:
         self.apply_global_styles()
         
         # 调用具体绘图函数
+        return plot_func(self.param_dict)
+    
+    def _plot_interactive_chart(self) -> Dict[str, go.Figure]:
+        """生成交互式图表"""
+        task_type = self.param_dict["task_type"]
+        model_name = self.param_dict["model_name"].lower()
+        
+        # 获取交互式绘图函数
+        plot_func = self.interactive_registry.get_plot_function(task_type, model_name)
+        if not plot_func:
+            raise NotImplementedError(
+                f"No interactive plot implemented for {model_name} ({task_type})"
+            )
+        
+        # 调用具体交互式绘图函数
         return plot_func(self.param_dict)
     
     def apply_global_styles(self) -> None:
