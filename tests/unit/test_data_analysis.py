@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.data_analysis import DataAnalyzer
+from Src.DataAnalyzer.ModuleInterfaces.data_analysis import DataAnalyzer
 
 
 class TestDataAnalysis(unittest.TestCase):
@@ -75,7 +75,7 @@ class TestDataAnalysis(unittest.TestCase):
     def test_analyze_method(self):
         """测试分析方法"""
         # Mock the AnalyzeData class
-        with patch('Src.data_analyzer.data_analysis.AnalyzeData') as mock_analyze_data:
+        with patch('Src.DataAnalyzer.ModuleInterfaces.data_analysis.AnalyzeData') as mock_analyze_data:
             # 创建模拟结果
             mock_result = {
                 'trained_model': Mock(),

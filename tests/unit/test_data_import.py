@@ -15,7 +15,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.data_import import DataImport
+from Src.DataAnalyzer.ModuleInterfaces.data_import import DataImport
 
 
 class TestDataImport(unittest.TestCase):
@@ -52,7 +52,7 @@ class TestDataImport(unittest.TestCase):
             
         self.assertIn("导入数据库时，请提供数据库连接信息", str(context.exception))
         
-    @patch('Src.data_analyzer.data_import.FileImport')
+    @patch('Src.DataAnalyzer.ModuleInterfaces.data_import.FileImport')
     def test_file_import_success(self, mock_file_import):
         """测试文件导入成功"""
         # 创建模拟数据
@@ -69,7 +69,7 @@ class TestDataImport(unittest.TestCase):
         # 注意：由于mock_file_import是mock的，所以这里不能断言result不为None
         mock_file_import.assert_called_once_with(self.test_file_path, "csv")
         
-    @patch('Src.data_analyzer.data_import.DatabaseImport')
+    @patch('Src.DataAnalyzer.ModuleInterfaces.data_import.DatabaseImport')
     def test_database_import_success(self, mock_db_import):
         """测试数据库导入成功"""
         # 设置mock

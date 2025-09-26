@@ -12,6 +12,13 @@
 ├── Notebooks/
 ├── Src/
 │   ├── DataAnalyzer/
+│   │   ├── Configs/
+│   │   │   └── log_setting.py
+│   │   ├── ModuleInterfaces/
+│   │   │   ├── data_import.py
+│   │   │   ├── data_cleaning.py
+│   │   │   ├── data_analysis.py
+│   │   │   └── data_visualization.py
 │   │   ├── TempStorage/
 │   │   │   ├── __init__.py
 │   │   │   └── manager.py
@@ -44,12 +51,8 @@
 │   │   │   └── registry.py
 │   │   ├── __init__.py
 │   │   ├── core.py
-│   │   ├── data_analysis.py
-│   │   ├── data_cleaning.py
-│   │   ├── data_import.py
-│   │   ├── data_visualization.py
-│   │   ├── log_setting.py
-│   │   └── reporting.py
+│   │   ├── reporting.py
+│   │   └── __init__.py
 │   ├── __init__.py
 ├── docs/
 │   └── api_documentation.md

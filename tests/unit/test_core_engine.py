@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.core import DataProcessingEngine
+from Src.DataAnalyzer.core import DataProcessingEngine
 
 
 class TestDataProcessingEngine(unittest.TestCase):
@@ -45,7 +45,7 @@ class TestDataProcessingEngine(unittest.TestCase):
             
         self.assertIn("请先导入数据", str(context.exception))
         
-    @patch('Src.data_analyzer.data_import.DataImport')
+    @patch('Src.DataAnalyzer.ModuleInterfaces.data_import.DataImport')
     def test_import_data_success(self, mock_data_import):
         """测试数据导入成功"""
         # 创建模拟数据
@@ -61,7 +61,7 @@ class TestDataProcessingEngine(unittest.TestCase):
         self.assertIsNotNone(self.engine.imported_data)
         mock_data_import.assert_called_once()
         
-    @patch('Src.data_analyzer.data_cleaning.CleanDataMode')
+    @patch('Src.DataAnalyzer.ModuleInterfaces.data_cleaning.CleanDataMode')
     def test_clean_data_success(self, mock_clean_data_mode):
         """测试数据清洗成功"""
         # 准备数据
@@ -88,7 +88,7 @@ class TestDataProcessingEngine(unittest.TestCase):
             
         self.assertIn("请先导入数据", str(context.exception))
         
-    @patch('Src.data_analyzer.data_analysis.DataAnalyzer')
+    @patch('Src.DataAnalyzer.ModuleInterfaces.data_analysis.DataAnalyzer')
     def test_analyze_data_success(self, mock_data_analyzer):
         """测试数据分析成功"""
         # 准备数据
@@ -99,7 +99,7 @@ class TestDataProcessingEngine(unittest.TestCase):
         })
         
         # 设置mock
-        mock_result = {'trained_model': Mock(), 'scores': [0.8]}
+        mock_result = {'trained_model': "mock_model", 'scores': [0.8]}
         mock_analyzer_instance = Mock()
         mock_analyzer_instance.analyze.return_value = mock_result
         mock_data_analyzer.return_value = mock_analyzer_instance

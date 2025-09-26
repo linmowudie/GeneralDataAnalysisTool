@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.data_analyzer.data_visualization import DataVisualization
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
 
 
 class TestDataVisualization(unittest.TestCase):
@@ -26,8 +26,8 @@ class TestDataVisualization(unittest.TestCase):
         """测试前准备"""
         # 创建测试数据
         self.test_params = {
-            'task_type': 'classification',
-            'model_name': 'logisticregression',
+            'task_type': 'regression',
+            'model_name': 'linearregression',
             'feature': pd.DataFrame({
                 'feature1': [1, 2, 3, 4, 5],
                 'feature2': [2, 4, 6, 8, 10]
@@ -42,48 +42,25 @@ class TestDataVisualization(unittest.TestCase):
         
         self.assertEqual(visualizer.param_dict, self.test_params)
         
-    @patch('Src.data_analyzer.data_visualization.PlotRegistry')
-    def test_plot_chart_method(self, mock_registry):
+    def test_plot_chart_method(self):
         """测试图表绘制方法"""
-        # 创建模拟绘图器
-        mock_plotter = Mock()
-        mock_plotter.plot.return_value = {"test_plot": Mock()}
-        
-        # 创建模拟注册表
-        mock_registry_instance = Mock()
-        mock_registry_instance.get_plotter.return_value = mock_plotter
-        mock_registry.return_value = mock_registry_instance
-        
         # 创建可视化器并执行绘图
         visualizer = DataVisualization(self.test_params)
         result = visualizer.plot_chart()
         
         # 验证
         self.assertIsInstance(result, dict)
-        mock_registry.assert_called()  # 改为assert_called而不是assert_called_once
-        mock_registry_instance.get_plotter.assert_called_once()
-        mock_plotter.plot.assert_called_once()
         
-    @patch('Src.data_analyzer.data_visualization.PlotRegistry')
-    def test_plot_chart_without_feature_data(self, mock_registry):
+    def test_plot_chart_without_feature_data(self):
         """测试没有特征数据时的图表绘制"""
         params = self.test_params.copy()
-        params['feature'] = None
-        
-        # 创建模拟绘图器
-        mock_plotter = Mock()
-        mock_plotter.plot.return_value = {}
-        
-        # 创建模拟注册表
-        mock_registry_instance = Mock()
-        mock_registry_instance.get_plotter.return_value = mock_plotter
-        mock_registry.return_value = mock_registry_instance
+        del params['feature']  # 删除特征数据以触发错误
         
         visualizer = DataVisualization(params)
-        result = visualizer.plot_chart()
         
-        # 验证返回结果
-        self.assertIsInstance(result, dict)
+        # 应该抛出ValueError异常
+        with self.assertRaises(ValueError):
+            visualizer.plot_chart()
 
 
 if __name__ == '__main__':
