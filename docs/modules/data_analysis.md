@@ -1,0 +1,184 @@
+# DataAnalysis 模块接口文档
+
+## 概述
+
+`DataAnalysis` 模块提供数据分析功能的统一接口，整合了各种分析方法，包括描述性统计、相关性分析等。该模块支持多种机器学习模型，并提供灵活的参数配置选项。
+
+## 类：DataAnalyzer
+
+### 构造函数
+
+```python
+DataAnalyzer(
+    df: pd.DataFrame,
+    model: str,
+    random_state: int = 42,
+    is_split: bool = True,
+    split_ratio: float = 0.8,
+    feature_cols: Optional[List[str]] = None,
+    target_col: Optional[str] = None,
+    is_return_model_param: bool = False,
+    metrics_list: Optional[List[str]] = None,
+    is_return_model_score: bool = True,
+    is_return_training_set: bool = False,
+    is_return_model_predicting_set: bool = False,
+    feature_cols_encoding: str = 'onehot',
+    target_col_encoding: str = 'label',
+    test_set: Optional[pd.DataFrame] = None,
+    model_params: Optional[Dict[str, Any]] = None
+)
+```
+
+**参数说明：**
+- `df` (pd.DataFrame): 待分析的数据集
+- `model` (str): 模型名称（如 'LinearRegression', 'LogisticRegression' 等）
+- `random_state` (int): 随机种子，用于保证结果可复现，默认为 42
+- `is_split` (bool): 是否进行数据集分割（训练/测试），默认为 True
+- `split_ratio` (float): 数据集分割比例（如 0.8 表示 80% 训练，20% 测试），默认为 0.8
+- `feature_cols` (Optional[List[str]]): 特征列名称列表，若为 None 则自动排除目标列后所有列
+- `target_col` (Optional[str]): 目标列名称
+- `is_return_model_param` (bool): 是否返回模型参数（如超参数），默认为 False
+- `metrics_list` (Optional[List[str]]): 评价指标列表（如 ['accuracy', 'precision', 'f1']）
+- `is_return_model_score` (bool): 是否返回模型得分（评估指标结果），默认为 True
+- `is_return_training_set` (bool): 是否返回训练集，默认为 False
+- `is_return_model_predicting_set` (bool): 是否返回模型预测集，默认为 False
+- `feature_cols_encoding` (str): 特征列中类别变量的编码方式（如 'onehot', 'label'），默认为 'onehot'
+- `target_col_encoding` (str): 目标列编码方式（分类任务中使用，如 'label'），默认为 'label'
+- `test_set` (Optional[pd.DataFrame]): 测试集数据集，默认为 None
+- `model_params` (Optional[Dict[str, Any]]): 模型参数字典，用于覆盖默认参数
+
+**异常：**
+- `ValueError`: 当输入参数不合法时抛出（如数据集为空、指定的列不存在等）
+
+### 方法
+
+#### analyze()
+
+执行数据分析并返回结果。
+
+```python
+analyze() -> dict
+```
+
+**返回值：**
+- `dict`: 包含分析结果的字典，具体内容取决于所使用的模型和配置参数
+
+### 支持的模型
+
+#### 回归模型
+- `LinearRegression`: 线性回归
+- `Ridge`: 岭回归
+- `Lasso`: Lasso回归
+
+#### 分类模型
+- `LogisticRegression`: 逻辑回归
+- `DecisionTreeClassifier`: 决策树分类器
+- `KNeighborsClassifier`: K近邻分类器
+- `SVC`: 支持向量机分类器
+
+#### 聚类模型
+- `KMeans`: K均值聚类
+- `MeanShift`: 均值漂移聚类
+- `DBSCAN`: 密度聚类
+
+#### 变换器
+- `StandardScaler`: 标准化缩放器
+- `MinMaxScaler`: 最小最大缩放器
+- `PCA`: 主成分分析
+- `TSNE`: t-SNE降维
+
+### 使用示例
+
+#### 线性回归分析
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_analysis import DataAnalyzer
+import pandas as pd
+
+# 创建示例数据
+df = pd.DataFrame({
+    'feature1': [1, 2, 3, 4, 5],
+    'feature2': [2, 4, 6, 8, 10],
+    'target': [3, 6, 9, 12, 15]
+})
+
+# 执行线性回归分析
+analyzer = DataAnalyzer(
+    df=df,
+    model="LinearRegression",
+    target_col="target",
+    feature_cols=["feature1", "feature2"]
+)
+result = analyzer.analyze()
+```
+
+#### 逻辑回归分类
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_analysis import DataAnalyzer
+import pandas as pd
+
+# 创建示例数据
+df = pd.DataFrame({
+    'feature1': [1, 2, 3, 4, 5],
+    'feature2': [2, 4, 6, 8, 10],
+    'target': [0, 0, 1, 1, 1]
+})
+
+# 执行逻辑回归分析
+analyzer = DataAnalyzer(
+    df=df,
+    model="LogisticRegression",
+    target_col="target",
+    feature_cols=["feature1", "feature2"],
+    metrics_list=["accuracy"]
+)
+result = analyzer.analyze()
+```
+
+#### KMeans聚类
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_analysis import DataAnalyzer
+import pandas as pd
+
+# 创建示例数据
+df = pd.DataFrame({
+    'feature1': [1, 2, 3, 10, 11, 12],
+    'feature2': [1, 2, 3, 10, 11, 12]
+})
+
+# 执行KMeans聚类
+analyzer = DataAnalyzer(
+    df=df,
+    model="KMeans",
+    model_params={"n_clusters": 2}
+)
+result = analyzer.analyze()
+```
+
+### 自定义模型参数
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_analysis import DataAnalyzer
+import pandas as pd
+
+# 创建示例数据
+df = pd.DataFrame({
+    'feature1': [1, 2, 3, 4, 5],
+    'feature2': [2, 4, 6, 8, 10],
+    'target': [0, 0, 1, 1, 1]
+})
+
+# 使用自定义模型参数
+analyzer = DataAnalyzer(
+    df=df,
+    model="LogisticRegression",
+    target_col="target",
+    model_params={
+        "C": 0.5,
+        "max_iter": 1000
+    }
+)
+result = analyzer.analyze()
+```

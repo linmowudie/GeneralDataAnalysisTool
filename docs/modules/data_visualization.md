@@ -1,0 +1,232 @@
+# DataVisualization 模块接口文档
+
+## 概述
+
+`DataVisualization` 模块负责数据可视化操作，提供参数校验和绘图分发功能。该模块通过注册表机制支持多种模型的可视化，并允许自定义图表样式。
+
+## 类：DataVisualization
+
+### 构造函数
+
+```python
+DataVisualization(param_dict: Dict[str, Any])
+```
+
+**参数说明：**
+- `param_dict` (Dict[str, Any]): 参数字典，包含以下字段：
+  - `task_type` (str): 任务类型（classification, regression, clustering, transformer）
+  - `model_name` (str): 模型名称（小写）
+  - `feature` (pd.DataFrame): 特征矩阵
+  - `target` (Optional[pd.Series]): 目标值
+  - `predict` (Optional[pd.Series]): 预测值
+  - `label_style` (Optional[Dict[str, str]]): 标签样式（x轴、y轴、标题等）
+  - `plot_style` (Optional[str]): 绘图风格（matplotlib风格）
+  - `shape_style` (Optional[Dict]): 形状样式（点大小、颜色等）
+  - `font_style` (Optional[str]): 字体样式
+  - `model_specific` (Optional[Dict]): 模型特定参数（如聚类中心、解释方差等）
+
+### 方法
+
+#### validate_params()
+
+验证必要参数。
+
+```python
+validate_params() -> None
+```
+
+**异常：**
+- `ValueError`: 当必需参数缺失时抛出
+
+#### plot_chart()
+
+生成图表。
+
+```python
+plot_chart() -> Dict[str, Figure]
+```
+
+**返回值：**
+- `Dict[str, Figure]`: 生成的图表字典，键为图表名称，值为 matplotlib Figure 对象
+
+#### apply_global_styles()
+
+应用全局绘图样式。
+
+```python
+apply_global_styles() -> None
+```
+
+### 支持的可视化类型
+
+#### 回归模型 (regression)
+- 线性回归 (linearregression)
+  - 真实值 vs 预测值散点图
+  - 残差图
+
+#### 分类模型 (classification)
+- 逻辑回归 (logisticregression)
+  - 混淆矩阵热力图
+  - ROC曲线（二分类）
+  - 特征系数柱状图
+- 决策树分类器 (decisiontreeclassifier)
+  - 混淆矩阵热力图
+  - 特征重要性柱状图
+  - 决策树结构图
+- K近邻分类器 (kneighborsclassifier)
+  - 混淆矩阵热力图
+  - ROC曲线（仅二分类）
+  - 决策边界（仅二维特征）
+
+#### 聚类模型 (clustering)
+- K均值聚类 (kmeans)
+  - 聚类结果散点图（二维）
+  - 聚类大小柱状图
+  - 三维特征投影图（三个或更多特征）
+- 均值漂移聚类 (meanshift)
+  - 聚类结果散点图（二维）
+  - 聚类大小柱状图
+  - 一维直方图（仅一维特征）
+
+#### 变换器 (transformer)
+- 标准化缩放器 (standardscaler)
+  - 原始数据与标准化数据分布对比图
+  - 标准化后特征的箱线图
+- PCA (pca)
+  - 方差解释率柱状图和累积曲线
+  - 主成分投影散点图（前两个主成分）
+
+### 使用示例
+
+#### 线性回归可视化
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+import pandas as pd
+
+# 创建参数字典
+param_dict = {
+    "task_type": "regression",
+    "model_name": "linearregression",
+    "feature": pd.DataFrame({
+        'feature1': [1, 2, 3, 4, 5],
+        'feature2': [2, 4, 6, 8, 10]
+    }),
+    "target": pd.Series([3, 6, 9, 12, 15]),
+    "predict": pd.Series([2.9, 6.1, 8.8, 12.2, 14.9]),
+    "label_style": {
+        "title": "线性回归结果",
+        "x": "真实值",
+        "y": "预测值"
+    },
+    "shape_style": {
+        "points": {
+            "size": 50,
+            "colors": ["red"]
+        }
+    }
+}
+
+# 生成图表
+visualizer = DataVisualization(param_dict)
+figures = visualizer.plot_chart()
+```
+
+#### 逻辑回归可视化
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+import pandas as pd
+
+# 创建参数字典
+param_dict = {
+    "task_type": "classification",
+    "model_name": "logisticregression",
+    "feature": pd.DataFrame({
+        'feature1': [1, 2, 3, 4, 5],
+        'feature2': [2, 4, 6, 8, 10]
+    }),
+    "target": pd.Series([0, 0, 1, 1, 1]),
+    "predict": pd.Series([0, 0, 1, 1, 1]),
+    "label_style": {
+        "title": "逻辑回归分类结果"
+    },
+    "shape_style": {
+        "points": {
+            "colors": ["green"]
+        }
+    }
+}
+
+# 生成图表
+visualizer = DataVisualization(param_dict)
+figures = visualizer.plot_chart()
+```
+
+#### KMeans聚类可视化
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+import pandas as pd
+
+# 创建参数字典
+param_dict = {
+    "task_type": "clustering",
+    "model_name": "kmeans",
+    "feature": pd.DataFrame({
+        'feature1': [1, 2, 3, 10, 11, 12],
+        'feature2': [1, 2, 3, 10, 11, 12]
+    }),
+    "label_style": {
+        "title": "KMeans聚类结果",
+        "x": "特征1",
+        "y": "特征2"
+    },
+    "shape_style": {
+        "points": {
+            "size": 60,
+            "colors": ["red", "blue"]
+        }
+    }
+}
+
+# 生成图表
+visualizer = DataVisualization(param_dict)
+figures = visualizer.plot_chart()
+```
+
+### 自定义样式
+
+```python
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+import pandas as pd
+
+# 创建参数字典（带自定义样式）
+param_dict = {
+    "task_type": "regression",
+    "model_name": "linearregression",
+    "feature": pd.DataFrame({
+        'feature1': [1, 2, 3, 4, 5],
+        'feature2': [2, 4, 6, 8, 10]
+    }),
+    "target": pd.Series([3, 6, 9, 12, 15]),
+    "predict": pd.Series([2.9, 6.1, 8.8, 12.2, 14.9]),
+    "label_style": {
+        "title": "自定义样式线性回归",
+        "x": "真实值",
+        "y": "预测值"
+    },
+    "plot_style": "seaborn",  # 使用 seaborn 风格
+    "font_style": "serif",    # 使用 serif 字体
+    "shape_style": {
+        "points": {
+            "size": 80,
+            "colors": ["purple"]
+        }
+    }
+}
+
+# 生成图表
+visualizer = DataVisualization(param_dict)
+figures = visualizer.plot_chart()
+```
