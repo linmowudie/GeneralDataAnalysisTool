@@ -83,11 +83,22 @@ engine = DataProcessingEngine()
 # 导入数据
 engine.import_data(resource_path='Data/iris.csv', resource_type='csv')
 
-# 清洗数据
+# 清洗数据（标准模式）
 engine.clean_data(select_mode='standard', params_list=[])
 
+# 清洗数据（自定义模式）
+params = [
+    "handle_missing='fill'",
+    "fill_method='median'",
+    "outlier_method='iqr'"
+]
+engine.clean_data(select_mode='custom', params_list=params)
+
 # 分析数据
-engine.analyze_data(model='kmeans', target_col='target')
+result = engine.analyze_data(model='kmeans', target_col='target')
+
+# 获取训练好的模型用于其他工作
+trained_model = result['trained_model']
 
 # 可视化结果（静态图表）
 engine.visualize_data()
@@ -98,6 +109,22 @@ engine.visualize_data(param_dict)
 
 # 生成报告
 engine.generate_report()
+```
+
+### 脚本工具使用
+
+项目包含多个实用脚本，可以直接从命令行使用：
+
+#### 数据转换脚本
+```bash
+# 单文件转换
+python scripts/data_converter.py Data/iris.csv -o iris.json -f json
+
+# 批量转换
+python scripts/batch_converter.py Data ScriptsOutput/Batch -f csv json xlsx
+
+# 模型提取
+python scripts/model_extractor.py Data/iris.csv -m LogisticRegression --target-col target -o Models/iris_model.pkl
 ```
 
 ### Web API 服务
@@ -135,6 +162,11 @@ GeneralDataAnalysisTool/
 │       └── ...           # 其他核心模块
 ├── tests/                # 测试文件目录
 ├── examples/             # 使用示例目录
+├── scripts/              # 实用脚本目录
+│   ├── data_converter.py # 数据格式转换脚本
+│   ├── batch_converter.py# 批量数据转换脚本
+│   ├── model_extractor.py# 模型提取脚本
+│   └── example_usage.py  # 脚本使用示例
 └── docs/                 # 文档目录
 ```
 

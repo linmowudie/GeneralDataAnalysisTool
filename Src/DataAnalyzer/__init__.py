@@ -13,6 +13,7 @@ from .ModuleInterfaces import data_analysis
 from .ModuleInterfaces import data_visualization
 from . import reporting
 from .Configs import log_setting
+from .Configs import config_manager
 from . import TempStorage
 
 __all__ = [
@@ -23,5 +24,6 @@ __all__ = [
     'data_visualization',
     'reporting',
     'log_setting',
+    'config_manager',
     'TempStorage'
 ]

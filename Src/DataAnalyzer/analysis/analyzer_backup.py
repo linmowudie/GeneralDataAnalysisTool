@@ -1,7 +1,7 @@
 # -*- coding: utf-8 -*-
 """
-Src/DataAnalyzer/analysis/analyzer.py
-数据分析器模块
+Src/DataAnalyzer/analysis/analyzer_backup.py
+数据分析器备份模块
 
 该模块提供各种数据分析功能的实现，包括描述性统计、相关性分析、
 分组分析等常见的数据分析方法。
@@ -12,15 +12,11 @@ from __future__ import annotations
 # ===== 标准库 =====
 import logging
 import random
-import json
 from typing import Any, Callable, Dict, List, Optional, Union
 
 # ===== 第三方库 =====
 import numpy as np
 import pandas as pd
-from sklearn.cluster import KMeans, MeanShift
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, LogisticRegression
 from sklearn.metrics import (
     accuracy_score,
     adjusted_rand_score,
@@ -30,45 +26,20 @@ from sklearn.metrics import (
     silhouette_score,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
-from sklearn.tree import DecisionTreeClassifier
-import os
+from sklearn.preprocessing import LabelEncoder
+
+# 导入配置管理器
+from ..Configs.config_manager import MODEL_CONFIG, MODEL_MAPPING_CONFIG
 
 # 日志配置：保持模块名，方便排查
 logger = logging.getLogger(__name__)
 
 # =========================================================
-# 1. 模型注册中心：新增模型只需在此处追加即可
+# 1. 模型注册中心：新增模型只需在此处追加--- 
 # =========================================================
 
-# 模型映射字典
-_model_map = {
-    'LinearRegression': LinearRegression,
-    'LogisticRegression': LogisticRegression,
-    'DecisionTreeClassifier': DecisionTreeClassifier,
-    'KNeighborsClassifier': KNeighborsClassifier,
-    'KMeans': KMeans,
-    'MeanShift': MeanShift,
-    'StandardScaler': StandardScaler,
-    'PCA': PCA,
-}
-
-def load_model_config():
-    """从JSON文件加载模型配置"""
-    config_path = os.path.join(os.path.dirname(__file__), 'model_config.json')
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    
-    # 将字符串类名替换为实际的类引用
-    for model_name, model_info in config.items():
-        class_name = model_info['class']
-        if class_name in _model_map:
-            model_info['class'] = _model_map[class_name]
-    
-    return config
-
-MODEL_CONFIG: Dict[str, Dict[str, Any]] = load_model_config()
+# 从配置中获取模型映射
+_model_map = {}
 
 # =========================================================
 # 2. 评估指标映射表：不同任务类型对应不同指标
@@ -87,6 +58,23 @@ METRICS_MAP: Dict[str, Dict[str, Callable[..., Union[float, np.floating]]]] = {
         'silhouette': silhouette_score,  # 仅需特征矩阵
     }
 }
+
+# 动态导入模型类
+def _import_model_classes():
+    """动态导入模型类"""
+    global _model_map
+    mapping = MODEL_MAPPING_CONFIG.get("model_mapping", {})
+    
+    for model_name, class_path in mapping.items():
+        try:
+            module_path, class_name = class_path.rsplit(".", 1)
+            module = __import__(module_path, fromlist=[class_name])
+            _model_map[model_name] = getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            logger.warning(f"无法导入模型 {model_name} ({class_path}): {e}")
+
+# 初始化模型类导入
+_import_model_classes()
 
 
 class AnalyzeData:

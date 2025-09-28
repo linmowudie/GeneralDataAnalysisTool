@@ -68,6 +68,15 @@ DataProcessingEngine()
 - `test_set` (Optional[pd.DataFrame]): 外部测试集（可选）
 - `model_params` (Optional[Dict[str, Any]]): 模型参数字典，用于覆盖默认参数
 
+**返回值:**
+- `dict`: 分析结果，包含以下关键字段：
+  - `trained_model`: 训练好的模型对象，可用于后续预测或其他操作
+  - `scores`: 模型评估指标（如果 is_return_model_score=True）
+  - `model_params`: 模型参数（如果 is_return_model_param=True）
+  - `X_train`, `y_train`, `X_test`, `y_test`: 训练和测试数据集（如果 is_return_training_set=True）
+  - `predictions`: 模型预测结果（如果 is_return_model_predicting_set=True）
+  - `task_type`: 任务类型（如 'regression', 'classification' 等）
+
 ##### visualize_data()
 
 执行数据可视化操作。
@@ -192,7 +201,13 @@ DataAnalyzer(df: pd.DataFrame, model: str, random_state: int = 42, is_split: boo
 执行数据分析并返回结果。
 
 **返回:**
-- dict: 分析结果
+- dict: 分析结果，包含以下关键字段：
+  - `trained_model`: 训练好的模型对象，可用于后续预测或其他操作
+  - `scores`: 模型评估指标（如果 is_return_model_score=True）
+  - `model_params`: 模型参数（如果 is_return_model_param=True）
+  - `X_train`, `y_train`, `X_test`, `y_test`: 训练和测试数据集（如果 is_return_training_set=True）
+  - `predictions`: 模型预测结果（如果 is_return_model_predicting_set=True）
+  - `task_type`: 任务类型（如 'regression', 'classification' 等）
 
 ### 支持的模型及初始化示例
 
@@ -368,7 +383,7 @@ DataVisualization(param_dict: Dict[str, Any])
 
 ##### apply_global_styles()
 
-应用全局绘图样式。
+应用全局绘图样式
 
 ### 交互式可视化功能
 
@@ -733,3 +748,31 @@ Report(model_params: Optional[Dict] = None, model_scores: Optional[Dict] = None,
 
 **返回:**
 - Dict: 报告内容
+
+### 7. 脚本工具
+
+项目包含多个实用脚本，可以直接从命令行使用。
+
+#### 数据转换脚本 (data_converter.py)
+
+用于将数据转换为各种格式。
+
+```bash
+python scripts/data_converter.py <input_file> -o <output_file> -f <format>
+```
+
+#### 批量转换脚本 (batch_converter.py)
+
+用于批量转换目录中的数据文件。
+
+```bash
+python scripts/batch_converter.py <input_dir> <output_dir> -f <formats>
+```
+
+#### 模型提取脚本 (model_extractor.py)
+
+用于训练模型并将其保存到文件。
+
+```bash
+python scripts/model_extractor.py <input_file> -m <model> --target-col <target> -o <output_file>
+```

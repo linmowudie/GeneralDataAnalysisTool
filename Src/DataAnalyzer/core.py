@@ -164,7 +164,7 @@ class DataProcessingEngine:
         target_col_encoding: str = 'label',
         test_set: Optional[pd.DataFrame] = None,
         model_params: Optional[Dict[str, Any]] = None
-    ) -> None:
+    ) -> Dict[str, Any]:
         """
         数据分析阶段
 

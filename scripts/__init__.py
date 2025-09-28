@@ -1,3 +1,2 @@
-"""
-Scripts package for data format conversion and other utility scripts.
-"""
+# scripts/__init__.py
+# 脚本模块初始化文件

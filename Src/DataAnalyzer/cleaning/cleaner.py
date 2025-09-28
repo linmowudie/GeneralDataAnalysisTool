@@ -135,7 +135,7 @@ class CleanData:
         for col in object_cols:
             mode_result = df[col].mode()
             if not mode_result.empty:
-                df[col] = df[col].fillna(mode_result[0])
+                df[col] = df[col].fillna(mode_result.iloc[0])
             else:
                 df[col] = df[col].fillna('unknown')
             logger.debug("类别列 '%s' 填充完成", col)
@@ -270,7 +270,10 @@ class CleanData:
             raise KeyError(f"列不存在: {missing}")
 
         logger.info("保留列: %s", config.columns)
-        return df[config.columns]
+        result = df[config.columns].copy()
+        if isinstance(result, pd.Series):
+            result = result.to_frame()
+        return result
 
     def _handle_duplicates(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
         """处理重复行。"""
@@ -303,7 +306,11 @@ class CleanData:
                     df[col] = df[col].fillna(df[col].median())
                 elif config.fill_method == 'mode':
                     mode = df[col].mode()
-                    df[col] = df[col].fillna(mode[0] if not mode.empty else None)
+                    df[col] = df[col].fillna(mode.iloc[0] if not mode.empty else 0)
+                elif config.fill_method == 'ffill':
+                    df[col] = df[col].ffill()
+                elif config.fill_method == 'bfill':
+                    df[col] = df[col].bfill()
         return df
 
     def _handle_outliers(self, df: pd.DataFrame, config: Config) -> pd.DataFrame:
@@ -323,7 +330,10 @@ class CleanData:
                 lower = Q1 - config.outlier_threshold * IQR
                 upper = Q3 + config.outlier_threshold * IQR
                 mask = df[col].between(lower, upper)
-                df = df[mask]
+                df = df[mask].copy()
+                # 确保结果是DataFrame而不是Series
+                if isinstance(df, pd.Series):
+                    df = df.to_frame()
                 removed = initial_rows - len(df)
                 if removed > 0:
                     logger.info("IQR 方法在列 '%s' 中移除 %d 个异常值", col, removed)
@@ -338,8 +348,10 @@ class CleanData:
                 z_scores = np.array(zscore(clean_data, nan_policy='omit'))  # 明确转为 ndarray
                 mask = np.abs(z_scores) < config.outlier_threshold
                 reindexed_mask = pd.Series(mask, index=clean_data.index).reindex(df.index, fill_value=True)
-                df = df[reindexed_mask]
-                
+                df = df[reindexed_mask].copy()
+                # 确保结果是DataFrame而不是Series
+                if isinstance(df, pd.Series):
+                    df = df.to_frame()
             removed = initial_rows - len(df)
             if removed > 0:
                 logger.info("Z-score 方法共移除 %d 个异常值", removed)
@@ -368,10 +380,16 @@ class CleanData:
                     raise TypeError(f"类型转换失败: {col}") from e
 
             if 'min' in rules:
-                df = df[df[col] >= rules['min']]
+                df = df[df[col] >= rules['min']].copy()
+                # 确保结果是DataFrame而不是Series
+                if isinstance(df, pd.Series):
+                    df = df.to_frame()
                 logger.debug("列 '%s' 应用最小值约束: >= %.2f", col, rules['min'])
             if 'max' in rules:
-                df = df[df[col] <= rules['max']]
+                df = df[df[col] <= rules['max']].copy()
+                # 确保结果是DataFrame而不是Series
+                if isinstance(df, pd.Series):
+                    df = df.to_frame()
                 logger.debug("列 '%s' 应用最大值约束: <= %.2f", col, rules['max'])
 
         return df

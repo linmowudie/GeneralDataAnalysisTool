@@ -12,15 +12,11 @@ from __future__ import annotations
 # ===== 标准库 =====
 import logging
 import random
-import json
 from typing import Any, Callable, Dict, List, Optional, Union
 
 # ===== 第三方库 =====
 import numpy as np
 import pandas as pd
-from sklearn.cluster import KMeans, MeanShift, DBSCAN
-from sklearn.decomposition import PCA
-from sklearn.linear_model import LinearRegression, LogisticRegression, Ridge, Lasso
 from sklearn.metrics import (
     accuracy_score,
     adjusted_rand_score,
@@ -30,12 +26,7 @@ from sklearn.metrics import (
     silhouette_score,
 )
 from sklearn.model_selection import train_test_split
-from sklearn.neighbors import KNeighborsClassifier
-from sklearn.preprocessing import LabelEncoder, MinMaxScaler, StandardScaler
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.svm import SVC
-from sklearn.manifold import TSNE
-import os
+from sklearn.preprocessing import LabelEncoder
 
 # 导入子模块
 from . import regression
@@ -44,6 +35,9 @@ from . import clustering
 from . import dimensionality_reduction
 from . import association_rule_learning
 
+# 导入配置管理器
+from ..Configs.config_manager import MODEL_CONFIG, MODEL_MAPPING_CONFIG
+
 # 日志配置：保持模块名，方便排查
 logger = logging.getLogger(__name__)
 
@@ -51,41 +45,8 @@ logger = logging.getLogger(__name__)
 # 1. 模型注册中心：新增模型只需在此处追加--- 
 # =========================================================
 
-# 模型映射字典
-_model_map = {
-    'LinearRegression': LinearRegression,
-    'Ridge': Ridge,
-    'Lasso': Lasso,
-    'LogisticRegression': LogisticRegression,
-    'DecisionTreeClassifier': DecisionTreeClassifier,
-    'KNeighborsClassifier': KNeighborsClassifier,
-    'SVC': SVC,
-    'KMeans': KMeans,
-    'MeanShift': MeanShift,
-    'DBSCAN': DBSCAN,
-    'StandardScaler': StandardScaler,
-    'MinMaxScaler': MinMaxScaler,
-    'PCA': PCA,
-    'TSNE': TSNE,
-}
-
-def load_model_config():
-    """从JSON文件加载模型配置"""
-    config_path = os.path.join(os.path.dirname(__file__), 'model_config.json')
-    with open(config_path, 'r', encoding='utf-8') as f:
-        config = json.load(f)
-    
-    # 将嵌套结构扁平化，并将字符串类名替换为实际的类引用
-    flat_config = {}
-    for category, models in config.items():
-        for model_name, model_info in models.items():
-            if model_info['class'] in _model_map:
-                model_info['class'] = _model_map[model_info['class']]
-            flat_config[model_name] = model_info
-    
-    return flat_config
-
-MODEL_CONFIG: Dict[str, Dict[str, Any]] = load_model_config()
+# 从配置中获取模型映射
+_model_map = {}
 
 # =========================================================
 # 2. 评估指标映射表：不同任务类型对应不同指标
@@ -104,6 +65,23 @@ METRICS_MAP: Dict[str, Dict[str, Callable[..., Union[float, np.floating]]]] = {
         'silhouette': silhouette_score,  # 仅需特征矩阵
     }
 }
+
+# 动态导入模型类
+def _import_model_classes():
+    """动态导入模型类"""
+    global _model_map
+    mapping = MODEL_MAPPING_CONFIG.get("model_mapping", {})
+    
+    for model_name, class_path in mapping.items():
+        try:
+            module_path, class_name = class_path.rsplit(".", 1)
+            module = __import__(module_path, fromlist=[class_name])
+            _model_map[model_name] = getattr(module, class_name)
+        except (ImportError, AttributeError) as e:
+            logger.warning(f"无法导入模型 {model_name} ({class_path}): {e}")
+
+# 初始化模型类导入
+_import_model_classes()
 
 
 def analyze_data(
@@ -350,3 +328,105 @@ class AnalyzeData:
         统一执行入口
         """
         return analyze_data(**self.kwargs)
+
+    def get_supported_models(self) -> List[str]:
+        """
+        获取支持的模型列表
+        
+        Returns:
+            List[str]: 支持的模型名称列表
+        """
+        # 从配置管理器获取模型列表
+        model_type: List[str] = list(MODEL_CONFIG.keys())
+        return model_type
+
+    def _get_model_class(self, model_name: str) -> Type:
+        """
+        根据模型名称获取模型类
+        
+        Args:
+            model : 模型名称(小写)，必须在 MODEL_CONFIG 中注册
+            
+        Returns:
+            sklearn或其他库中的模型类
+            
+        Raises:
+            ValueError: 当模型名称不在支持列表中时
+        """
+        model_name = model_name.lower()
+        
+        if model_name not in MODEL_CONFIG:
+            supported = ', '.join(MODEL_CONFIG.keys())
+            raise ValueError(f"不支持的模型: {model_name}。支持的模型: {supported}")
+        
+        config = MODEL_CONFIG[model_name]
+        module_name = config['class']
+        
+        # 根据模型类型导入相应的模块
+        task_type = MODEL_CONFIG[model_name]['type']
+        if task_type in ['regression', 'classification']:
+            if module_name in ['LinearRegression', 'Ridge', 'Lasso']:
+                from sklearn.linear_model import LinearRegression, Ridge, Lasso
+                model_map = {
+                    'LinearRegression': LinearRegression,
+                    'Ridge': Ridge,
+                    'Lasso': Lasso
+                }
+            elif module_name in ['LogisticRegression']:
+                from sklearn.linear_model import LogisticRegression
+                model_map = {'LogisticRegression': LogisticRegression}
+            elif module_name in ['DecisionTreeClassifier']:
+                from sklearn.tree import DecisionTreeClassifier
+                model_map = {'DecisionTreeClassifier': DecisionTreeClassifier}
+            elif module_name in ['KNeighborsClassifier']:
+                from sklearn.neighbors import KNeighborsClassifier
+                model_map = {'KNeighborsClassifier': KNeighborsClassifier}
+            elif module_name in ['SVC']:
+                from sklearn.svm import SVC
+                model_map = {'SVC': SVC}
+            else:
+                raise ValueError(f"未知的模型类: {module_name}")
+                
+        elif task_type == 'clustering':
+            if module_name in ['KMeans']:
+                from sklearn.cluster import KMeans
+                model_map = {'KMeans': KMeans}
+            elif module_name in ['MeanShift']:
+                from sklearn.cluster import MeanShift
+                model_map = {'MeanShift': MeanShift}
+            elif module_name in ['DBSCAN']:
+                from sklearn.cluster import DBSCAN
+                model_map = {'DBSCAN': DBSCAN}
+            else:
+                raise ValueError(f"未知的聚类模型类: {module_name}")
+                
+        elif task_type == 'transformer':
+            if module_name in ['PCA']:
+                from sklearn.decomposition import PCA
+                model_map = {'PCA': PCA}
+            elif module_name in ['StandardScaler', 'MinMaxScaler']:
+                from sklearn.preprocessing import StandardScaler, MinMaxScaler
+                model_map = {
+                    'StandardScaler': StandardScaler,
+                    'MinMaxScaler': MinMaxScaler
+                }
+            elif module_name in ['TSNE']:
+                from sklearn.manifold import TSNE
+                model_map = {'TSNE': TSNE}
+            else:
+                raise ValueError(f"未知的转换器类: {module_name}")
+                
+        elif task_type == 'association':
+            # 关联规则学习模型
+            if module_name in ['Apriori']:
+                from mlxtend.frequent_patterns import apriori
+                model_map = {'Apriori': apriori}
+            elif module_name in ['AssociationRules']:
+                from mlxtend.frequent_patterns import association_rules
+                model_map = {'AssociationRules': association_rules}
+            else:
+                raise ValueError(f"未知的关联规则模型类: {module_name}")
+        else:
+            raise ValueError(f"未知的任务类型: {task_type}")
+            
+        return model_map[module_name]

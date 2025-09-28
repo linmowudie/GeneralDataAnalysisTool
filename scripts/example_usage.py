@@ -92,6 +92,44 @@ def example_batch_conversion():
         print(f"批量转换示例过程中发生错误: {e}")
 
 
+def example_model_extraction():
+    """
+    模型提取示例
+    """
+    print("\n=== 模型提取示例 ===")
+    
+    try:
+        # 运行模型提取脚本
+        import subprocess
+        
+        # 创建输出目录
+        os.makedirs("ScriptsOutput/Models", exist_ok=True)
+        
+        # 执行模型提取命令
+        cmd = [
+            "python",
+            "scripts/model_extractor.py",
+            "Data/iris.csv",
+            "-m", "LogisticRegression",
+            "--target-col", "target",
+            "-o", "ScriptsOutput/Models/iris_model.pkl"
+        ]
+        
+        result = subprocess.run(cmd, capture_output=True, text=True)
+        
+        if result.returncode == 0:
+            print("模型提取执行成功:")
+            print(result.stdout)
+        else:
+            print("模型提取执行失败:")
+            print(result.stderr)
+            
+        print("模型提取示例完成！")
+        
+    except Exception as e:
+        print(f"模型提取示例过程中发生错误: {e}")
+
+
 def create_sample_data():
     """
     创建示例数据文件用于测试
@@ -132,6 +170,9 @@ def main():
         
         # 运行批量转换示例
         example_batch_conversion()
+        
+        # 运行模型提取示例
+        example_model_extraction()
         
         print("\n所有示例运行完成！")
         print("\n输出文件保存在 ScriptsOutput 目录中")
