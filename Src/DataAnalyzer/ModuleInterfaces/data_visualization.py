@@ -14,6 +14,9 @@ from ..visualization.plots import three_d  # 3D可视化模块
 from ..visualization.interactive_plots import linearregression as interactive_linearregression
 from ..visualization.interactive_plots import kmeans as interactive_kmeans
 from ..visualization.interactive_plots import three_d as interactive_three_d  # 交互式3D可视化模块
+from ..visualization.interactive_plots import decisiontreeclassifier as interactive_decisiontreeclassifier
+from ..visualization.interactive_plots import timeseries as interactive_timeseries
+from ..visualization.interactive_plots import featureimportance as interactive_featureimportance
 
 logger = logging.getLogger(__name__)
 
