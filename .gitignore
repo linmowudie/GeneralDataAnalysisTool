@@ -31,3 +31,6 @@ wheels/
 .project
 .classpath
 .tmproj
+
+# Iris files
+iris*
