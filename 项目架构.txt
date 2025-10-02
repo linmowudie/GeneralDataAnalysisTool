@@ -1,42 +1,67 @@
 项目结构（排除 uv 等开发环境）：E:\ProjectCode\GeneralDataAnalysisTool
 
 ├── Data/
+│   ├── breast_cancer.csv
+│   ├── california_housing.csv
+│   ├── diabetes.csv
 │   ├── generator.py
-│   ├── iris.csv
-│   ├── iris.html
-│   ├── iris.json
-│   ├── iris.xlsx
-│   └── iris_test.db
+│   ├── import_to_mongodb.py
+│   ├── linnerud.csv
+│   └── wine.csv
 ├── Logs/
 │   └── app.log
-├── Notebooks/
+├── ScriptsOutput/
 ├── Src/
 │   ├── DataAnalyzer/
 │   │   ├── Configs/
-│   │   │   └── log_setting.py
+│   │   │   ├── config_manager.py
+│   │   │   ├── database_config.json
+│   │   │   ├── log_setting.py
+│   │   │   ├── model_config.json
+│   │   │   └── model_mapping_config.json
 │   │   ├── ModuleInterfaces/
 │   │   │   ├── data_import.py
 │   │   │   ├── data_cleaning.py
 │   │   │   ├── data_analysis.py
-│   │   │   └── data_visualization.py
+│   │   │   ├── data_visualization.py
+│   │   │   └── __init__.py
 │   │   ├── TempStorage/
 │   │   │   ├── __init__.py
 │   │   │   └── manager.py
 │   │   ├── analysis/
 │   │   │   ├── analyzer.py
+│   │   │   ├── analyzer_backup.py
+│   │   │   ├── association_rule_learning.py
 │   │   │   ├── base_analyzer.py
 │   │   │   ├── classification.py
 │   │   │   ├── clustering.py
 │   │   │   ├── dimensionality_reduction.py
 │   │   │   ├── regression.py
-│   │   │   └── model_config.json
+│   │   │   └── __init__.py
 │   │   ├── cleaning/
 │   │   │   ├── __init__.py
 │   │   │   └── cleaner.py
 │   │   ├── importer/
+│   │   │   ├── DataBaseDealing/
+│   │   │   │   ├── __init__.py
+│   │   │   │   ├── base_handler.py
+│   │   │   │   ├── handler_factory.py
+│   │   │   │   ├── mongodb_handler.py
+│   │   │   │   ├── redis_handler.py
+│   │   │   │   ├── sql_handler.py
+│   │   │   │   └── sqlite_handler.py
 │   │   │   ├── db_import.py
 │   │   │   └── file_import.py
 │   │   ├── visualization/
+│   │   │   ├── interactive.py
+│   │   │   ├── interactive_plots/
+│   │   │   │   ├── decisiontreeclassifier.py
+│   │   │   │   ├── featureimportance.py
+│   │   │   │   ├── kmeans.py
+│   │   │   │   ├── linearregression.py
+│   │   │   │   ├── three_d.py
+│   │   │   │   └── timeseries.py
+│   │   │   ├── interactive_registry.py
 │   │   │   ├── plots/
 │   │   │   │   ├── __init__.py
 │   │   │   │   ├── decisiontreeclassifier.py
@@ -47,24 +72,48 @@
 │   │   │   │   ├── meanshift.py
 │   │   │   │   ├── pca.py
 │   │   │   │   └── standardscaler.py
-│   │   │   ├── __init__.py
-│   │   │   └── registry.py
+│   │   │   ├── registry.py
+│   │   │   └── __init__.py
 │   │   ├── __init__.py
 │   │   ├── core.py
-│   │   ├── reporting.py
-│   │   └── __init__.py
+│   │   └── reporting.py
 │   ├── __init__.py
 ├── docs/
-│   └── api_documentation.md
+│   ├── API文档.md
+│   ├── ModifyGoals/
+│   │   ├── 前端扩展.md
+│   │   ├── 数据分析.md
+│   │   ├── 数据可视化.md
+│   │   ├── 数据导入.md
+│   │   ├── 数据报表.md
+│   │   └── 数据清洗.md
+│   └── modules/
+│       ├── 增强可视化功能.md
+│       ├── 工具功能预览.md
+│       ├── 数据分析.md
+│       ├── 数据可视化.md
+│       ├── 数据导入.md
+│       ├── 数据报表.md
+│       ├── 数据清洗.md
+│       └── 核心处理.md
 ├── examples/
 │   ├── comprehensive_dataset_analysis.py
 │   ├── core_example.py
-│   ├── iris_comprehensive_analysis.py
-│   └── mongodb_data_analysis_example.py
-├── test_images/
+│   ├── database_import_example.py
+│   ├── extended_interactive_visualization_example.py
+│   ├── interactive_visualization_example.py
+│   ├── mongodb_data_analysis_example.py
+│   └── iris_comprehensive_analysis.py
+├── scripts/
+│   ├── __init__.py
+│   ├── batch_converter.py
+│   ├── count_lines.py
+│   ├── data_converter.py
+│   └── model_extractor.py
 ├── tests/
 │   ├── unit/
 │   │   ├── __init__.py
+│   │   ├── test_3d_visualization.py
 │   │   ├── test_analyzer.py
 │   │   ├── test_core_engine.py
 │   │   ├── test_data_analysis.py
@@ -72,6 +121,8 @@
 │   │   ├── test_data_import.py
 │   │   ├── test_data_visualization.py
 │   │   ├── test_file_import.py
+│   │   ├── test_interactive_base.py
+│   │   ├── test_interactive_visualization.py
 │   │   ├── test_reporting.py
 │   │   └── test_temp_storage.py
 │   ├── __init__.py
@@ -80,11 +131,8 @@
 ├── .python-version
 ├── README.md
 ├── __init__.py
-├── count_lines.py
 ├── main.py
 ├── pyproject.toml
 ├── requirements.txt
-├── test_compare_data.csv
 ├── test_iris_clustering.py
-├── uv.lock
-└── 通用数据分析工具项目架构图.png
+└── uv.lock
