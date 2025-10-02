@@ -34,3 +34,24 @@ wheels/
 
 # Iris files
 iris*
+
+# Frontend
+frontend/dashboard/node_modules
+frontend/dashboard/dist
+frontend/dashboard/.vite
+frontend/dashboard/npm-debug.log*
+frontend/dashboard/npm-error.log*
+frontend/dashboard/yarn-debug.log*
+frontend/dashboard/yarn-error.log*
+frontend/dashboard/pnpm-debug.log*
+
+# Environment files
+.env
+.env.local
+.env.development.local
+.env.test.local
+.env.production.local
+
+# Temporary files
+*.tmp
+*.temp
