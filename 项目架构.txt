@@ -14,25 +14,7 @@
 │
 ├── Src/                                      # 源代码主目录
 │   ├── DataAnalyzer/                         # 数据分析器主模块
-│   │   ├── Configs/                          # 配置文件目录
-│   │   │   ├── config_manager.py             # 配置管理器
-│   │   │   ├── database_config.json          # 数据库配置文件
-│   │   │   ├── log_setting.py                # 日志设置
-│   │   │   ├── model_config.json             # 模型配置文件
-│   │   │   └── model_mapping_config.json     # 模型映射配置文件
-│   │   │
-│   │   ├── ModuleInterfaces/                 # 模块接口目录
-│   │   │   ├── data_import.py                # 数据导入接口
-│   │   │   ├── data_cleaning.py              # 数据清洗接口
-│   │   │   ├── data_analysis.py              # 数据分析接口
-│   │   │   ├── data_visualization.py         # 数据可视化接口
-│   │   │   └── __init__.py                   # Python包初始化文件
-│   │   │
-│   │   ├── TempStorage/                      # 临时存储目录
-│   │   │   ├── __init__.py                   # Python包初始化文件
-│   │   │   └── manager.py                    # 临时存储管理器
-│   │   │
-│   │   ├── analysis/                         # 数据分析实现目录
+│   │   ├── Analysis/                         # 数据分析实现目录
 │   │   │   ├── analyzer.py                   # 数据分析器主类
 │   │   │   ├── base_analyzer.py              # 数据分析基类
 │   │   │   ├── association_rule_learning.py  # 关联规则学习算法
@@ -42,11 +24,18 @@
 │   │   │   ├── regression.py                 # 回归算法实现
 │   │   │   └── __init__.py                   # Python包初始化文件
 │   │   │
-│   │   ├── cleaning/                         # 数据清洗实现目录
+│   │   ├── Cleaning/                         # 数据清洗实现目录
 │   │   │   ├── __init__.py                   # Python包初始化文件
 │   │   │   └── cleaner.py                    # 数据清洗器主类
 │   │   │
-│   │   ├── importer/                         # 数据导入实现目录
+│   │   ├── Configs/                          # 配置文件目录
+│   │   │   ├── config_manager.py             # 配置管理器
+│   │   │   ├── database_config.json          # 数据库配置文件
+│   │   │   ├── log_setting.py                # 日志设置
+│   │   │   ├── model_config.json             # 模型配置文件
+│   │   │   └── model_mapping_config.json     # 模型映射配置文件
+│   │   │
+│   │   ├── Importer/                         # 数据导入实现目录
 │   │   │   ├── DataBaseDealing/              # 数据库处理子目录
 │   │   │   │   ├── __init__.py               # Python包初始化文件
 │   │   │   │   ├── base_handler.py           # 数据库处理基类
@@ -59,18 +48,19 @@
 │   │   │   ├── db_import.py                  # 数据库导入主类
 │   │   │   └── file_import.py                # 文件导入主类
 │   │   │
-│   │   ├── visualization/                    # 数据可视化实现目录
-│   │   │   ├── interactive.py                # 交互式可视化主类
-│   │   │   ├── interactive_plots/            # 交互式图表实现目录
-│   │   │   │   ├── decisiontreeclassifier.py # 决策树分类器图表
-│   │   │   │   ├── featureimportance.py      # 特征重要性图表
-│   │   │   │   ├── kmeans.py                 # K均值聚类图表
-│   │   │   │   ├── linearregression.py       # 线性回归图表
-│   │   │   │   ├── three_d.py                # 3D图表
-│   │   │   │   └── timeseries.py             # 时间序列图表
-│   │   │   │
-│   │   │   ├── interactive_registry.py       # 交互式图表注册器
-│   │   │   ├── plots/                        # 静态图表实现目录
+│   │   ├── ModuleInterfaces/                 # 模块接口目录
+│   │   │   ├── data_import.py                # 数据导入接口
+│   │   │   ├── data_cleaning.py              # 数据清洗接口
+│   │   │   ├── data_analysis.py              # 数据分析接口
+│   │   │   ├── data_visualization.py         # 数据可视化接口
+│   │   │   └── __init__.py                   # Python包初始化文件
+│   │   │
+│   │   ├── TempStorage/                      # 临时存储目录
+│   │   │   ├── __init__.py                   # Python包初始化文件
+│   │   │   └── manager.py                    # 临时存储管理器
+│   │   │
+│   │   ├── Visualization/                    # 数据可视化实现目录
+│   │   │   ├── Plots/                        # 静态图表实现目录
 │   │   │   │   ├── __init__.py               # Python包初始化文件
 │   │   │   │   ├── decisiontreeclassifier.py # 决策树分类器图表
 │   │   │   │   ├── kmeans.py                 # K均值聚类图表
@@ -81,12 +71,23 @@
 │   │   │   │   ├── pca.py                    # 主成分分析图表
 │   │   │   │   └── standardscaler.py         # 标准化图表
 │   │   │   │
+│   │   │   ├── InteractivePlots/             # 交互式图表实现目录
+│   │   │   │   ├── decisiontreeclassifier.py # 决策树分类器图表
+│   │   │   │   ├── featureimportance.py      # 特征重要性图表
+│   │   │   │   ├── kmeans.py                 # K均值聚类图表
+│   │   │   │   ├── linearregression.py       # 线性回归图表
+│   │   │   │   ├── three_d.py                # 3D图表
+│   │   │   │   └── timeseries.py             # 时间序列图表
+│   │   │   │
+│   │   │   ├── __init__.py                   # Python包初始化文件
+│   │   │   ├── interactive.py                # 交互式可视化主类
+│   │   │   ├── interactive_registry.py       # 交互式图表注册器
 │   │   │   ├── registry.py                   # 图表注册器
 │   │   │   └── __init__.py                   # Python包初始化文件
 │   │   │
 │   │   ├── __init__.py                       # Python包初始化文件
 │   │   ├── core.py                           # 核心处理模块
-│   │   └── reporting.py                      # 报表生成模块
+│   │   └── reporter.py                       # 报表生成模块
 │   │
 │   └── __init__.py                           # Python包初始化文件
 │
