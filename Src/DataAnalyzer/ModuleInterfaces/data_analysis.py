@@ -9,7 +9,7 @@ Src/DataAnalyzer/data_analysis.py
 import pandas as pd
 import logging
 from typing import List, Optional, Union, Dict, Any
-from ..analysis.analyzer import AnalyzeData
+from ..Analysis.analyzer import AnalyzeData
 
 logger = logging.getLogger(__name__)
 

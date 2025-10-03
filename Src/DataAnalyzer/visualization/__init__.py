@@ -6,6 +6,6 @@ Src/DataAnalyzer/visualization/__init__.py
 """
 
 # 确保导入所有可视化插件
-from . import plots
+from . import Plots
 
 __all__ = ['plots']

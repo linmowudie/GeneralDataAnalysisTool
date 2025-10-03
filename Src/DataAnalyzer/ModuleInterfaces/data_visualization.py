@@ -5,18 +5,18 @@ import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import plotly.graph_objects as go
 
-from ..visualization.registry import plot_registry
-from ..visualization.interactive_registry import interactive_plot_registry
+from ..Visualization.registry import plot_registry
+from ..Visualization.interactive_registry import interactive_plot_registry
 
 # 确保导入所有可视化插件
-from ..visualization.plots import linearregression, logisticregression, kmeans
-from ..visualization.plots import three_d  # 3D可视化模块
-from ..visualization.interactive_plots import linearregression as interactive_linearregression
-from ..visualization.interactive_plots import kmeans as interactive_kmeans
-from ..visualization.interactive_plots import three_d as interactive_three_d  # 交互式3D可视化模块
-from ..visualization.interactive_plots import decisiontreeclassifier as interactive_decisiontreeclassifier
-from ..visualization.interactive_plots import timeseries as interactive_timeseries
-from ..visualization.interactive_plots import featureimportance as interactive_featureimportance
+from ..Visualization.Plots import linearregression, logisticregression, kmeans
+from ..Visualization.Plots import three_d  # 3D可视化模块
+from ..Visualization.InteractivePlots import linearregression as interactive_linearregression
+from ..Visualization.InteractivePlots import kmeans as interactive_kmeans
+from ..Visualization.InteractivePlots import three_d as interactive_three_d  # 交互式3D可视化模块
+from ..Visualization.InteractivePlots import decisiontreeclassifier as interactive_decisiontreeclassifier
+from ..Visualization.InteractivePlots import timeseries as interactive_timeseries
+from ..Visualization.InteractivePlots import featureimportance as interactive_featureimportance
 
 logger = logging.getLogger(__name__)
 

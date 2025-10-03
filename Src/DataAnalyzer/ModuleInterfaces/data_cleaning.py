@@ -8,7 +8,7 @@ Src/DataAnalyzer/data_cleaning.py
 
 # cleaning/clean_data_mode.py
 import pandas as pd
-from ..cleaning import CleanData
+from ..Cleaning import CleanData
 from typing import Union
 import logging
 
