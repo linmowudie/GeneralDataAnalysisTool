@@ -34,6 +34,7 @@ from pathlib import Path
 from typing import Optional, Any, Union, List
 from matplotlib.figure import Figure  # 用于类型提示
 from typing import Dict
+import numpy as np
 
 
 class DataProcessingEngine:
@@ -107,7 +108,8 @@ class DataProcessingEngine:
         self,
         select_mode: str,
         params_list: List[str],
-        is_freedom_params: bool = False
+        is_freedom_params: bool = False,
+        target_col: Optional[str] = None
     ) -> None:
         """
         数据清洗阶段
@@ -116,6 +118,7 @@ class DataProcessingEngine:
             select_mode: 清洗模式（如 'auto', 'manual'）
             params_list: 参数列表，如要处理的列名或规则
             is_freedom_params: 是否为自由格式参数
+            target_col: 目标列名，用于分类任务中的字符串目标编码
         """
         self.logger.info("core: 开始数据清洗")
 
@@ -132,7 +135,8 @@ class DataProcessingEngine:
                 self.imported_data,
                 select_mode,
                 params_list,
-                is_freedom_params
+                is_freedom_params,
+                target_col
             )
             self.cleaned_data = cleaner.clean_data()
             
@@ -257,12 +261,13 @@ class DataProcessingEngine:
                 self.visualized_plot = {}
                 return
             
+            self.logger.debug(f"可视化参数: {param_dict}")
             visualizer = data_visualization.DataVisualization(param_dict)
             self.visualized_plot = visualizer.plot_chart()
             
             # 保存可视化结果到临时存储
             self.temp_storage.save_data(self.visualized_plot, 'visualized', 'visualized_data.pkl')
-            self.logger.info("数据可视化完成")
+            self.logger.info("数据可视化完成，生成了 %d 个图表", len(self.visualized_plot))
 
         except Exception as e:
             error_msg = f"数据可视化失败: {str(e)}"
@@ -293,20 +298,28 @@ class DataProcessingEngine:
             "model_name": trained_model.__class__.__name__.lower() if trained_model else "unknown",
         }
         
-        # 添加可用的数据
-        if 'X_train' in self.analyzed_data and self.analyzed_data['X_train'] is not None:
-            param_dict['feature'] = self.analyzed_data['X_train']
-        elif 'X_test' in self.analyzed_data and self.analyzed_data['X_test'] is not None:
+        # 优先使用测试集数据进行可视化
+        if ('X_test' in self.analyzed_data and self.analyzed_data['X_test'] is not None and
+            'y_test' in self.analyzed_data and self.analyzed_data['y_test'] is not None and
+            'predictions' in self.analyzed_data and self.analyzed_data['predictions'] is not None):
+            # 使用测试集数据
             param_dict['feature'] = self.analyzed_data['X_test']
-            
-        if 'y_train' in self.analyzed_data and self.analyzed_data['y_train'] is not None:
-            param_dict['target'] = self.analyzed_data['y_train']
-        elif 'y_test' in self.analyzed_data and self.analyzed_data['y_test'] is not None:
             param_dict['target'] = self.analyzed_data['y_test']
-            
-        if 'predictions' in self.analyzed_data and self.analyzed_data['predictions'] is not None:
             param_dict['predict'] = self.analyzed_data['predictions']
-            
+        elif ('X_train' in self.analyzed_data and self.analyzed_data['X_train'] is not None and
+              'y_train' in self.analyzed_data and self.analyzed_data['y_train'] is not None):
+            # 回退到训练集数据
+            param_dict['feature'] = self.analyzed_data['X_train']
+            param_dict['target'] = self.analyzed_data['y_train']
+            # 训练集上没有预测值，需要模型重新预测
+            trained_model = self.analyzed_data.get('trained_model')
+            if trained_model is not None:
+                try:
+                    predictions = trained_model.predict(self.analyzed_data['X_train'])
+                    param_dict['predict'] = pd.Series(predictions, index=self.analyzed_data['y_train'].index)
+                except:
+                    param_dict['predict'] = None
+
         return param_dict
 
     def generate_report(self) -> None:
@@ -322,7 +335,7 @@ class DataProcessingEngine:
                 self.analyzed_data = self.temp_storage.load_data('analyzed', 'analyzed_data.pkl')
                 
             model_params = self.analyzed_data.get('model_params') if self.analyzed_data else None
-            model_scores = self.analyzed_data.get('scores') if self.analyzed_data else None
+            model_scores = self.analyzed_data.get('model_score') if self.analyzed_data else None
             model_predictions = self.analyzed_data.get('predictions') if self.analyzed_data else None
             
             # 如果没有可视化数据，尝试从临时存储加载

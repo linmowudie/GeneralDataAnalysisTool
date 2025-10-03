@@ -118,13 +118,13 @@ engine.generate_report()
 #### 数据转换脚本
 ```bash
 # 单文件转换
-python scripts/data_converter.py Data/iris.csv -o iris.json -f json
+python PythonScripts/data_converter.py Data/iris.csv -o iris.json -f json
 
 # 批量转换
-python scripts/batch_converter.py Data ScriptsOutput/Batch -f csv json xlsx
+python PythonScripts/batch_converter.py Data ScriptsOutput/Batch -f csv json xlsx
 
 # 模型提取
-python scripts/model_extractor.py Data/iris.csv -m LogisticRegression --target-col target -o Models/iris_model.pkl
+python PythonScripts/model_extractor.py Data/iris.csv -m LogisticRegression --target-col target -o Models/iris_model.pkl
 ```
 
 ### Web API 服务
@@ -162,7 +162,7 @@ GeneralDataAnalysisTool/
 │       └── ...           # 其他核心模块
 ├── tests/                # 测试文件目录
 ├── examples/             # 使用示例目录
-├── scripts/              # 实用脚本目录
+├── PythonScripts/        # 实用脚本目录
 │   ├── data_converter.py # 数据格式转换脚本
 │   ├── batch_converter.py# 批量数据转换脚本
 │   ├── model_extractor.py# 模型提取脚本

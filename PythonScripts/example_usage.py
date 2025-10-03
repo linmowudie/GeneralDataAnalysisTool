@@ -8,12 +8,40 @@
 import os
 import sys
 from pathlib import Path
-import pandas as pd
 
-# 添加项目根目录到 Python 路径
-sys.path.append(str(Path(__file__).parent.parent))
+# 添加项目根目录到路径
+project_root = Path(__file__).parent.parent
+sys.path.insert(0, str(project_root))
 
-from PythonScripts.data_converter import DataConverter
+
+def show_script_usage():
+    """显示脚本使用示例"""
+    print("=== 脚本使用示例 ===\n")
+    
+    # 数据转换脚本
+    print("1. 数据转换脚本:")
+    print("   将CSV文件转换为JSON格式:")
+    print('   python PythonScripts/data_converter.py Data/iris.csv -o iris.json -f json\n')
+    
+    # 批量转换脚本
+    print("2. 批量转换脚本:")
+    print("   批量转换Data目录下的文件:")
+    print('   python PythonScripts/batch_converter.py Data ScriptsOutput/Batch -f csv json xlsx\n')
+    
+    # 模型提取脚本
+    print("3. 模型提取脚本:")
+    print("   从数据训练模型并保存:")
+    print('   python PythonScripts/model_extractor.py Data/iris.csv -m LogisticRegression --target-col target -o Models/iris_model.pkl\n')
+    
+    # 数据生成脚本
+    print("4. 数据生成脚本:")
+    print("   生成示例数据:")
+    print('   python PythonScripts/generator.py -n 100 -o sample_data.csv\n')
+    
+    # MongoDB导入脚本
+    print("5. MongoDB导入脚本:")
+    print("   将CSV文件导入MongoDB:")
+    print('   python PythonScripts/import_to_mongodb.py Data/iris.csv --db mydb --collection iris\n')
 
 
 def example_single_conversion():
@@ -71,7 +99,7 @@ def example_batch_conversion():
         # 执行批量转换命令
         cmd = [
             "python", 
-            "scripts/batch_converter.py", 
+            "PythonScripts/batch_converter.py", 
             "Data", 
             "ScriptsOutput/Batch", 
             "-f", "csv", "json", "xlsx"
@@ -108,7 +136,7 @@ def example_model_extraction():
         # 执行模型提取命令
         cmd = [
             "python",
-            "scripts/model_extractor.py",
+            "PythonScripts/model_extractor.py",
             "Data/iris.csv",
             "-m", "LogisticRegression",
             "--target-col", "target",

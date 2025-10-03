@@ -1,11 +1,3 @@
-"""
-Src/DataAnalyzer/cleaning/cleaner.py
-数据清洗器模块
-
-该模块提供各种数据清洗功能的实现，包括缺失值处理、重复值处理、
-异常值检测与处理、数据类型转换等常见的数据清洗操作。
-"""
-
 # cleaning/cleaner.py
 import pandas as pd
 from typing import List, Optional, Dict, Any, Callable
@@ -13,6 +5,7 @@ from dataclasses import dataclass
 import logging
 from scipy.stats import zscore
 import numpy as np
+from sklearn.preprocessing import LabelEncoder
 
 # -------------------------------
 # 日志配置（入口调用一次即可）
@@ -53,6 +46,7 @@ class Config:
         validate_schema (bool): 是否启用 schema 验证。
         schema_rules (Optional[Dict]): 每列的验证规则，如 {'age': {'min': 0, 'max': 100}}。
         return_stats (bool): 是否返回清洗统计（预留功能）。
+        target_col (Optional[str]): 目标列名称，用于分类任务中自动编码字符串目标。
     """
     columns: Optional[List[str]] = None
     drop_duplicates: bool = True
@@ -66,6 +60,7 @@ class Config:
     validate_schema: bool = False
     schema_rules: Optional[Dict[str, Dict[str, Any]]] = None
     return_stats: bool = False
+    target_col: Optional[str] = None
 
 
 # --------------------------------------------------
@@ -108,12 +103,13 @@ class CleanData:
         logger.debug("strict 模式后数据形状: %s", df_cleaned.shape)
         return df_cleaned
 
-    def standard(self, df: pd.DataFrame) -> pd.DataFrame:
+    def standard(self, df: pd.DataFrame, target_col: Optional[str] = None) -> pd.DataFrame:
         """
         标准清洗模式：去重 + 智能填充缺失值（数值用中位数，类别用众数）。
 
         Args:
             df (pd.DataFrame): 输入数据
+            target_col (Optional[str]): 目标列名称，用于分类任务中自动编码字符串目标
 
         Returns:
             pd.DataFrame: 清洗后数据
@@ -122,7 +118,17 @@ class CleanData:
         logger.debug("standard 模式前数据形状: %s", df.shape)
 
         df = df.copy()
+        initial_index = df.index.copy()  # 保存原始索引
         df = df.drop_duplicates()
+
+        # 如果目标列是字符串类型，则进行编码
+        if target_col and target_col in df.columns:
+            target_series = df[target_col]
+            if target_series.dtype == 'object':
+                logger.info(f"对目标列 '{target_col}' 进行标签编码")
+                le = LabelEncoder()
+                df[target_col] = le.fit_transform(target_series)
+                logger.info(f"目标列 '{target_col}' 编码完成，类别: {le.classes_}")
 
         numeric_cols = df.select_dtypes(include='number').columns
         object_cols = df.select_dtypes(include='object').columns
@@ -133,29 +139,42 @@ class CleanData:
             logger.debug("数值列 '%s' 使用中位数 %.2f 填充缺失值", col, median_val)
 
         for col in object_cols:
-            mode_result = df[col].mode()
-            if not mode_result.empty:
-                df[col] = df[col].fillna(mode_result.iloc[0])
-            else:
-                df[col] = df[col].fillna('unknown')
-            logger.debug("类别列 '%s' 填充完成", col)
+            if col != target_col:  # 目标列已经处理过了
+                mode_result = df[col].mode()
+                if not mode_result.empty:
+                    df[col] = df[col].fillna(mode_result.iloc[0])
+                else:
+                    df[col] = df[col].fillna('unknown')
+                logger.debug("类别列 '%s' 填充完成", col)
 
         logger.info("standard 模式完成")
         logger.debug("standard 模式后数据形状: %s", df.shape)
         return df
 
-    def relaxed(self, df: pd.DataFrame) -> pd.DataFrame:
+    def relaxed(self, df: pd.DataFrame, target_col: Optional[str] = None) -> pd.DataFrame:
         """
         宽松清洗模式：仅去重，保留缺失值。
 
         Args:
             df (pd.DataFrame): 输入数据
+            target_col (Optional[str]): 目标列名称，用于分类任务中自动编码字符串目标
 
         Returns:
             pd.DataFrame: 去重后数据
         """
         logger.info("执行 relaxed 模式清洗")
         logger.debug("relaxed 模式前数据形状: %s", df.shape)
+
+        df = df.copy()
+        
+        # 如果目标列是字符串类型，则进行编码
+        if target_col and target_col in df.columns:
+            target_series = df[target_col]
+            if target_series.dtype == 'object':
+                logger.info(f"对目标列 '{target_col}' 进行标签编码")
+                le = LabelEncoder()
+                df[target_col] = le.fit_transform(target_series)
+                logger.info(f"目标列 '{target_col}' 编码完成，类别: {le.classes_}")
 
         df_cleaned = df.drop_duplicates()
 
@@ -243,6 +262,7 @@ class CleanData:
         """
         logger.debug("开始应用清洗配置")
         df = df.copy()  # 保留原始数据
+        initial_index = df.index.copy()  # 保存原始索引
 
         try:
             df = self._select_columns(df, config)

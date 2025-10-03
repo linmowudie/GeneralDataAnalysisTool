@@ -15,11 +15,14 @@ from typing import Dict, Any
 from ..registry import plot_registry
 from matplotlib.figure import Figure
 import logging
+import pandas as pd
 
 logger = logging.getLogger(__name__)
 
 @plot_registry.register("classification", "logisticregression")
 def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
+    logger.debug("开始执行逻辑回归可视化")
+    logger.debug(f"参数: {params.keys()}")
     figures = {}
     target = params["target"]
     predict = params["predict"]
@@ -29,7 +32,18 @@ def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
     point_colors = shape_style.get("points", {}).get("colors", ["tab:blue"])
 
     try:
+        # 确保target和predict具有一致的索引
+        if isinstance(target, pd.Series) and isinstance(predict, np.ndarray):
+            # 如果predict是numpy数组，将其转换为具有相同索引的Series
+            predict = pd.Series(predict, index=target.index)
+        elif isinstance(target, pd.Series) and isinstance(predict, pd.Series):
+            # 如果两者都是Series，获取共同索引
+            common_index = target.index.intersection(predict.index)
+            target = target.loc[common_index]
+            predict = predict.loc[common_index]
+        
         # 1. 混淆矩阵
+        logger.debug("生成混淆矩阵")
         cm = confusion_matrix(target, predict)
         fig1, ax1 = plt.subplots(figsize=(6, 5))
         sns.heatmap(cm, annot=True, fmt="d", cmap="Blues", ax=ax1)
@@ -38,8 +52,13 @@ def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
         figures["confusion_matrix"] = fig1
 
         # 2. ROC 曲线
+        logger.debug("生成ROC曲线")
         y_score = params.get("model_specific", {}).get("y_score")
         if y_score is not None:
+            # 确保y_score和target具有一致的索引
+            if isinstance(y_score, np.ndarray) and isinstance(target, pd.Series):
+                y_score = pd.Series(y_score, index=target.index)
+            
             fpr, tpr, _ = roc_curve(target, y_score)
             roc_auc = auc(fpr, tpr)
             fig2, ax2 = plt.subplots(figsize=(8, 6))
@@ -55,6 +74,7 @@ def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
             logger.warning("未提供y_score，跳过ROC曲线绘制")
 
         # 3. 回归系数（柱状图）
+        logger.debug("生成回归系数图")
         model = params.get("model_specific", {}).get("trained_model")
         if model and hasattr(model, "coef_"):
             coef = model.coef_.ravel()
@@ -89,4 +109,5 @@ def plot_logisticregression(params: Dict[str, Any]) -> Dict[str, Figure]:
         logger.error(f"逻辑回归可视化过程中出现错误: {str(e)}")
         raise
     
+    logger.debug(f"逻辑回归可视化完成，生成了 {len(figures)} 个图表")
     return figures

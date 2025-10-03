@@ -1,4 +1,4 @@
-# scripts/import_to_mongodb.py
+# PythonScripts/import_to_mongodb.py
 """
 将Data文件夹中的CSV数据导入到MongoDB中
 """

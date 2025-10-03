@@ -17,15 +17,16 @@ logger = logging.getLogger(__name__)  # 获取当前模块的logger
 class CleanDataMode(CleanData):
     MODES = ["standard", "strict", "relaxed"]
 
-    def __init__(self, df: pd.DataFrame, select_mode: str, params_list: list[str], is_freedom_params: bool = False):
+    def __init__(self, df: pd.DataFrame, select_mode: str, params_list: list[str], is_freedom_params: bool = False, target_col: str = None):
         super().__init__(df)
         self.df = df
         self.select_mode = select_mode
         self.params_list = params_list
         self.is_freedom_params = is_freedom_params
+        self.target_col = target_col
         
-        logger.debug("CleanDataMode 初始化完成。模式: %s, 自定义参数: %s, 参数列表: %s",
-                     self.select_mode, self.is_freedom_params, self.params_list)
+        logger.debug("CleanDataMode 初始化完成。模式: %s, 自定义参数: %s, 参数列表: %s, 目标列: %s",
+                     self.select_mode, self.is_freedom_params, self.params_list, self.target_col)
 
     def clean_data(self) -> pd.DataFrame:
         logger.info("开始数据清洗流程")
@@ -43,7 +44,11 @@ class CleanDataMode(CleanData):
                     logger.error(error_msg)
                     raise AttributeError(error_msg)
 
-                cleaned_df = clean_method(self.df)
+                # 对于标准和宽松模式，传递目标列参数
+                if self.select_mode in ['standard', 'relaxed']:
+                    cleaned_df = clean_method(self.df, self.target_col)
+                else:
+                    cleaned_df = clean_method(self.df)
             else:
                 logger.info("使用自定义参数清洗数据，参数列表: %s", self.params_list)
                 if not self.params_list:

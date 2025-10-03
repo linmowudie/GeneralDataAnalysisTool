@@ -1,10 +1,18 @@
 from typing import Dict, List, Optional, Union, Any
 import numpy as np
 import pandas as pd
-from sklearn.metrics import accuracy_score
 from sklearn.model_selection import train_test_split
+from sklearn.metrics import accuracy_score
 from sklearn.preprocessing import LabelEncoder
 import logging
+import sys
+import os
+
+# 导入性能计时装饰器
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+from PythonScripts.running_timer import run_timer
 
 from .base_analyzer import BaseAnalyzer
 
@@ -75,90 +83,27 @@ class Classification(BaseAnalyzer):
             test_set=test_set,
             model_params=model_params,
         )
-        
+
         # ===== 内部状态 =====
         self.task_type: str = 'classification'
         self.is_fitted_ = False
-
-    def _prepare_feature_and_target(self) -> None:
-        """步骤1：根据 feature_cols / target_col 抽取 X, y"""
-        logger.info("提取特征矩阵和目标列中...")
-        if self.target_col:
-            self.y = self.df[self.target_col].copy()
-        else:
-            raise ValueError("分类任务必须指定目标列")
-
-        # 特征矩阵
-        if self.feature_cols:
-            self.X = self.df[self.feature_cols].copy()
-        else:
-            exclude_cols = [self.target_col] if self.target_col else []
-            self.X = self.df.drop(columns=exclude_cols, axis=1).copy()
-
-    def _encode_categorical_variables(self) -> None:
-        """步骤2：对类别型特征和目标列做编码"""
-        logger.info("类别编码中...")
-
-        if self.X is None:
-            raise ValueError("特征矩阵为空")
-
-        # -------- 特征编码 --------
-        cat_features = self.X.select_dtypes(include=['object', 'category']).columns
-        if len(cat_features) > 0:
-            if self.feature_cols_encoding == 'onehot':
-                # 训练集 one-hot
-                self.X = pd.get_dummies(self.X, columns=cat_features.tolist(), drop_first=True)
-                # 测试集对齐
-                if self.test_set is not None:
-                    self.test_set = pd.get_dummies(self.test_set, columns=cat_features.tolist(), drop_first=True)
-                    for col in self.X.columns:
-                        if col not in self.test_set.columns:
-                            self.test_set[col] = 0
-                    self.test_set = self.test_set[self.X.columns]
-
-            elif self.feature_cols_encoding == 'label':
-                self._label_encode_dataframe(self.X, cat_features)
-                if self.test_set is not None:
-                    self._label_encode_testset(self.test_set, cat_features)
-            else:
-                raise ValueError(f"不支持的特征编码方式: {self.feature_cols_encoding}")
-
-        # -------- 目标列编码 --------
-        if self.y is not None and (self.y.dtype == 'object' or self.y.dtype == 'category'):
-            le = LabelEncoder()
-            self.y = pd.Series(le.fit_transform(self.y), index=self.y.index, name=self.y.name)
-
-    def _label_encode_dataframe(self, df: pd.DataFrame, columns: pd.Index) -> None:
-        """label 编码辅助：训练集"""
-        self.label_encoders_ = {}
-        for col in columns:
-            le = LabelEncoder()
-            df[col] = le.fit_transform(df[col].astype(str))
-            self.label_encoders_[col] = le
-
-    def _label_encode_testset(self, test_df: pd.DataFrame, columns: pd.Index) -> None:
-        """label 编码辅助：测试集，未知类别给 0"""
-        for col in columns:
-            if col in self.label_encoders_:
-                le = self.label_encoders_[col]
-                unknown_value = 0
-                test_df[col] = test_df[col].astype(str).map(
-                    lambda x: le.transform([x])[0] if x in le.classes_ else unknown_value
-                )
-            else:
-                raise ValueError(f"测试集中出现训练未见的类别列: {col}")
 
     def _split_dataset(self) -> None:
         """步骤3：按任务类型进行数据集划分或复制"""
         logger.info("划分数据集中...")
 
         # 分类任务：分层划分
-        self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
-            self.X, self.y,
-            test_size=1 - self.split_ratio,
-            random_state=self.random_state,
-            stratify=self.y
-        )
+        if self.is_split and self.y is not None:
+            self.X_train, self.X_test, self.y_train, self.y_test = train_test_split(
+                self.X, self.y,
+                test_size=1 - self.split_ratio,
+                random_state=self.random_state,
+                stratify=self.y
+            )
+        else:
+            # 不划分数据集时，训练集和测试集都使用完整数据
+            self.X_train, self.y_train = self.X, self.y
+            self.X_test, self.y_test = self.X, self.y
 
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
@@ -204,7 +149,8 @@ class Classification(BaseAnalyzer):
         # 分类任务需要 predict
         if self.X_test is not None:
             pred = self.trained_model.predict(self.X_test)
-            self.predictions = pd.Series(pred, index=self.X_test.index, name=self.target_col)
+            # 确保预测结果与测试集索引一致
+            self.predictions = pd.Series(pred, index=self.X_test.index, name='predictions')
 
     def _compute_scores(self) -> None:
         """步骤7：计算评估指标"""
@@ -222,11 +168,20 @@ class Classification(BaseAnalyzer):
         selected_metrics = self.metrics_list or list(classification_metrics.keys())
         self.scores = {}
 
+        # 确保在计算指标时y_test和predictions具有一致的索引
         if self.y_test is not None and self.predictions is not None:
-            for metric in selected_metrics:
-                if metric in classification_metrics:
-                    score = classification_metrics[metric](self.y_test, self.predictions)
-                    self.scores[metric] = score
+            # 获取共同索引
+            common_index = self.y_test.index.intersection(self.predictions.index)
+            if len(common_index) > 0:
+                y_test_aligned = self.y_test.loc[common_index]
+                predictions_aligned = self.predictions.loc[common_index]
+                
+                for metric in selected_metrics:
+                    if metric in classification_metrics:
+                        score = classification_metrics[metric](y_test_aligned, predictions_aligned)
+                        self.scores[metric] = score
+            else:
+                logger.warning("y_test和predictions没有共同索引，无法计算评估指标")
 
     def _get_model_params(self) -> None:
         """步骤8：收集最终模型参数"""

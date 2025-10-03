@@ -4,6 +4,8 @@ from typing import Dict, Any
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import plotly.graph_objects as go
+import pandas as pd
+import numpy as np
 
 from ..VisualizationModule.registry import plot_registry
 from ..VisualizationModule.interactive_registry import interactive_plot_registry
@@ -57,6 +59,9 @@ class DataVisualization:
     
     def plot_chart(self) -> Dict[str, Figure]:
         """生成图表"""
+        # 首先确保数据一致性
+        self._ensure_data_consistency()
+        
         self.validate_params()
         
         # 检查是否需要生成交互式图表
@@ -67,23 +72,63 @@ class DataVisualization:
         else:
             return self._plot_static_chart()
     
+    def _ensure_data_consistency(self) -> None:
+        """确保可视化数据的一致性"""
+        # 检查target和predict的一致性
+        if "target" in self.param_dict and "predict" in self.param_dict:
+            target = self.param_dict["target"]
+            predict = self.param_dict["predict"]
+            
+            # 如果target和predict都存在，确保它们的索引一致
+            if target is not None and predict is not None:
+                # 处理predict是numpy数组的情况
+                if isinstance(predict, np.ndarray):
+                    if isinstance(target, pd.Series):
+                        if len(predict) == len(target):
+                            # 转换为具有相同索引的Series
+                            self.param_dict["predict"] = pd.Series(predict, index=target.index)
+                        else:
+                            logger.warning(f"预测值长度({len(predict)})与目标值长度({len(target)})不匹配")
+                    else:
+                        # 如果target不是Series，创建一个新的Series
+                        self.param_dict["predict"] = pd.Series(predict)
+                
+                # 处理两者都是Series的情况
+                elif isinstance(target, pd.Series) and isinstance(predict, pd.Series):
+                    # 获取共同索引
+                    common_index = target.index.intersection(predict.index)
+                    if len(common_index) > 0:
+                        # 只保留共同索引的数据
+                        self.param_dict["target"] = target.loc[common_index]
+                        self.param_dict["predict"] = predict.loc[common_index]
+                        # 同时更新feature（如果存在）
+                        if "feature" in self.param_dict and isinstance(self.param_dict["feature"], pd.DataFrame):
+                            self.param_dict["feature"] = self.param_dict["feature"].loc[common_index]
+                    else:
+                        logger.warning("目标值和预测值没有共同索引")
+    
     def _plot_static_chart(self) -> Dict[str, Figure]:
         """生成静态图表"""
         task_type = self.param_dict["task_type"]
         model_name = self.param_dict["model_name"].lower()
         
+        logger.debug(f"尝试获取 {model_name} ({task_type}) 的绘图函数")
         # 获取绘图函数
         plot_func = self.registry.get_plot_function(task_type, model_name)
         if not plot_func:
-            raise NotImplementedError(
+            logger.warning(
                 f"No plot implemented for {model_name} ({task_type})"
             )
+            return {}  # 返回空字典而不是抛出异常
         
         # 应用全局样式
         self.apply_global_styles()
         
         # 调用具体绘图函数
-        return plot_func(self.param_dict)
+        logger.debug(f"调用 {model_name} ({task_type}) 的绘图函数")
+        result = plot_func(self.param_dict)
+        logger.debug(f"绘图函数返回了 {len(result)} 个图表")
+        return result
     
     def _plot_interactive_chart(self) -> Dict[str, go.Figure]:
         """生成交互式图表"""

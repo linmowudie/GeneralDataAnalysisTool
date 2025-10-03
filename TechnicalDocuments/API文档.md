@@ -758,7 +758,7 @@ Report(model_params: Optional[Dict] = None, model_scores: Optional[Dict] = None,
 用于将数据转换为各种格式。
 
 ```bash
-python scripts/data_converter.py <input_file> -o <output_file> -f <format>
+python PythonScripts/data_converter.py <input_file> -o <output_file> -f <format>
 ```
 
 #### 批量转换脚本 (batch_converter.py)
@@ -766,7 +766,7 @@ python scripts/data_converter.py <input_file> -o <output_file> -f <format>
 用于批量转换目录中的数据文件。
 
 ```bash
-python scripts/batch_converter.py <input_dir> <output_dir> -f <formats>
+python PythonScripts/batch_converter.py <input_dir> <output_dir> -f <formats>
 ```
 
 #### 模型提取脚本 (model_extractor.py)
@@ -774,5 +774,5 @@ python scripts/batch_converter.py <input_dir> <output_dir> -f <formats>
 用于训练模型并将其保存到文件。
 
 ```bash
-python scripts/model_extractor.py <input_file> -m <model> --target-col <target> -o <output_file>
+python PythonScripts/model_extractor.py <input_file> -m <model> --target-col <target> -o <output_file>
 ```
