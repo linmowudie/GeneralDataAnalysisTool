@@ -1,4 +1,4 @@
-# Data/import_to_mongodb.py
+# scripts/import_to_mongodb.py
 """
 将Data文件夹中的CSV数据导入到MongoDB中
 """
@@ -8,6 +8,10 @@ import numpy as np
 from pymongo import MongoClient
 import os
 import json
+import sys
+
+# 添加项目根目录到sys.path，以便导入项目模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def connect_to_mongodb():
     """
@@ -30,7 +34,7 @@ def csv_to_mongodb(csv_file, db_name, collection_name, client):
     """
     try:
         # 读取CSV文件
-        file_path = os.path.join(os.path.dirname(__file__), csv_file)
+        file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Data', csv_file)
         df = pd.read_csv(file_path)
         
         # 处理NaN值，将其替换为None以便MongoDB处理
@@ -94,7 +98,7 @@ def import_all_datasets():
     
     # 导入每个数据集
     for csv_file, db_name, collection_name in datasets:
-        file_path = os.path.join(os.path.dirname(__file__), csv_file)
+        file_path = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Data', csv_file)
         if os.path.exists(file_path):
             print(f"\n正在导入 {csv_file}...")
             csv_to_mongodb(csv_file, db_name, collection_name, client)

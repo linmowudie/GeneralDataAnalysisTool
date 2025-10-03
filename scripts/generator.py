@@ -1,4 +1,4 @@
-# Data/generator.py
+# scripts/generator.py
 """
 用于生成和保存sklearn自带数据集到Data文件夹
 """
@@ -8,6 +8,10 @@ import pandas as pd
 from sklearn.datasets import load_iris, load_wine, load_breast_cancer, load_diabetes, load_linnerud
 from sklearn.datasets import fetch_california_housing
 import os
+import sys
+
+# 添加项目根目录到sys.path，以便导入项目模块
+sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
 def save_dataset_as_csv(data, target, feature_names, target_names, filename):
     """
@@ -29,7 +33,7 @@ def save_dataset_as_csv(data, target, feature_names, target_names, filename):
             df['target_name'] = target
     
     # 保存为CSV
-    filepath = os.path.join(os.path.dirname(__file__), filename)
+    filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Data', filename)
     df.to_csv(filepath, index=False)
     print(f"数据集已保存到: {filepath}")
     print(f"数据形状: {df.shape}")
@@ -120,7 +124,7 @@ def generate_all_datasets():
         # 添加目标变量（多个）
         for i, name in enumerate(linnerud.target_names):
             df[name] = linnerud.target[:, i]
-        filepath = os.path.join(os.path.dirname(__file__), 'linnerud.csv')
+        filepath = os.path.join(os.path.dirname(os.path.dirname(os.path.abspath(__file__))), 'Data', 'linnerud.csv')
         df.to_csv(filepath, index=False)
         print(f"Linnerud数据集已保存到: {filepath}")
         print(f"数据形状: {df.shape}")

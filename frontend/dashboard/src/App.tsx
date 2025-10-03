@@ -17,6 +17,8 @@ function App() {
   })
   const [dataPreview, setDataPreview] = useState<any>(null)
   const [loadingPreview, setLoadingPreview] = useState(false)
+  const [cleaningMode, setCleaningMode] = useState('standard')
+  const [customCleaningParams, setCustomCleaningParams] = useState('')
 
   // 模拟执行操作并显示结果
   const handleAction = (action: string) => {
@@ -91,6 +93,11 @@ function App() {
     setSelectedModel(e.target.value)
   }
 
+  // 处理清洗模式变化
+  const handleCleaningModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setCleaningMode(e.target.value)
+  }
+
   // 处理参数变化
   const handleParamChange = (param: string, value: string | number | boolean) => {
     setAnalysisParams(prev => ({
@@ -129,6 +136,12 @@ function App() {
             }}
           >
             数据预览
+          </button>
+          <button 
+            className={activeTab === 'cleaning' ? 'active' : ''}
+            onClick={() => setActiveTab('cleaning')}
+          >
+            数据清洗
           </button>
           <button 
             className={activeTab === 'analysis' ? 'active' : ''}
@@ -321,6 +334,46 @@ function App() {
                 <p>{dataPreview?.message || '暂无数据可预览'}</p>
               </div>
             )}
+          </div>
+        )}
+
+        {activeTab === 'cleaning' && (
+          <div className="data-cleaning">
+            <h2>数据清洗</h2>
+            <div className="cleaning-options">
+              <div className="form-group">
+                <label>清洗模式:</label>
+                <select value={cleaningMode} onChange={handleCleaningModeChange}>
+                  <option value="standard">标准模式</option>
+                  <option value="strict">严格模式</option>
+                  <option value="relaxed">宽松模式</option>
+                  <option value="custom">自定义模式</option>
+                </select>
+              </div>
+              
+              {cleaningMode === 'custom' && (
+                <div className="form-group">
+                  <label>自定义参数:</label>
+                  <textarea 
+                    placeholder='["handle_missing=drop", "outlier_method=iqr", "outlier_threshold=1.5"]'
+                    value={customCleaningParams}
+                    onChange={(e) => setCustomCleaningParams(e.target.value)}
+                  />
+                </div>
+              )}
+              
+              <button onClick={() => handleAction('数据清洗')}>开始清洗</button>
+            </div>
+            
+            <div className="cleaning-info">
+              <h3>清洗模式说明</h3>
+              <ul>
+                <li><strong>标准模式:</strong> 去重 + 智能填充缺失值（数值用中位数，类别用众数）</li>
+                <li><strong>严格模式:</strong> 删除所有缺失值和重复行</li>
+                <li><strong>宽松模式:</strong> 仅去重，保留缺失值</li>
+                <li><strong>自定义模式:</strong> 根据自定义参数进行清洗</li>
+              </ul>
+            </div>
           </div>
         )}
 

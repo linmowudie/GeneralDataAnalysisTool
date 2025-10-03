@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/reporting.py
+Src/DataAnalyzer/reporter.py
 报告生成模块
 
 该模块负责生成数据分析报告，包括结果汇总、图表展示

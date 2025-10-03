@@ -23,7 +23,7 @@ from .ModuleInterfaces import data_import
 from .ModuleInterfaces import data_analysis
 from .ModuleInterfaces import data_cleaning
 from .ModuleInterfaces import data_visualization
-from . import reporting
+from . import reporter
 from .Configs import log_setting
 from .TempStorage.manager import TempStorageManager
 
@@ -329,7 +329,7 @@ class DataProcessingEngine:
             if not self.visualized_plot:
                 self.visualized_plot = self.temp_storage.load_data('visualized', 'visualized_data.pkl')
             
-            report_generator = reporting.Report(
+            report_generator = reporter.Report(
                 model_params=model_params,
                 model_scores=model_scores,
                 visualizations=self.visualized_plot,
