@@ -163,7 +163,7 @@ class Classification(BaseAnalyzer):
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
         logger.info(f"初始化分类模型: {self.model_name}")
-        from ..analysis.analyzer import MODEL_CONFIG
+        from .analyzer import MODEL_CONFIG
         
         config = MODEL_CONFIG[self.model_name]
         model_class = config['class']

@@ -32,3 +32,31 @@ def setup_logging(log_dir: str = "Logs", log_file: str = "app.log", level=loggin
 
     # 返回一个命名的 logger（推荐使用模块名）
     return logging.getLogger(__name__)
+
+def setup_module_logging(module_name: str, log_dir: str = "Logs", level=logging.DEBUG):
+    """
+    为特定模块配置独立的日志文件
+    :param module_name: 模块名称
+    :param log_dir: 日志目录
+    :param level: 日志级别
+    :return: 配置好的logger
+    """
+    logs_dir = Path(log_dir)
+    logs_dir.mkdir(exist_ok=True)
+
+    # 为模块创建独立的日志文件
+    log_file = f"{module_name}.log"
+    log_path = logs_dir / log_file
+
+    # 创建独立的logger
+    logger = logging.getLogger(module_name)
+    logger.setLevel(level)
+
+    # 避免重复添加handler
+    if not logger.handlers:
+        handler = logging.FileHandler(log_path, encoding='utf-8')
+        formatter = logging.Formatter('%(asctime)s - %(name)s - %(levelname)s - %(funcName)s:%(lineno)d - %(message)s')
+        handler.setFormatter(formatter)
+        logger.addHandler(handler)
+
+    return logger

@@ -4,6 +4,14 @@ import pandas as pd
 from sklearn.metrics import adjusted_rand_score, silhouette_score
 from sklearn.preprocessing import LabelEncoder
 import logging
+import sys
+import os
+
+# 导入性能计时装饰器
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+from PythonScripts.running_timer import run_timer
 
 from .base_analyzer import BaseAnalyzer
 
@@ -79,6 +87,7 @@ class Clustering(BaseAnalyzer):
         self.task_type: str = 'clustering'
         self.is_fitted_ = False
 
+    @run_timer
     def _split_dataset(self) -> None:
         """步骤3：按任务类型进行数据集划分或复制"""
         logger.info("划分数据集中...")
@@ -92,10 +101,11 @@ class Clustering(BaseAnalyzer):
         else:
             self.y_test = None
 
+    @run_timer
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
         logger.info(f"初始化聚类模型: {self.model_name}")
-        from ..analysis.analyzer import MODEL_CONFIG
+        from .analyzer import MODEL_CONFIG
         
         config = MODEL_CONFIG[self.model_name]
         model_class = config['class']
@@ -115,6 +125,7 @@ class Clustering(BaseAnalyzer):
         self.model = model_class(**params)
         self.model_params = params
 
+    @run_timer
     def _train_model(self) -> None:
         """步骤5：训练模型"""
         logger.info("训练聚类模型中...")
@@ -130,6 +141,7 @@ class Clustering(BaseAnalyzer):
             
         self.is_fitted_ = True
 
+    @run_timer
     def _predict(self) -> None:
         """步骤6：生成预测结果"""
         if not self.is_fitted_:
@@ -143,6 +155,7 @@ class Clustering(BaseAnalyzer):
             pred = self.trained_model.predict(self.X_test)
             self.predictions = pd.Series(pred, index=self.X_test.index, name='cluster')
 
+    @run_timer
     def _compute_scores(self) -> None:
         """步骤7：计算评估指标"""
         if not self.is_return_model_score or not self.is_fitted_:
@@ -173,6 +186,7 @@ class Clustering(BaseAnalyzer):
             except Exception:
                 self.scores['silhouette'] = None
 
+    @run_timer
     def run(self) -> Dict[str, Any]:
         """
         执行聚类分析

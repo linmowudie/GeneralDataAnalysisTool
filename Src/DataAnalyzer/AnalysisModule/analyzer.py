@@ -12,6 +12,8 @@ from __future__ import annotations
 # ===== 标准库 =====
 import logging
 import random
+import sys
+import os
 from typing import Any, Callable, Dict, List, Optional, Type, Union
 
 # ===== 第三方库 =====
@@ -30,6 +32,12 @@ from sklearn.preprocessing import LabelEncoder
 
 # 导入配置管理器
 from ..Configs.config_manager import MODEL_CONFIG, MODEL_MAPPING_CONFIG
+
+# 通过项目根路径导入性能计时装饰器
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__)))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+from PythonScripts.running_timer import run_timer
 
 # 日志配置：保持模块名，方便排查
 logger = logging.getLogger(__name__)
@@ -77,6 +85,7 @@ def _import_model_classes():
 _import_model_classes()
 
 
+@run_timer
 def analyze_data(
     df: pd.DataFrame,
     model: str,

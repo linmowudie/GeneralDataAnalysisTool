@@ -5,6 +5,14 @@ from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import logging
+import sys
+import os
+
+# 导入性能计时装饰器
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+from PythonScripts.running_timer import run_timer
 
 from .base_analyzer import BaseAnalyzer
 
@@ -80,6 +88,7 @@ class Regression(BaseAnalyzer):
         self.task_type: str = 'regression'
         self.is_fitted_ = False
 
+    @run_timer
     def _split_dataset(self) -> None:
         """步骤3：按任务类型进行数据集划分或复制"""
         logger.info("划分数据集中...")
@@ -91,10 +100,11 @@ class Regression(BaseAnalyzer):
             random_state=self.random_state
         )
 
+    @run_timer
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
         logger.info(f"初始化回归模型: {self.model_name}")
-        from ..analysis.analyzer import MODEL_CONFIG
+        from .analyzer import MODEL_CONFIG
         
         config = MODEL_CONFIG[self.model_name]
         model_class = config['class']
@@ -114,6 +124,7 @@ class Regression(BaseAnalyzer):
         self.model = model_class(**params)
         self.model_params = params
 
+    @run_timer
     def _train_model(self) -> None:
         """步骤5：训练模型"""
         logger.info("训练回归模型中...")
@@ -124,6 +135,7 @@ class Regression(BaseAnalyzer):
         self.trained_model = self.model.fit(self.X_train, self.y_train)
         self.is_fitted_ = True
 
+    @run_timer
     def _predict(self) -> None:
         """步骤6：生成预测结果"""
         if not self.is_fitted_:
@@ -137,6 +149,7 @@ class Regression(BaseAnalyzer):
             pred = self.trained_model.predict(self.X_test)
             self.predictions = pd.Series(pred, index=self.X_test.index, name=self.target_col)
 
+    @run_timer
     def _compute_scores(self) -> None:
         """步骤7：计算评估指标"""
         if not self.is_return_model_score or not self.is_fitted_:
@@ -161,6 +174,7 @@ class Regression(BaseAnalyzer):
                     score = regression_metrics[metric](self.y_test, self.predictions)
                     self.scores[metric] = score
 
+    @run_timer
     def run(self) -> Dict[str, Any]:
         """
         执行回归分析

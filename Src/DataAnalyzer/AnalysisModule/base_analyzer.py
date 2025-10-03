@@ -3,6 +3,14 @@ import numpy as np
 import pandas as pd
 from sklearn.preprocessing import LabelEncoder
 import logging
+import sys
+import os
+
+# 导入性能计时装饰器
+project_root = os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))))
+if project_root not in sys.path:
+    sys.path.insert(0, project_root)
+from PythonScripts.running_timer import run_timer
 
 logger = logging.getLogger(__name__)
 
@@ -88,6 +96,7 @@ class BaseAnalyzer:
         self.task_type: Optional[str] = None
         self.is_fitted_ = False
 
+    @run_timer
     def _prepare_feature_and_target(self) -> None:
         """步骤1：根据 feature_cols / target_col 抽取 X, y"""
         logger.info("提取特征矩阵和目标列中...")
@@ -105,6 +114,7 @@ class BaseAnalyzer:
             exclude_cols = [self.target_col] if self.target_col else []
             self.X = self.df.drop(columns=exclude_cols, axis=1).copy()
 
+    @run_timer
     def _encode_categorical_variables(self) -> None:
         """步骤2：对类别型特征和目标列做编码"""
         logger.info("类别编码中...")
@@ -158,6 +168,7 @@ class BaseAnalyzer:
             else:
                 raise ValueError(f"测试集中出现训练未见的类别列: {col}")
 
+    @run_timer
     def _get_model_params(self) -> None:
         """获取最终模型参数"""
         if self.is_return_model_param and self.trained_model is not None:
@@ -166,6 +177,7 @@ class BaseAnalyzer:
             except:
                 self.model_params = {}
 
+    @run_timer
     def _setup_result(self) -> Dict[str, Any]:
         """
         组装返回结果

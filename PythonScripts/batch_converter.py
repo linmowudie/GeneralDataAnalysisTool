@@ -14,7 +14,7 @@ import sys
 # 添加项目根目录到 Python 路径
 sys.path.append(str(Path(__file__).parent.parent))
 
-from scripts.data_converter import DataConverter
+from PythonScripts.data_converter import DataConverter
 
 
 def batch_convert(input_dir, output_dir, target_formats):
