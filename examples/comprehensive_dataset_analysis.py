@@ -15,7 +15,7 @@ if PROJECT_ROOT not in sys.path:
 # ==================================================
 
 # 导入需要的模块
-from Src.DataAnalyzer.Analysis.analyzer import analyze_data
+from Src.DataAnalyzer.AnalysisModule.analyzer import analyze_data
 
 def load_dataset(filename):
     """加载数据集"""

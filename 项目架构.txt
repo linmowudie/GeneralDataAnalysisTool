@@ -14,7 +14,7 @@
 │
 ├── Src/                                      # 源代码主目录
 │   ├── DataAnalyzer/                         # 数据分析器主模块
-│   │   ├── Analysis/                         # 数据分析实现目录
+│   │   ├── AnalysisModule/                   # 数据分析实现目录
 │   │   │   ├── analyzer.py                   # 数据分析器主类
 │   │   │   ├── base_analyzer.py              # 数据分析基类
 │   │   │   ├── association_rule_learning.py  # 关联规则学习算法
@@ -24,7 +24,7 @@
 │   │   │   ├── regression.py                 # 回归算法实现
 │   │   │   └── __init__.py                   # Python包初始化文件
 │   │   │
-│   │   ├── Cleaning/                         # 数据清洗实现目录
+│   │   ├── CleaningModule/                   # 数据清洗实现目录
 │   │   │   ├── __init__.py                   # Python包初始化文件
 │   │   │   └── cleaner.py                    # 数据清洗器主类
 │   │   │
@@ -35,7 +35,7 @@
 │   │   │   ├── model_config.json             # 模型配置文件
 │   │   │   └── model_mapping_config.json     # 模型映射配置文件
 │   │   │
-│   │   ├── Importer/                         # 数据导入实现目录
+│   │   ├── ImporterModule/                   # 数据导入实现目录
 │   │   │   ├── DataBaseDealing/              # 数据库处理子目录
 │   │   │   │   ├── __init__.py               # Python包初始化文件
 │   │   │   │   ├── base_handler.py           # 数据库处理基类
@@ -59,7 +59,7 @@
 │   │   │   ├── __init__.py                   # Python包初始化文件
 │   │   │   └── manager.py                    # 临时存储管理器
 │   │   │
-│   │   ├── Visualization/                    # 数据可视化实现目录
+│   │   ├── VisualizationModule/              # 数据可视化实现目录
 │   │   │   ├── Plots/                        # 静态图表实现目录
 │   │   │   │   ├── __init__.py               # Python包初始化文件
 │   │   │   │   ├── decisiontreeclassifier.py # 决策树分类器图表

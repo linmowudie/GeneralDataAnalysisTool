@@ -7,7 +7,7 @@ import json
 # 将项目根目录添加到Python路径中
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from Src.DataAnalyzer.Visualization.interactive import InteractiveVisualization
+from Src.DataAnalyzer.VisualizationModule.interactive import InteractiveVisualization
 
 router = APIRouter()
 

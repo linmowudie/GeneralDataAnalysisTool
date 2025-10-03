@@ -13,4 +13,4 @@ import pkgutil
 
 # 自动注册plots目录下的所有模块
 for _, module_name, _ in pkgutil.iter_modules(path=__path__):
-    importlib.import_module('.' + module_name, package='Src.DataAnalyzer.Visualization.Plots')
+    importlib.import_module('.' + module_name, package='Src.DataAnalyzer.VisualizationModule.Plots')

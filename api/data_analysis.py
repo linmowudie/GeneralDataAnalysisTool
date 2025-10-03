@@ -8,7 +8,7 @@ import pandas as pd
 # 将项目根目录添加到Python路径中
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from Src.DataAnalyzer.Analysis.analyzer import analyze_data, AnalyzeData
+from Src.DataAnalyzer.AnalysisModule.analyzer import analyze_data, AnalyzeData
 
 router = APIRouter()
 

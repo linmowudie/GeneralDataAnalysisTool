@@ -6,7 +6,7 @@ import sys
 # 将Src目录添加到Python路径中
 sys.path.append(os.path.join(os.path.dirname(__file__), '..', 'Src'))
 
-from Src.DataAnalyzer.Analysis import analyzer
+from Src.DataAnalyzer.AnalysisModule import analyzer
 
 router = APIRouter()
 

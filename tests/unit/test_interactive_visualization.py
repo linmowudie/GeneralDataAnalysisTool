@@ -16,9 +16,9 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.DataAnalyzer.ModuleInterfaces.DataVisualization import DataVisualization
-from Src.DataAnalyzer.Visualization.interactive import InteractiveVisualization
-from Src.DataAnalyzer.Visualization.interactive_registry import interactive_plot_registry
+from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+from Src.DataAnalyzer.VisualizationModule.interactive import InteractiveVisualization
+from Src.DataAnalyzer.VisualizationModule.interactive_registry import interactive_plot_registry
 
 
 class TestInteractiveVisualization(unittest.TestCase):
