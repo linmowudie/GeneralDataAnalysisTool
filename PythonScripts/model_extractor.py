@@ -2,10 +2,10 @@
 # -*- coding: utf-8 -*-
 """
 模型提取脚本
-用于从数据分析结果中提取训练好的模型并保存
+用于转移自动保存的模型并管理模型数量
 
-该脚本提供命令行接口，允许用户指定数据文件、分析模型和参数，
-然后执行完整的数据分析流程，并将训练好的模型保存到指定位置。
+该脚本负责将自动保存的模型转移到用户提取目录，
+并监控自动保存目录中的模型数量，防止溢出。
 """
 
 import os
@@ -14,153 +14,137 @@ import argparse
 import pickle
 import json
 from pathlib import Path
-import pandas as pd
+import shutil
 from typing import Dict, Any, Optional
+from datetime import datetime
 
 # 添加项目根目录到 Python 路径
 sys.path.append(str(Path(__file__).parent.parent))
 
-from Src.DataAnalyzer.core import DataProcessingEngine
 
-
-def save_model(model, output_path, format_type="pickle"):
+def manage_auto_saved_models(auto_save_dir: Path, max_models: int = 5):
     """
-    保存训练好的模型
+    管理自动保存目录中的模型数量，当模型数量超过指定数量时删除最早的模型文件
     
-    :param model: 训练好的模型对象
-    :param output_path: 输出路径
-    :param format_type: 保存格式 ("pickle" 或 "json")
+    :param auto_save_dir: 自动保存目录路径
+    :param max_models: 最大模型文件数量
     """
-    output_path = Path(output_path)
+    # 确保目录存在
+    auto_save_dir.mkdir(parents=True, exist_ok=True)
     
-    if format_type == "pickle":
-        with open(output_path, 'wb') as f:
-            pickle.dump(model, f)
-        print(f"模型已保存为 Pickle 格式: {output_path}")
-    elif format_type == "json":
-        # 注意：不是所有模型都支持直接 JSON 序列化
+    # 获取所有模型文件（按修改时间排序）
+    model_files = []
+    for file_path in auto_save_dir.iterdir():
+        if file_path.is_file() and file_path.suffix in ['.pkl', '.pickle']:
+            model_files.append((file_path, file_path.stat().st_mtime))
+    
+    # 按修改时间排序（最早的在前）
+    model_files.sort(key=lambda x: x[1])
+    
+    # 如果文件数量超过限制，删除最早的文件
+    removed_files = []
+    while len(model_files) > max_models:
+        oldest_file, _ = model_files.pop(0)
         try:
-            model_params = model.get_params()
-            with open(output_path, 'w', encoding='utf-8') as f:
-                json.dump(model_params, f, indent=2, ensure_ascii=False)
-            print(f"模型参数已保存为 JSON 格式: {output_path}")
+            oldest_file.unlink()
+            removed_files.append(oldest_file.name)
+            print(f"已删除旧的自动保存模型文件: {oldest_file.name}")
         except Exception as e:
-            print(f"模型不支持 JSON 序列化: {e}")
-            print("尝试保存为 Pickle 格式...")
-            with open(output_path.with_suffix('.pkl'), 'wb') as f:
-                pickle.dump(model, f)
-            print(f"模型已保存为 Pickle 格式: {output_path.with_suffix('.pkl')}")
+            print(f"删除旧模型文件失败 {oldest_file.name}: {e}")
+    
+    return removed_files
+
+
+def transfer_model(auto_save_dir: Path, user_extract_dir: Path, model_name: str = ""):
+    """
+    将自动保存的模型转移到用户提取目录
+    
+    :param auto_save_dir: 自动保存目录路径
+    :param user_extract_dir: 用户提取目录路径
+    :param model_name: 指定要转移的模型文件名，如果为None则转移最新的模型
+    :return: 转移是否成功
+    """
+    # 确保目录存在
+    auto_save_dir.mkdir(parents=True, exist_ok=True)
+    user_extract_dir.mkdir(parents=True, exist_ok=True)
+    
+    # 获取所有模型文件（按修改时间排序）
+    model_files = []
+    for file_path in auto_save_dir.iterdir():
+        if file_path.is_file() and file_path.suffix in ['.pkl', '.pickle']:
+            model_files.append((file_path, file_path.stat().st_mtime))
+    
+    # 按修改时间排序（最新的在前）
+    model_files.sort(key=lambda x: x[1], reverse=True)
+    
+    if not model_files:
+        print("自动保存目录中没有模型文件")
+        return False
+    
+    # 选择要转移的模型
+    if model_name:
+        selected_model = None
+        for file_path, _ in model_files:
+            if file_path.name == model_name:
+                selected_model = file_path
+                break
+        if not selected_model:
+            print(f"未找到指定的模型文件: {model_name}")
+            return False
+    else:
+        # 默认转移最新的模型
+        selected_model = model_files[0][0]
+    
+    # 转移模型文件
+    try:
+        destination = user_extract_dir / selected_model.name
+        shutil.move(str(selected_model), str(destination))
+        print(f"模型已从自动保存目录转移至用户提取目录: {selected_model.name}")
+        return True
+    except Exception as e:
+        print(f"转移模型文件失败: {e}")
+        return False
 
 
 def main():
     """
-    主函数
+    主函数 - 处理模型转移和管理请求
     """
-    parser = argparse.ArgumentParser(description='模型提取工具')
-    parser.add_argument('input_file', help='输入数据文件路径')
-    parser.add_argument('-m', '--model', required=True, help='机器学习模型名称')
-    parser.add_argument('-o', '--output', required=True, help='输出模型文件路径')
-    parser.add_argument('--target-col', help='目标列名')
-    parser.add_argument('--feature-cols', nargs='*', help='特征列名列表')
-    parser.add_argument('--format', choices=['pickle', 'json'], default='pickle', 
-                       help='输出格式 (默认: pickle)')
-    parser.add_argument('--split-ratio', type=float, default=0.8, 
-                       help='训练集比例 (默认: 0.8)')
-    parser.add_argument('--random-state', type=int, default=42, 
-                       help='随机种子 (默认: 42)')
-    
-    # 模型特定参数
-    parser.add_argument('--model-params', type=str, 
-                       help='模型参数 (JSON格式字符串)')
+    parser = argparse.ArgumentParser(description='模型提取和管理工具')
+    parser.add_argument('--transfer', nargs='?', const='latest', metavar='MODEL_NAME',
+                       help='转移自动保存的模型到用户提取目录，可以指定模型文件名，不指定则转移最新的')
+    parser.add_argument('--manage', action='store_true',
+                       help='管理自动保存目录中的模型数量（默认保留最新的5个）')
+    parser.add_argument('--max-models', type=int, default=5,
+                       help='自动保存目录中最大模型文件数量（默认: 5）')
     
     args = parser.parse_args()
     
-    try:
-        # 创建数据处理引擎
-        engine = DataProcessingEngine()
-        
-        # 确定文件类型
-        input_path = Path(args.input_file)
-        if not input_path.exists():
-            raise FileNotFoundError(f"输入文件不存在: {args.input_file}")
-        
-        file_extension = input_path.suffix.lower()
-        if file_extension == '.csv':
-            resource_type = 'csv'
-        elif file_extension in ['.xlsx', '.xls']:
-            resource_type = 'excel'
-        elif file_extension == '.json':
-            resource_type = 'json'
-        else:
-            raise ValueError(f"不支持的文件格式: {file_extension}")
-        
-        # 导入数据
-        print(f"正在导入数据: {args.input_file}")
-        engine.import_data(args.input_file, resource_type)
-        
-        # 数据清洗（使用标准模式）
-        print("正在清洗数据...")
-        engine.clean_data('standard', [])
-        
-        # 解析模型参数
-        model_params: Optional[Dict[str, Any]] = None
-        if args.model_params:
-            try:
-                model_params = json.loads(args.model_params)
-            except json.JSONDecodeError as e:
-                print(f"模型参数解析错误: {e}")
-                return 1
-        
-        # 数据分析
-        print(f"正在训练模型: {args.model}")
-        # 明确声明返回类型为 Dict[str, Any]
-        result = engine.analyze_data(
-            model=args.model,
-            target_col=args.target_col,
-            feature_cols=args.feature_cols,
-            split_ratio=args.split_ratio,
-            random_state=args.random_state,
-            model_params=model_params,
-            is_return_model_param=True,
-            is_return_model_score=True
-        )
-        
-        # 确保结果不是 None
-        if result is None:
-            print("错误: 数据分析返回了空结果")
-            return 1
-            
-        # 提取训练好的模型
-        trained_model = result.get('trained_model')
-        if trained_model is None:
-            print("错误: 未能获取训练好的模型")
-            return 1
-        
-        # 显示模型信息
-        print(f"模型类型: {type(trained_model).__name__}")
-        scores = result.get('scores')
-        if scores is not None and isinstance(scores, dict):
-            print("模型评分:")
-            for metric, score in scores.items():
-                print(f"  {metric}: {score}")
-        model_params_result = result.get('model_params')
-        if model_params_result is not None and isinstance(model_params_result, dict):
-            print("模型参数:")
-            params_items = list(model_params_result.items())
-            for param, value in params_items[:5]:  # 只显示前5个
-                print(f"  {param}: {value}")
-            if len(params_items) > 5:
-                print(f"  ... (还有 {len(params_items) - 5} 个参数)")
-        
-        # 保存模型
-        save_model(trained_model, args.output, args.format)
-        
-        print("模型提取完成！")
+    # 定义目录路径
+    project_root = Path(__file__).parent.parent
+    auto_save_dir = project_root / "ModelOutput" / "自动保存"
+    user_extract_dir = project_root / "ModelOutput" / "用户提取"
+    
+    # 如果没有指定任何操作，则显示帮助信息
+    if not any([args.transfer, args.manage]):
+        parser.print_help()
         return 0
-        
-    except Exception as e:
-        print(f"模型提取过程中发生错误: {e}")
-        return 1
+    
+    # 转移模型
+    if args.transfer:
+        if args.transfer == 'latest':
+            transfer_model(auto_save_dir, user_extract_dir)
+        else:
+            transfer_model(auto_save_dir, user_extract_dir, args.transfer)
+    
+    # 管理自动保存目录中的模型数量
+    if args.manage:
+        removed_files = manage_auto_saved_models(auto_save_dir, args.max_models)
+        if not removed_files:
+            print(f"自动保存目录中的模型数量未超过 {args.max_models} 个，无需删除")
+    
+    print("操作完成！")
+    return 0
 
 
 if __name__ == "__main__":

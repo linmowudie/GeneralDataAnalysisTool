@@ -7,12 +7,13 @@ import json
 # 将项目根目录添加到Python路径中
 sys.path.append(os.path.join(os.path.dirname(__file__), '..'))
 
-from Src.DataAnalyzer.VisualizationModule.interactive import InteractiveVisualization
+from .session_manager import session_manager
 
 router = APIRouter()
 
 @router.post("/generate-chart")
 async def generate_chart(
+    session_id: str = Form(...),
     chart_type: str = Form(...),
     parameters: Optional[str] = Form("{}")
 ):
@@ -21,44 +22,54 @@ async def generate_chart(
         # 解析参数
         params = json.loads(parameters) if parameters else {}
         
-        # 创建示例数据
-        data = {
-            "x": [1, 2, 3, 4, 5],
-            "y": [2, 4, 6, 8, 10],
-            "category": ["A", "B", "A", "B", "A"]
-        }
+        # 获取会话对应的引擎实例
+        engine = session_manager.get_engine(session_id)
+        
+        # 如果引擎中没有分析数据，使用示例数据
+        if engine.analyzed_data is None:
+            # 创建示例数据
+            import pandas as pd
+            data = {
+                "x": [1, 2, 3, 4, 5],
+                "y": [2, 4, 6, 8, 10],
+                "category": ["A", "B", "A", "B", "A"]
+            }
+            
+            df = pd.DataFrame(data)
+            
+            # 设置分析结果到引擎中
+            engine.analyzed_data = {
+                'task_type': 'regression',
+                'trained_model': None,
+                'X_test': df[['x']],
+                'y_test': df['y'],
+                'predictions': df['y']  # 简化处理，使用实际值作为"预测值"
+            }
         
         # 设置可视化参数
         viz_params = {
-            "data": data,
-            "x": "x",
-            "y": "y",
-            "title": f"{chart_type} Chart",
-            "color": "category"
+            "task_type": "regression",
+            "model_name": "linearregression",
+            "feature": engine.analyzed_data.get('X_test'),
+            "target": engine.analyzed_data.get('y_test'),
+            "predict": engine.analyzed_data.get('predictions')
         }
         
-        # 创建可视化对象
-        viz = InteractiveVisualization(viz_params)
+        # 执行可视化操作
+        engine.visualize_data(viz_params)
         
-        # 根据图表类型生成图表
-        if chart_type == "scatter":
-            fig = viz.scatter_plot()
-        elif chart_type == "line":
-            fig = viz.line_plot()
-        elif chart_type == "bar":
-            fig = viz.bar_plot()
-        else:
-            raise ValueError(f"不支持的图表类型: {chart_type}")
-        
-        # 将图表转换为JSON格式
-        chart_data = fig.to_json()
+        # 获取可视化结果
+        chart_data = engine.visualized_plot
         
         return {
+            "session_id": session_id,
             "chart_type": chart_type,
             "parameters": params,
-            "chart_data": chart_data,
+            "chart_data": str(chart_data),  # 简化处理
             "status": "success"
         }
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"图表生成失败: {str(e)}")
 

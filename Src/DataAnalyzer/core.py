@@ -2,62 +2,79 @@
 Src/DataAnalyzer/core.py
 数据处理核心引擎模块
 
-该模块定义了 DataProcessingEngine 类，作为整个数据处理流程的统一入口与协调中心。
-通过封装数据导入、清洗、分析、可视化及报告生成等阶段，提供简洁、流畅的接口供外部调用。
-引擎采用状态管理方式维护各阶段中间结果，确保流程有序执行，并集成日志系统以支持过程追踪与问题排查。
-
-主要特性：
-- 流程化设计：支持从原始数据到分析结果的端到端处理
-- 阶段解耦：各处理阶段由独立模块实现，核心引擎负责调度
-- 状态管理：自动维护导入、清洗、分析等中间数据状态
-- 异常处理：每阶段均包含完善的错误捕获与日志记录
-- 易用性：对外暴露简洁方法，隐藏底层复杂性
-
-使用示例：
-    engine = DataProcessingEngine()
-    engine.import_data("data.csv", "csv")
-    engine.clean_data("auto", [])
-    engine.analyze_data(model=RandomForestClassifier())
+该模块提供数据处理的完整流程，包括数据导入、清洗、分析、可视化和报告生成。
+通过统一的接口协调各个子模块的工作，实现端到端的数据处理能力。
 """
-from .ModuleInterfaces import data_import
-from .ModuleInterfaces import data_analysis
-from .ModuleInterfaces import data_cleaning
-from .ModuleInterfaces import data_visualization
-from . import reporter
-from .Configs import log_setting
-from .TempStorage.manager import TempStorageManager
 
 import logging
-import random
 import pandas as pd
+from typing import Dict, List, Optional, Any, Union
+import sys
+import os
 from pathlib import Path
-from typing import Optional, Any, Union, List
-from matplotlib.figure import Figure  # 用于类型提示
-from typing import Dict
-import numpy as np
+import pickle
+from datetime import datetime
+
+
+# 添加项目根目录到Python路径
+project_root = Path(__file__).parent.parent.parent.parent
+if str(project_root) not in sys.path:
+    sys.path.insert(0, str(project_root))
+
+# 导入各个子模块的接口
+from .ModuleInterfaces import (
+    data_import,
+    data_cleaning,
+    data_analysis,
+    data_visualization
+)
+from .reporter import Report
+from .TempStorage.manager import TempStorageManager
+
+# 配置日志
+from .Configs.log_setting import setup_logging
+setup_logging()
+logger = logging.getLogger(__name__)
 
 
 class DataProcessingEngine:
     """
-    数据处理引擎类
-    提供统一接口供外部调用，封装完整的数据处理流程
-    重构后：所有配置参数由各阶段方法本地传入，构造函数仅做基础初始化
+    数据处理核心引擎类
+    
+    该类封装了完整的数据处理流程，包括：
+    1. 数据导入 (import_data)
+    2. 数据清洗 (clean_data)
+    3. 数据分析 (analyze_data)
+    4. 数据可视化 (visualize_data)
+    5. 报告生成 (generate_report)
+    
+    各阶段处理结果会自动保存到临时存储中，支持断点续处理。
     """
-
-    def __init__(self):
-        # 初始化中间数据状态
+    
+    def __init__(self, auto_cleanup: bool = True):
+        """
+        初始化数据处理引擎
+        
+        Args:
+            auto_cleanup: 是否在初始化时自动清理临时存储中的旧文件
+        """
+        self.logger = logger
+        self.logger.info("core: 初始化数据处理引擎")
+        
+        # 初始化各阶段数据存储
         self.imported_data: Optional[pd.DataFrame] = None
         self.cleaned_data: Optional[pd.DataFrame] = None
-        self.analyzed_data: Optional[dict] = None
-        self.visualized_plot: Optional[Dict[str, Figure]] = None
-        self.report_data: Optional[Dict] = None
-
-        # 初始化临时存储管理器
-        self.temp_storage = TempStorageManager()
+        self.analyzed_data: Optional[Dict[str, Any]] = None
+        self.visualized_plot: Optional[Dict[str, Any]] = None
+        self.report_data: Optional[Dict[str, Any]] = None
         
-        # 初始化日志
-        self.logger = log_setting.setup_logging()
-        self.logger.debug("DataProcessingEngine 初始化完成，等待执行数据处理任务。")
+        # 初始化临时存储管理器
+        self.temp_storage = TempStorageManager(auto_cleanup=auto_cleanup)
+        
+        # 初始化自动提取模型标志
+        self.auto_extract_model = False
+        
+        self.logger.info("core: 数据处理引擎初始化完成")
 
     def import_data(
         self,
@@ -231,7 +248,56 @@ class DataProcessingEngine:
             self.logger.error(error_msg, exc_info=True)
             raise ValueError(error_msg) from e
 
+        # 检查是否需要自动提取模型
+        if self.auto_extract_model:
+            try:
+                self._extract_model(result)
+            except Exception as e:
+                self.logger.warning(f"自动提取模型失败: {e}")
+
         self.logger.info("core: 数据分析完成")
+        return result
+
+    def _extract_model(self, result: Dict[str, Any]) -> None:
+        """
+        自动提取并保存训练好的模型到自动保存目录
+        
+        :param result: 数据分析结果
+        """
+        try:
+            
+            
+            # 确保ModelOutput/自动保存目录存在
+            model_output_dir = Path(__file__).parent.parent.parent / "ModelOutput" / "自动保存"
+            model_output_dir.mkdir(parents=True, exist_ok=True)
+            
+            # 生成带时间戳的文件名
+            timestamp = datetime.now().strftime("%Y%m%d_%H%M%S")
+            
+            # 获取模型名称
+            trained_model = result.get('trained_model')
+            if trained_model is not None:
+                model_name = trained_model.__class__.__name__
+            else:
+                model_name = 'unknown_model'
+                
+            output_path = model_output_dir / f"{model_name}_{timestamp}.pkl"
+            
+            # 保存模型
+            with open(output_path, 'wb') as f:
+                pickle.dump(trained_model, f)
+            
+            self.logger.info(f"模型已自动保存到: {output_path}")
+        except Exception as e:
+            self.logger.warning(f"自动保存模型失败: {e}")
+
+    def set_auto_extract_model(self, auto_extract: bool) -> None:
+        """
+        设置是否在分析完成后自动提取模型
+        
+        :param auto_extract: 是否自动提取模型
+        """
+        self.auto_extract_model = auto_extract
 
     def visualize_data(self, param_dict: Optional[Dict[str, Any]] = None) -> None:
         """
@@ -342,7 +408,7 @@ class DataProcessingEngine:
             if not self.visualized_plot:
                 self.visualized_plot = self.temp_storage.load_data('visualized', 'visualized_data.pkl')
             
-            report_generator = reporter.Report(
+            report_generator = Report(
                 model_params=model_params,
                 model_scores=model_scores,
                 visualizations=self.visualized_plot,

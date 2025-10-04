@@ -11,6 +11,7 @@ import shutil
 from pathlib import Path
 from typing import Optional, Any
 import gc
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -20,12 +21,13 @@ class TempStorageManager:
     用于在磁盘上临时存储处理过程中的大数据，避免内存溢出
     """
     
-    def __init__(self, base_path: str = "Src/DataAnalyzer/TempStorage"):
+    def __init__(self, base_path: str = "Src/DataAnalyzer/TempStorage", auto_cleanup: bool = True):
         """
         初始化中间数据存储管理器
         
         Args:
             base_path: 基础存储路径
+            auto_cleanup: 是否在初始化时自动清理旧文件
         """
         self.base_path = Path(base_path)
         self.imported_path = self.base_path / "imported"
@@ -38,7 +40,37 @@ class TempStorageManager:
                      self.analyzed_path, self.visualized_path]:
             path.mkdir(parents=True, exist_ok=True)
             
+        # 如果启用自动清理，在初始化时清理旧文件
+        if auto_cleanup:
+            self._cleanup_old_files()
+            
         logger.info("TempStorageManager 初始化完成")
+    
+    def _cleanup_old_files(self, max_age_hours: int = 24) -> None:
+        """
+        清理超过指定时间的旧文件
+        
+        Args:
+            max_age_hours: 文件最大保留时间（小时）
+        """
+        current_time = time.time()
+        max_age_seconds = max_age_hours * 3600
+        
+        for stage_path in [self.imported_path, self.cleaned_path, 
+                          self.analyzed_path, self.visualized_path]:
+            if stage_path.exists():
+                for file_path in stage_path.iterdir():
+                    try:
+                        # 检查文件修改时间
+                        if file_path.is_file():
+                            file_age = current_time - file_path.stat().st_mtime
+                            if file_age > max_age_seconds:
+                                file_path.unlink()
+                                logger.info(f"删除过期文件: {file_path}")
+                    except Exception as e:
+                        logger.warning(f"检查文件 {file_path} 时出错: {e}")
+        
+        logger.info("清理过期临时文件完成")
         
     def save_data(self, data: Any, stage: str, filename: str = "data.pkl") -> Path:
         """

@@ -9,7 +9,7 @@ Src/DataAnalyzer/data_cleaning.py
 # cleaning/clean_data_mode.py
 import pandas as pd
 from ..CleaningModule import CleanData
-from typing import Union
+from typing import Union, Optional
 import logging
 
 logger = logging.getLogger(__name__)  # 获取当前模块的logger
@@ -17,7 +17,7 @@ logger = logging.getLogger(__name__)  # 获取当前模块的logger
 class CleanDataMode(CleanData):
     MODES = ["standard", "strict", "relaxed"]
 
-    def __init__(self, df: pd.DataFrame, select_mode: str, params_list: list[str], is_freedom_params: bool = False, target_col: str = None):
+    def __init__(self, df: pd.DataFrame, select_mode: str, params_list: list[str], is_freedom_params: bool = False, target_col: Optional[str] = None):
         super().__init__(df)
         self.df = df
         self.select_mode = select_mode

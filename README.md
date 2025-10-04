@@ -29,6 +29,12 @@
   - 3D可视化功能
   - 支持缩放、旋转、悬停等交互操作
 
+### 模型管理
+- 自动保存训练完成的模型
+- 模型版本管理
+- 模型转移功能（从自动保存目录到用户提取目录）
+- 自动清理过期模型文件，防止存储空间占用过多
+
 ### 系统特性
 - 模块化设计，易于扩展
 - 完整的测试覆盖
@@ -123,18 +129,26 @@ python PythonScripts/data_converter.py Data/iris.csv -o iris.json -f json
 # 批量转换
 python PythonScripts/batch_converter.py Data ScriptsOutput/Batch -f csv json xlsx
 
-# 模型提取
-python PythonScripts/model_extractor.py Data/iris.csv -m LogisticRegression --target-col target -o Models/iris_model.pkl
+# 模型管理
+python PythonScripts/model_extractor.py --transfer          # 转移最新的自动保存模型
+python PythonScripts/model_extractor.py --transfer model_name.pkl  # 转移指定模型
+python PythonScripts/model_extractor.py --manage           # 管理自动保存的模型数量
 ```
 
 ### Web API 服务
 
 启动Web服务：
 ```bash
-uvicorn main:app --reload
+uvicorn api.main:app --reload
 ```
 
-访问 `http://localhost:8000` 查看API文档。
+访问 `http://localhost:8000/docs` 查看API文档。
+
+API提供了以下模型管理端点：
+- `POST /api/model/transfer` - 转移模型
+- `POST /api/model/manage` - 管理自动保存的模型
+- `GET /api/model/list` - 列出自动保存的模型
+- `GET /api/model/auto-save-count` - 获取自动保存模型数量
 
 ### 更多示例
 
@@ -167,6 +181,13 @@ GeneralDataAnalysisTool/
 │   ├── batch_converter.py# 批量数据转换脚本
 │   ├── model_extractor.py# 模型提取脚本
 │   └── example_usage.py  # 脚本使用示例
+├── api/                  # Web API接口目录
+│   ├── main.py           # API主入口
+│   ├── model_extractor.py# 模型管理API
+│   └── ...               # 其他API模块
+├── ModelOutput/          # 模型输出目录
+│   ├── 自动保存/          # 自动保存的模型
+│   └── 用户提取/          # 用户手动提取的模型
 └── docs/                 # 文档目录
 ```
 

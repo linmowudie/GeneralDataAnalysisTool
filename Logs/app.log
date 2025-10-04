@@ -17820,3 +17820,81 @@ Name: target, Length: 171, dtype: int64, 'predict': array([0, 1, 1, 0, 0, 1, 1, 
 2025-10-03 21:13:08,731 - Src.DataAnalyzer.TempStorage.manager - INFO - clear_all_data:144 - 清理所有中间数据完成
 2025-10-03 21:13:08,791 - Src.DataAnalyzer.TempStorage.manager - INFO - optimize_memory:151 - 执行内存优化完成
 2025-10-03 21:13:08,791 - Src.DataAnalyzer.Configs.log_setting - INFO - cleanup:450 - 中间数据清理完成
+2025-10-04 11:30:11,258 - Src.DataAnalyzer.Configs.log_setting - DEBUG - __init__:60 - DataProcessingEngine 初始化完成，等待执行数据处理任务。
+2025-10-04 11:30:11,259 - Src.DataAnalyzer.Configs.log_setting - INFO - import_data:80 - core: 开始导入数据
+2025-10-04 11:30:11,259 - Src.DataAnalyzer.ModuleInterfaces.data_import - INFO - import_data:65 - 开始导入数据
+2025-10-04 11:30:11,263 - Src.DataAnalyzer.ModuleInterfaces.data_import - INFO - import_data:89 - 数据导入完成
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.TempStorage.manager - INFO - save_data:78 - 保存数据到 Src\DataAnalyzer\TempStorage\imported\imported_data.pkl
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.Configs.log_setting - INFO - import_data:98 - 数据导入成功，共 569 行，32 列
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.Configs.log_setting - INFO - import_data:105 - core: 数据导入完成
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.Configs.log_setting - INFO - clean_data:123 - core: 开始数据清洗
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - __init__:80 - CleanData 初始化，输入数据形状: (569, 32)
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.ModuleInterfaces.data_cleaning - DEBUG - __init__:28 - CleanDataMode 初始化完成。模式: standard, 自定义参数: False, 参数列表: [], 目标列: None
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.ModuleInterfaces.data_cleaning - INFO - clean_data:32 - 开始数据清洗流程
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.ModuleInterfaces.data_cleaning - INFO - clean_data:40 - 使用预设模式清洗数据: standard
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.CleaningModule.cleaner - INFO - standard:117 - 执行 standard 模式清洗
+2025-10-04 11:30:11,264 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:118 - standard 模式前数据形状: (569, 32)
+2025-10-04 11:30:11,267 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean radius' 使用中位数 13.37 填充缺失值
+2025-10-04 11:30:11,268 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean texture' 使用中位数 18.84 填充缺失值
+2025-10-04 11:30:11,268 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean perimeter' 使用中位数 86.24 填充缺失值
+2025-10-04 11:30:11,268 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean area' 使用中位数 551.10 填充缺失值
+2025-10-04 11:30:11,268 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean smoothness' 使用中位数 0.10 填充缺失值
+2025-10-04 11:30:11,269 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean compactness' 使用中位数 0.09 填充缺失值
+2025-10-04 11:30:11,269 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean concavity' 使用中位数 0.06 填充缺失值
+2025-10-04 11:30:11,269 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean concave points' 使用中位数 0.03 填充缺失值
+2025-10-04 11:30:11,269 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean symmetry' 使用中位数 0.18 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'mean fractal dimension' 使用中位数 0.06 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'radius error' 使用中位数 0.32 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'texture error' 使用中位数 1.11 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'perimeter error' 使用中位数 2.29 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'area error' 使用中位数 24.53 填充缺失值
+2025-10-04 11:30:11,270 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'smoothness error' 使用中位数 0.01 填充缺失值
+2025-10-04 11:30:11,271 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'compactness error' 使用中位数 0.02 填充缺失值
+2025-10-04 11:30:11,271 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'concavity error' 使用中位数 0.03 填充缺失值
+2025-10-04 11:30:11,271 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'concave points error' 使用中位数 0.01 填充缺失值
+2025-10-04 11:30:11,271 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'symmetry error' 使用中位数 0.02 填充缺失值
+2025-10-04 11:30:11,271 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'fractal dimension error' 使用中位数 0.00 填充缺失值
+2025-10-04 11:30:11,272 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst radius' 使用中位数 14.97 填充缺失值
+2025-10-04 11:30:11,272 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst texture' 使用中位数 25.41 填充缺失值
+2025-10-04 11:30:11,272 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst perimeter' 使用中位数 97.66 填充缺失值
+2025-10-04 11:30:11,272 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst area' 使用中位数 686.50 填充缺失值
+2025-10-04 11:30:11,272 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst smoothness' 使用中位数 0.13 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst compactness' 使用中位数 0.21 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst concavity' 使用中位数 0.23 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst concave points' 使用中位数 0.10 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst symmetry' 使用中位数 0.28 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'worst fractal dimension' 使用中位数 0.08 填充缺失值
+2025-10-04 11:30:11,273 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:139 - 数值列 'target' 使用中位数 1.00 填充缺失值
+2025-10-04 11:30:11,274 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:148 - 类别列 'target_name' 填充完成
+2025-10-04 11:30:11,274 - Src.DataAnalyzer.CleaningModule.cleaner - INFO - standard:150 - standard 模式完成
+2025-10-04 11:30:11,274 - Src.DataAnalyzer.CleaningModule.cleaner - DEBUG - standard:151 - standard 模式后数据形状: (569, 32)
+2025-10-04 11:30:11,274 - Src.DataAnalyzer.ModuleInterfaces.data_cleaning - INFO - clean_data:64 - 数据清洗成功完成
+2025-10-04 11:30:11,275 - Src.DataAnalyzer.TempStorage.manager - INFO - save_data:78 - 保存数据到 Src\DataAnalyzer\TempStorage\cleaned\cleaned_data.pkl
+2025-10-04 11:30:11,275 - Src.DataAnalyzer.Configs.log_setting - INFO - clean_data:145 - 数据清洗完成，清洗后数据形状: (569, 32)
+2025-10-04 11:30:11,275 - Src.DataAnalyzer.Configs.log_setting - INFO - clean_data:152 - core: 数据清洗完成
+2025-10-04 11:30:11,275 - Src.DataAnalyzer.Configs.log_setting - INFO - analyze_data:192 - core: 开始数据分析
+2025-10-04 11:30:11,275 - Src.DataAnalyzer.ModuleInterfaces.data_analysis - INFO - __init__:78 - 初始化数据分析模块完成
+2025-10-04 11:30:11,276 - running_timer - INFO - wrapper:59 - analyze_data 执行耗时: 0.0007 秒
+2025-10-04 11:30:11,276 - Src.DataAnalyzer.Configs.log_setting - ERROR - analyze_data:231 - 数据分析失败: LinearRegression.fit() missing 1 required positional argument: 'y'
+Traceback (most recent call last):
+  File "E:\ProjectCode\GeneralDataAnalysisTool\Src\DataAnalyzer\core.py", line 221, in analyze_data
+    result = analyzer.analyze()
+             ^^^^^^^^^^^^^^^^^^
+  File "E:\ProjectCode\GeneralDataAnalysisTool\Src\DataAnalyzer\ModuleInterfaces\data_analysis.py", line 129, in analyze
+    result = analyzer.run()
+             ^^^^^^^^^^^^^^
+  File "E:\ProjectCode\GeneralDataAnalysisTool\Src\DataAnalyzer\AnalysisModule\analyzer.py", line 393, in run
+    return analyze_data(**self.kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ProjectCode\GeneralDataAnalysisTool\PythonScripts\running_timer.py", line 54, in wrapper
+    result = func(*args, **kwargs)
+             ^^^^^^^^^^^^^^^^^^^^^
+  File "E:\ProjectCode\GeneralDataAnalysisTool\Src\DataAnalyzer\AnalysisModule\analyzer.py", line 281, in analyze_data
+    model_instance.fit(X_train)
+  File "D:\Python\Lib\site-packages\sklearn\base.py", line 1365, in wrapper
+    return fit_method(estimator, *args, **kwargs)
+           ^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^^
+TypeError: LinearRegression.fit() missing 1 required positional argument: 'y'
+2025-10-04 11:33:31,611 - Src.DataAnalyzer.core - INFO - __init__:56 - core: 初始化数据处理引擎
+2025-10-04 11:33:31,612 - Src.DataAnalyzer.TempStorage.manager - INFO - __init__:41 - TempStorageManager 初始化完成
+2025-10-04 11:33:31,612 - Src.DataAnalyzer.core - INFO - __init__:71 - core: 数据处理引擎初始化完成

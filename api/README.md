@@ -11,7 +11,9 @@ api/
 ├── data_import.py       # 数据导入相关接口
 ├── data_preview.py      # 数据预览相关接口
 ├── data_analysis.py     # 数据分析相关接口
-└── data_visualization.py # 数据可视化相关接口
+├── data_visualization.py # 数据可视化相关接口
+├── data_cleaning.py     # 数据清洗相关接口
+└── model_extractor.py   # 模型提取相关接口
 ```
 
 ## 启动API服务
@@ -36,8 +38,10 @@ uvicorn run_api:app --reload
 ## 接口说明
 
 ### 数据导入
+- `POST /api/import/create-session` - 创建新的会话
 - `POST /api/import/upload-file` - 上传文件
 - `POST /api/import/import-from-database` - 从数据库导入数据
+- `POST /api/import/end-session` - 结束会话并清理资源
 
 ### 数据预览
 - `GET /api/preview/data-preview` - 获取数据预览
@@ -50,6 +54,15 @@ uvicorn run_api:app --reload
 ### 数据可视化
 - `POST /api/visualization/generate-chart` - 生成图表
 - `GET /api/visualization/available-charts` - 获取可用图表类型
+
+### 数据清洗
+- `POST /api/cleaning/clean-data` - 清洗数据
+- `GET /api/cleaning/cleaning-modes` - 获取可用的数据清洗模式
+
+### 模型管理
+- `POST /api/model/transfer` - 转移模型
+- `POST /api/model/manage` - 管理自动保存的模型
+- `GET /api/model/list` - 列出自动保存的模型
 
 ## CORS配置
 
