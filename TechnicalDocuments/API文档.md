@@ -6,12 +6,13 @@
 
 本文档提供了整个系统的API概览。有关各模块的详细接口文档，请参阅以下专门的文档：
 
-- [DataImport 模块](modules/data_import.md) - 数据导入功能
-- [DataCleaning 模块](modules/data_cleaning.md) - 数据清洗功能
-- [DataAnalysis 模块](modules/data_analysis.md) - 数据分析功能
-- [DataVisualization 模模块](modules/data_visualization.md) - 数据可视化功能
-- [DataProcessingEngine 核心引擎](modules/core_engine.md) - 核心处理引擎
-- [Reporting 报告生成](modules/reporting.md) - 报告生成功能
+- [数据导入](ModuleInterfaces/数据导入.md) - 数据导入功能
+- [数据清洗](ModuleInterfaces/数据清洗.md) - 数据清洗功能
+- [数据分析](ModuleInterfaces/数据分析.md) - 数据分析功能
+- [数据可视化](ModuleInterfaces/数据可视化.md) - 数据可视化功能
+- [核心处理](ModuleInterfaces/核心处理.md) - 核心处理引擎
+- [数据报表](ModuleInterfaces/数据报表.md) - 报告生成功能
+- [增强可视化功能](ModuleInterfaces/增强可视化功能.md) - 交互式可视化和其他增强功能
 
 ## 核心模块
 

@@ -1,5 +1,9 @@
-import { useState, useEffect } from 'react'
+import { useState } from 'react'
 import './App.css'
+import { useSession } from './hooks/useSession'
+import { useDataPreview } from './hooks/useDataPreview'
+import { useDataAnalysis } from './hooks/useDataAnalysis'
+import { AnalysisParameters } from './types'
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -7,18 +11,38 @@ function App() {
   const [resultMessage, setResultMessage] = useState('')
   const [selectedModel, setSelectedModel] = useState('')
   const [showAdvancedOptions, setShowAdvancedOptions] = useState(false)
-  const [analysisParams, setAnalysisParams] = useState({
-    randomState: 42,
-    isSplit: true,
-    splitRatio: 0.8,
-    featureCols: '',
-    targetCol: '',
-    // 可以继续添加更多参数
+  const [analysisParams, setAnalysisParams] = useState<AnalysisParameters>({
+    random_state: 42,
+    is_split: true,
+    split_ratio: 0.8,
+    feature_cols: undefined,
+    target_col: undefined,
+    is_return_model_param: false,
+    metrics_list: undefined,
+    is_return_model_score: true,
+    is_return_training_set: false,
+    is_return_model_predicting_set: false,
+    feature_cols_encoding: 'onehot',
+    target_col_encoding: 'label',
+    test_set: undefined,
+    model_params: undefined
   })
-  const [dataPreview, setDataPreview] = useState<any>(null)
-  const [loadingPreview, setLoadingPreview] = useState(false)
   const [cleaningMode, setCleaningMode] = useState('standard')
   const [customCleaningParams, setCustomCleaningParams] = useState('')
+  const [file, setFile] = useState<File | null>(null)
+  const [dbParams, setDbParams] = useState({
+    dbType: '',
+    host: 'localhost',
+    port: 3306,
+    database: '',
+    table: '',
+    username: '',
+    password: ''
+  })
+
+  const { sessionId, loading: sessionLoading, error: sessionError } = useSession()
+  const { dataPreview, datasetInfo, loading: previewLoading, error: previewError, refetch: fetchDataPreview } = useDataPreview(sessionId)
+  const { loading: analysisLoading, error: analysisError, runAnalysis, cleanData, generateChart, importFromDatabase } = useDataAnalysis()
 
   // 模拟执行操作并显示结果
   const handleAction = (action: string) => {
@@ -30,62 +54,12 @@ function App() {
     }, 3000)
   }
 
-  // 获取数据预览
-  const fetchDataPreview = async () => {
-    setLoadingPreview(true)
-    try {
-      // 这里应该调用后端API获取数据预览
-      // 暂时使用模拟数据
-      const mockData = {
-        success: true,
-        file_name: 'sample_data.csv',
-        total_rows: 150,
-        total_columns: 5,
-        columns: ['sepal_length', 'sepal_width', 'petal_length', 'petal_width', 'species'],
-        preview_data: [
-          {
-            sepal_length: 5.1,
-            sepal_width: 3.5,
-            petal_length: 1.4,
-            petal_width: 0.2,
-            species: 'setosa'
-          },
-          {
-            sepal_length: 4.9,
-            sepal_width: 3.0,
-            petal_length: 1.4,
-            petal_width: 0.2,
-            species: 'setosa'
-          },
-          {
-            sepal_length: 4.7,
-            sepal_width: 3.2,
-            petal_length: 1.3,
-            petal_width: 0.2,
-            species: 'setosa'
-          },
-          {
-            sepal_length: 4.6,
-            sepal_width: 3.1,
-            petal_length: 1.5,
-            petal_width: 0.2,
-            species: 'setosa'
-          },
-          {
-            sepal_length: 5.0,
-            sepal_width: 3.6,
-            petal_length: 1.4,
-            petal_width: 0.2,
-            species: 'setosa'
-          }
-        ]
-      }
-      setDataPreview(mockData)
-    } catch (error) {
-      setResultMessage('获取数据预览失败: ' + (error as Error).message)
-    } finally {
-      setLoadingPreview(false)
-    }
+  // 处理文件上传
+  const handleFileUpload = async () => {
+    // 这里应该调用实际的上传API
+    handleAction('文件上传')
+    // 上传成功后自动获取预览
+    setTimeout(fetchDataPreview, 1000)
   }
 
   // 处理模型选择变化
@@ -106,10 +80,106 @@ function App() {
     }))
   }
 
-  // 组件挂载时获取数据预览
-  useEffect(() => {
-    fetchDataPreview()
-  }, [])
+  // 处理文件选择
+  const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    if (e.target.files && e.target.files[0]) {
+      setFile(e.target.files[0])
+    }
+  }
+
+  // 处理数据库参数变化
+  const handleDbParamChange = (param: string, value: string | number) => {
+    setDbParams(prev => ({
+      ...prev,
+      [param]: value
+    }))
+  }
+
+  // 处理数据库导入
+  const handleDatabaseImport = async () => {
+    if (!sessionId) {
+      setResultMessage('会话未创建')
+      return
+    }
+
+    try {
+      await importFromDatabase(sessionId, dbParams)
+      setResultMessage('数据库导入成功')
+      fetchDataPreview()
+    } catch (error) {
+      setResultMessage('数据库导入失败: ' + (error as Error).message)
+    }
+  }
+
+  // 处理数据分析
+  const handleRunAnalysis = async () => {
+    if (!sessionId) {
+      setResultMessage('会话未创建')
+      return
+    }
+
+    if (!selectedModel) {
+      setResultMessage('请选择分析模型')
+      return
+    }
+
+    try {
+      // 解析特征列
+      let featureCols: string[] | undefined
+      if (analysisParams.feature_cols && analysisParams.feature_cols.trim() !== '') {
+        featureCols = analysisParams.feature_cols.split(',').map(col => col.trim())
+      }
+
+      // 解析评估指标
+      let metricsList: string[] | undefined
+      if (analysisParams.metrics_list && analysisParams.metrics_list.trim() !== '') {
+        metricsList = analysisParams.metrics_list.split(',').map(metric => metric.trim())
+      }
+
+      const params: AnalysisParameters = {
+        ...analysisParams,
+        feature_cols: featureCols,
+        metrics_list: metricsList
+      }
+
+      await runAnalysis(sessionId, selectedModel, params)
+      setResultMessage('数据分析执行成功')
+    } catch (error) {
+      setResultMessage('数据分析失败: ' + (error as Error).message)
+    }
+  }
+
+  // 处理数据清洗
+  const handleCleanData = async () => {
+    if (!sessionId) {
+      setResultMessage('会话未创建')
+      return
+    }
+
+    try {
+      let cleaningParams: CleaningParameters = {}
+      if (cleaningMode === 'custom' && customCleaningParams) {
+        try {
+          cleaningParams = JSON.parse(customCleaningParams)
+        } catch (e) {
+          setResultMessage('自定义参数格式错误，请输入有效的JSON')
+          return
+        }
+      }
+
+      await cleanData(
+        sessionId,
+        cleaningMode,
+        cleaningMode === 'custom',
+        cleaningParams,
+        analysisParams.target_col
+      )
+      setResultMessage('数据清洗执行成功')
+      fetchDataPreview()
+    } catch (error) {
+      setResultMessage('数据清洗失败: ' + (error as Error).message)
+    }
+  }
 
   return (
     <div className="app">
@@ -171,9 +241,16 @@ function App() {
             <div className="dashboard-grid">
               <div className="card">
                 <h3>数据概览</h3>
-                <p>当前数据集: 无</p>
-                <p>数据行数: 0</p>
-                <p>数据列数: 0</p>
+                {datasetInfo ? (
+                  <>
+                    <p>数据集名称: {datasetInfo.dataset_name}</p>
+                    <p>总记录数: {datasetInfo.total_records}</p>
+                    <p>特征数量: {datasetInfo.features_count}</p>
+                    <p>目标变量: {datasetInfo.target_variable}</p>
+                  </>
+                ) : (
+                  <p>暂无数据</p>
+                )}
               </div>
               <div className="card">
                 <h3>最近分析</h3>
@@ -185,7 +262,8 @@ function App() {
               </div>
               <div className="card">
                 <h3>系统状态</h3>
-                <p>运行正常</p>
+                <p>{sessionId ? '会话已创建' : '会话未创建'}</p>
+                {sessionError && <p style={{color: 'red'}}>错误: {sessionError}</p>}
               </div>
             </div>
           </div>
@@ -218,8 +296,8 @@ function App() {
             {importType === 'file' && (
               <div className="file-upload">
                 <p>拖拽文件到此处或点击选择文件</p>
-                <input type="file" />
-                <button onClick={() => handleAction('文件导入')}>导入文件</button>
+                <input type="file" onChange={handleFileChange} />
+                <button onClick={handleFileUpload}>导入文件</button>
               </div>
             )}
 
@@ -227,7 +305,7 @@ function App() {
               <div className="database-import">
                 <div className="form-group">
                   <label>数据库类型:</label>
-                  <select>
+                  <select value={dbParams.dbType} onChange={(e) => handleDbParamChange('dbType', e.target.value)}>
                     <option value="">请选择数据库类型</option>
                     <option value="mysql">MySQL</option>
                     <option value="postgresql">PostgreSQL</option>
@@ -238,29 +316,61 @@ function App() {
                 </div>
                 <div className="form-group">
                   <label>主机地址:</label>
-                  <input type="text" placeholder="localhost" />
+                  <input 
+                    type="text" 
+                    placeholder="localhost" 
+                    value={dbParams.host}
+                    onChange={(e) => handleDbParamChange('host', e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>端口:</label>
-                  <input type="text" placeholder="3306" />
+                  <input 
+                    type="number" 
+                    placeholder="3306" 
+                    value={dbParams.port}
+                    onChange={(e) => handleDbParamChange('port', parseInt(e.target.value) || 0)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>数据库名:</label>
-                  <input type="text" placeholder="database_name" />
+                  <input 
+                    type="text" 
+                    placeholder="database_name" 
+                    value={dbParams.database}
+                    onChange={(e) => handleDbParamChange('database', e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>表名或集合名:</label>
-                  <input type="text" placeholder="table_name" />
+                  <input 
+                    type="text" 
+                    placeholder="table_name" 
+                    value={dbParams.table}
+                    onChange={(e) => handleDbParamChange('table', e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>用户名:</label>
-                  <input type="text" placeholder="username" />
+                  <input 
+                    type="text" 
+                    placeholder="username" 
+                    value={dbParams.username}
+                    onChange={(e) => handleDbParamChange('username', e.target.value)}
+                  />
                 </div>
                 <div className="form-group">
                   <label>密码:</label>
-                  <input type="password" placeholder="password" />
+                  <input 
+                    type="password" 
+                    placeholder="password" 
+                    value={dbParams.password}
+                    onChange={(e) => handleDbParamChange('password', e.target.value)}
+                  />
                 </div>
-                <button onClick={() => handleAction('数据库连接并导入')}>连接并导入</button>
+                <button onClick={handleDatabaseImport} disabled={analysisLoading}>
+                  {analysisLoading ? '导入中...' : '连接并导入'}
+                </button>
               </div>
             )}
 
@@ -295,10 +405,12 @@ function App() {
           <div className="data-preview">
             <h2>数据预览</h2>
             <div className="preview-controls">
-              <button onClick={fetchDataPreview} disabled={loadingPreview}>
-                {loadingPreview ? '加载中...' : '刷新数据'}
+              <button onClick={fetchDataPreview} disabled={previewLoading}>
+                {previewLoading ? '加载中...' : '刷新数据'}
               </button>
             </div>
+            
+            {previewError && <p style={{color: 'red'}}>错误: {previewError}</p>}
             
             {dataPreview && dataPreview.success ? (
               <div className="preview-content">
@@ -355,14 +467,16 @@ function App() {
                 <div className="form-group">
                   <label>自定义参数:</label>
                   <textarea 
-                    placeholder='["handle_missing=drop", "outlier_method=iqr", "outlier_threshold=1.5"]'
+                    placeholder='{"custom_params": ["handle_missing=drop", "outlier_method=iqr", "outlier_threshold=1.5"]}'
                     value={customCleaningParams}
                     onChange={(e) => setCustomCleaningParams(e.target.value)}
                   />
                 </div>
               )}
               
-              <button onClick={() => handleAction('数据清洗')}>开始清洗</button>
+              <button onClick={handleCleanData} disabled={analysisLoading}>
+                {analysisLoading ? '清洗中...' : '开始清洗'}
+              </button>
             </div>
             
             <div className="cleaning-info">
@@ -382,7 +496,7 @@ function App() {
             <h2>数据分析</h2>
             <div className="analysis-options">
               <select value={selectedModel} onChange={handleModelChange}>
-                <option>选择分析模型</option>
+                <option value="">选择分析模型</option>
                 <optgroup label="回归分析">
                   <option value="linearregression">线性回归</option>
                   <option value="ridge">岭回归</option>
@@ -406,7 +520,9 @@ function App() {
                   <option value="minmaxscaler">归一化</option>
                 </optgroup>
               </select>
-              <button onClick={() => handleAction('数据分析')}>开始分析</button>
+              <button onClick={handleRunAnalysis} disabled={analysisLoading}>
+                {analysisLoading ? '分析中...' : '开始分析'}
+              </button>
             </div>
 
             {/* 高级选项 */}
@@ -424,8 +540,8 @@ function App() {
                     <label>随机种子:</label>
                     <input 
                       type="number" 
-                      value={analysisParams.randomState}
-                      onChange={(e) => handleParamChange('randomState', parseInt(e.target.value))}
+                      value={analysisParams.random_state || 42}
+                      onChange={(e) => handleParamChange('random_state', parseInt(e.target.value) || 42)}
                     />
                   </div>
                   
@@ -433,14 +549,14 @@ function App() {
                     <label>
                       <input 
                         type="checkbox" 
-                        checked={analysisParams.isSplit}
-                        onChange={(e) => handleParamChange('isSplit', e.target.checked)}
+                        checked={analysisParams.is_split ?? true}
+                        onChange={(e) => handleParamChange('is_split', e.target.checked)}
                       />
                       数据集划分
                     </label>
                   </div>
                   
-                  {analysisParams.isSplit && (
+                  {analysisParams.is_split && (
                     <div className="form-group">
                       <label>训练集比例:</label>
                       <input 
@@ -448,8 +564,8 @@ function App() {
                         min="0" 
                         max="1" 
                         step="0.1"
-                        value={analysisParams.splitRatio}
-                        onChange={(e) => handleParamChange('splitRatio', parseFloat(e.target.value))}
+                        value={analysisParams.split_ratio || 0.8}
+                        onChange={(e) => handleParamChange('split_ratio', parseFloat(e.target.value) || 0.8)}
                       />
                     </div>
                   )}
@@ -459,8 +575,8 @@ function App() {
                     <input 
                       type="text" 
                       placeholder="col1,col2,col3"
-                      value={analysisParams.featureCols}
-                      onChange={(e) => handleParamChange('featureCols', e.target.value)}
+                      value={analysisParams.feature_cols || ''}
+                      onChange={(e) => handleParamChange('feature_cols', e.target.value)}
                     />
                   </div>
                   
@@ -469,9 +585,63 @@ function App() {
                     <input 
                       type="text" 
                       placeholder="target_column"
-                      value={analysisParams.targetCol}
-                      onChange={(e) => handleParamChange('targetCol', e.target.value)}
+                      value={analysisParams.target_col || ''}
+                      onChange={(e) => handleParamChange('target_col', e.target.value)}
                     />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>评估指标 (逗号分隔):</label>
+                    <input 
+                      type="text" 
+                      placeholder="accuracy,precision,recall"
+                      value={analysisParams.metrics_list || ''}
+                      onChange={(e) => handleParamChange('metrics_list', e.target.value)}
+                    />
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>
+                      <input 
+                        type="checkbox" 
+                        checked={analysisParams.is_return_model_param ?? false}
+                        onChange={(e) => handleParamChange('is_return_model_param', e.target.checked)}
+                      />
+                      返回模型参数
+                    </label>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>
+                      <input 
+                        type="checkbox" 
+                        checked={analysisParams.is_return_model_score ?? true}
+                        onChange={(e) => handleParamChange('is_return_model_score', e.target.checked)}
+                      />
+                      返回模型评分
+                    </label>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>
+                      <input 
+                        type="checkbox" 
+                        checked={analysisParams.is_return_training_set ?? false}
+                        onChange={(e) => handleParamChange('is_return_training_set', e.target.checked)}
+                      />
+                      返回训练集
+                    </label>
+                  </div>
+                  
+                  <div className="form-group">
+                    <label>
+                      <input 
+                        type="checkbox" 
+                        checked={analysisParams.is_return_model_predicting_set ?? false}
+                        onChange={(e) => handleParamChange('is_return_model_predicting_set', e.target.checked)}
+                      />
+                      返回预测结果
+                    </label>
                   </div>
                 </div>
               )}
@@ -498,7 +668,9 @@ function App() {
                 <option>柱状图</option>
                 <option>饼图</option>
               </select>
-              <button onClick={() => handleAction('生成图表')}>生成图表</button>
+              <button onClick={() => handleAction('生成图表')} disabled={analysisLoading}>
+                {analysisLoading ? '生成中...' : '生成图表'}
+              </button>
             </div>
           </div>
         )}
@@ -513,7 +685,9 @@ function App() {
                 <option>HTML</option>
                 <option>Word</option>
               </select>
-              <button onClick={() => handleAction('生成报告')}>生成报告</button>
+              <button onClick={() => handleAction('生成报告')} disabled={analysisLoading}>
+                {analysisLoading ? '生成中...' : '生成报告'}
+              </button>
             </div>
           </div>
         )}
@@ -522,6 +696,11 @@ function App() {
         {resultMessage && (
           <div className="result-container">
             <p>{resultMessage}</p>
+          </div>
+        )}
+        {analysisError && (
+          <div className="result-container" style={{backgroundColor: '#ffe6e6', borderColor: '#ff9999'}}>
+            <p style={{color: '#cc0000'}}>错误: {analysisError}</p>
           </div>
         )}
       </main>

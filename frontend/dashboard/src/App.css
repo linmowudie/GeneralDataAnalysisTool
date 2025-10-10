@@ -104,23 +104,24 @@ html, body {
   text-align: center;
 }
 
-.data-import, .data-preview, .data-analysis, .data-visualization, .report-generation {
+.data-import, .data-preview, .data-analysis, .data-visualization, .report-generation, .data-cleaning {
   padding: 1rem;
   background-color: #ffffff;
   border-radius: 8px;
   box-shadow: 0 2px 4px rgba(0,0,0,0.1);
-  width: 50%;
+  width: 100%;
+  max-width: 800px;
   margin: 0 auto;
   display: flex;
   flex-direction: column;
 }
 
-.data-import h2, .data-preview h2, .data-analysis h2, .data-visualization h2, .report-generation h2 {
+.data-import h2, .data-preview h2, .data-analysis h2, .data-visualization h2, .report-generation h2, .data-cleaning h2 {
   text-align: center;
   margin-top: 0;
 }
 
-.import-options, .analysis-options, .visualization-options, .report-options {
+.import-options, .analysis-options, .visualization-options, .report-options, .cleaning-options {
   display: flex;
   gap: 1rem;
   margin-bottom: 1rem;
@@ -133,7 +134,8 @@ html, body {
 .analysis-options button, 
 .visualization-options button, 
 .report-options button,
-.preview-controls button {
+.preview-controls button,
+.cleaning-options button {
   background-color: #61dafb;
   border: none;
   color: #282c34;
@@ -148,7 +150,8 @@ html, body {
 .analysis-options button:hover, 
 .visualization-options button:hover, 
 .report-options button:hover,
-.preview-controls button:hover {
+.preview-controls button:hover,
+.cleaning-options button:hover {
   background-color: #21a9c7;
 }
 
@@ -235,7 +238,8 @@ html, body {
 
 /* 结果显示容器样式 */
 .result-container {
-  width: 50%;
+  width: 100%;
+  max-width: 800px;
   margin: 1rem auto 0;
   padding: 1rem;
   background-color: #e8f4fd;
@@ -361,8 +365,31 @@ html, body {
   color: #666;
 }
 
+/* 清洗信息样式 */
+.cleaning-info {
+  background-color: #f9f9f9;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  padding: 1rem;
+  margin-top: 1rem;
+}
+
+.cleaning-info h3 {
+  margin-top: 0;
+  border-bottom: 1px solid #ddd;
+  padding-bottom: 0.5rem;
+}
+
+.cleaning-info ul {
+  padding-left: 1.5rem;
+}
+
+.cleaning-info li {
+  margin-bottom: 0.5rem;
+}
+
 @media (max-width: 768px) {
-  .import-options, .analysis-options, .visualization-options, .report-options {
+  .import-options, .analysis-options, .visualization-options, .report-options, .cleaning-options {
     flex-direction: column;
   }
   
@@ -370,7 +397,7 @@ html, body {
     padding: 0.5rem;
   }
   
-  .data-import, .data-preview, .data-analysis, .data-visualization, .report-generation {
+  .data-import, .data-preview, .data-analysis, .data-visualization, .report-generation, .data-cleaning {
     width: 100%;
     padding: 0.5rem;
   }
