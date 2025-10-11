@@ -31,11 +31,9 @@ from .ModuleInterfaces import (
 from .reporter import Report
 from .TempStorage.manager import TempStorageManager
 
-# 配置日志
-from .Configs.log_setting import setup_logging
-setup_logging()
-logger = logging.getLogger(__name__)
-
+# 配置后端日志
+from .Configs.log_setting import get_component_logger
+backend_logger = get_component_logger('backend', 'core')
 
 class DataProcessingEngine:
     """
@@ -58,7 +56,7 @@ class DataProcessingEngine:
         Args:
             auto_cleanup: 是否在初始化时自动清理临时存储中的旧文件
         """
-        self.logger = logger
+        self.logger = backend_logger
         self.logger.info("core: 初始化数据处理引擎")
         
         # 初始化各阶段数据存储
@@ -67,6 +65,9 @@ class DataProcessingEngine:
         self.analyzed_data: Optional[Dict[str, Any]] = None
         self.visualized_plot: Optional[Dict[str, Any]] = None
         self.report_data: Optional[Dict[str, Any]] = None
+        
+        # 记录最后导入的文件名
+        self._last_imported_file: Optional[str] = None
         
         # 初始化临时存储管理器
         self.temp_storage = TempStorageManager(auto_cleanup=auto_cleanup)

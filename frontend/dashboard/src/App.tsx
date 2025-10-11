@@ -3,7 +3,14 @@ import './App.css'
 import { useSession } from './hooks/useSession'
 import { useDataPreview } from './hooks/useDataPreview'
 import { useDataAnalysis } from './hooks/useDataAnalysis'
-import { AnalysisParameters } from './types'
+import type { AnalysisParameters, CleaningParameters, DatabaseImportParameters } from './types'
+import frontendLogger from './utils/logger'
+
+// 简单的日志记录函数
+const logFrontendAction = (action: string, details?: any) => {
+  const timestamp = new Date().toISOString();
+  console.log(`[Frontend App ${timestamp}] ${action}`, details || '');
+};
 
 function App() {
   const [activeTab, setActiveTab] = useState('dashboard')
@@ -46,6 +53,7 @@ function App() {
 
   // 模拟执行操作并显示结果
   const handleAction = (action: string) => {
+    frontendLogger.info(`执行操作: ${action}`);
     setResultMessage(`执行了${action}操作，结果将在此处显示...`)
     
     // 3秒后清除消息
@@ -56,10 +64,46 @@ function App() {
 
   // 处理文件上传
   const handleFileUpload = async () => {
-    // 这里应该调用实际的上传API
-    handleAction('文件上传')
-    // 上传成功后自动获取预览
-    setTimeout(fetchDataPreview, 1000)
+    if (!sessionId) {
+      frontendLogger.warn('会话未创建，无法上传文件');
+      setResultMessage('会话未创建')
+      return
+    }
+
+    if (!file) {
+      frontendLogger.warn('未选择文件');
+      setResultMessage('请选择要上传的文件')
+      return
+    }
+
+    try {
+      frontendLogger.info('开始上传文件', { fileName: file.name });
+      // 调用实际的上传API
+      const formData = new FormData()
+      formData.append('session_id', sessionId)
+      formData.append('file', file)
+
+      const response = await fetch('http://localhost:8000/api/import/upload-file', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        frontendLogger.error('文件上传失败', { status: response.status, error: errorText });
+        throw new Error(`上传失败: ${response.status} ${response.statusText}`)
+      }
+
+      const result = await response.json()
+      frontendLogger.info('文件上传成功', { fileName: file.name });
+      setResultMessage(result.message || '文件上传成功')
+      
+      // 上传成功后自动获取预览
+      setTimeout(fetchDataPreview, 1000)
+    } catch (error) {
+      frontendLogger.error('文件上传异常', { error: (error as Error).message });
+      setResultMessage('文件上传失败: ' + (error as Error).message)
+    }
   }
 
   // 处理模型选择变化
@@ -103,7 +147,15 @@ function App() {
     }
 
     try {
-      await importFromDatabase(sessionId, dbParams)
+      await importFromDatabase(sessionId, {
+        db_type: dbParams.dbType,
+        host: dbParams.host,
+        port: dbParams.port,
+        database: dbParams.database,
+        table: dbParams.table,
+        username: dbParams.username,
+        password: dbParams.password
+      })
       setResultMessage('数据库导入成功')
       fetchDataPreview()
     } catch (error) {
@@ -126,14 +178,14 @@ function App() {
     try {
       // 解析特征列
       let featureCols: string[] | undefined
-      if (analysisParams.feature_cols && analysisParams.feature_cols.trim() !== '') {
-        featureCols = analysisParams.feature_cols.split(',').map(col => col.trim())
+      if (analysisParams.feature_cols && Array.isArray(analysisParams.feature_cols)) {
+        featureCols = analysisParams.feature_cols
       }
 
       // 解析评估指标
       let metricsList: string[] | undefined
-      if (analysisParams.metrics_list && analysisParams.metrics_list.trim() !== '') {
-        metricsList = analysisParams.metrics_list.split(',').map(metric => metric.trim())
+      if (analysisParams.metrics_list && Array.isArray(analysisParams.metrics_list)) {
+        metricsList = analysisParams.metrics_list
       }
 
       const params: AnalysisParameters = {
@@ -519,6 +571,10 @@ function App() {
                   <option value="standardscaler">标准化</option>
                   <option value="minmaxscaler">归一化</option>
                 </optgroup>
+                <optgroup label="关联规则学习">
+                  <option value="apriori">Apriori算法</option>
+                  <option value="associationrules">关联规则</option>
+                </optgroup>
               </select>
               <button onClick={handleRunAnalysis} disabled={analysisLoading}>
                 {analysisLoading ? '分析中...' : '开始分析'}
@@ -724,7 +780,9 @@ function getModelDisplayName(modelKey: string): string {
     'pca': '主成分分析(PCA)',
     'tsne': 't-SNE降维',
     'standardscaler': '标准化',
-    'minmaxscaler': '归一化'
+    'minmaxscaler': '归一化',
+    'apriori': 'Apriori算法',
+    'associationrules': '关联规则'
   }
   
   return modelNames[modelKey] || modelKey
@@ -785,6 +843,16 @@ function renderModelSpecificParams(modelKey: string) {
           <div className="form-group">
             <label>随机种子:</label>
             <input type="number" defaultValue="42" />
+          </div>
+        </>
+      )
+      
+    case 'apriori':
+      return (
+        <>
+          <div className="form-group">
+            <label>最小支持度:</label>
+            <input type="number" step="0.01" defaultValue="0.1" />
           </div>
         </>
       )

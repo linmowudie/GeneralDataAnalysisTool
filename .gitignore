@@ -55,3 +55,6 @@ frontend/dashboard/pnpm-debug.log*
 # Temporary files
 *.tmp
 *.temp
+
+# API uploaded files
+APIOutput/

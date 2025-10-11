@@ -1,6 +1,6 @@
 import { useState } from 'react';
 import * as api from '../services/api';
-import { AnalysisParameters, CleaningParameters, VisualizationParameters, DatabaseImportParameters } from '../types';
+import type { AnalysisParameters, CleaningParameters, VisualizationParameters, DatabaseImportParameters } from '../types';
 
 export function useDataAnalysis() {
   const [loading, setLoading] = useState(false);

@@ -8,6 +8,9 @@ import time
 from typing import Dict, Any
 from Src.DataAnalyzer.core import DataProcessingEngine
 
+# 配置API日志
+from Src.DataAnalyzer.Configs.log_setting import get_component_logger
+api_logger = get_component_logger('api', 'session_manager')
 
 class SessionManager:
     """
@@ -25,6 +28,7 @@ class SessionManager:
         # 存储会话ID与数据处理引擎实例的映射
         self.sessions: Dict[str, Dict[str, Any]] = {}
         self.session_timeout = session_timeout
+        api_logger.info("会话管理器初始化完成，超时时间: %d秒", session_timeout)
     
     def create_session(self) -> str:
         """
@@ -39,6 +43,7 @@ class SessionManager:
             'created_at': time.time(),
             'last_accessed': time.time()
         }
+        api_logger.info("创建新会话: %s", session_id)
         return session_id
     
     def get_engine(self, session_id: str) -> DataProcessingEngine:
@@ -55,16 +60,19 @@ class SessionManager:
             ValueError: 当会话ID不存在时
         """
         if session_id not in self.sessions:
+            api_logger.warning("会话ID不存在: %s", session_id)
             raise ValueError(f"会话ID {session_id} 不存在")
         
         # 检查会话是否超时
         session_info = self.sessions[session_id]
         if time.time() - session_info['last_accessed'] > self.session_timeout:
             self.delete_session(session_id)
+            api_logger.warning("会话ID已超时: %s", session_id)
             raise ValueError(f"会话ID {session_id} 已超时")
         
         # 更新最后访问时间
         session_info['last_accessed'] = time.time()
+        api_logger.debug("获取会话引擎: %s", session_id)
         return session_info['engine']
     
     def delete_session(self, session_id: str) -> bool:
@@ -83,7 +91,9 @@ class SessionManager:
             engine.cleanup()
             # 删除会话
             del self.sessions[session_id]
+            api_logger.info("删除会话: %s", session_id)
             return True
+        api_logger.warning("尝试删除不存在的会话: %s", session_id)
         return False
     
     def cleanup_expired_sessions(self) -> int:
@@ -105,6 +115,7 @@ class SessionManager:
         for session_id in expired_sessions:
             self.delete_session(session_id)
         
+        api_logger.info("清理过期会话完成，共清理 %d 个会话", len(expired_sessions))
         return len(expired_sessions)
 
 

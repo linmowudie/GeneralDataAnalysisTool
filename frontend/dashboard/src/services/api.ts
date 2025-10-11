@@ -1,6 +1,8 @@
 // API服务封装
 const API_BASE_URL = 'http://localhost:8000/api';
 
+import frontendLogger from '../utils/logger';
+
 interface ApiResponse<T> {
   success?: boolean;
   message?: string;
@@ -10,20 +12,25 @@ interface ApiResponse<T> {
 
 // 创建会话
 export async function createSession(): Promise<string> {
+  frontendLogger.info('创建会话');
   const response = await fetch(`${API_BASE_URL}/import/create-session`, {
     method: 'POST',
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('创建会话失败', { status: response.status, error: errorText });
     throw new Error('创建会话失败');
   }
   
   const data = await response.json();
+  frontendLogger.info('会话创建成功', { sessionId: data.session_id });
   return data.session_id;
 }
 
 // 上传文件
 export async function uploadFile(sessionId: string, file: File): Promise<ApiResponse<any>> {
+  frontendLogger.info('上传文件', { sessionId, fileName: file.name, fileSize: file.size });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   formData.append('file', file);
@@ -34,10 +41,14 @@ export async function uploadFile(sessionId: string, file: File): Promise<ApiResp
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('文件上传失败', { status: response.status, error: errorText });
     throw new Error('文件上传失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('文件上传成功', { sessionId, fileName: file.name });
+  return result;
 }
 
 // 从数据库导入
@@ -51,6 +62,7 @@ export async function importFromDatabase(
   username?: string,
   password?: string
 ): Promise<ApiResponse<any>> {
+  frontendLogger.info('从数据库导入数据', { sessionId, dbType, host, database, table });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   formData.append('db_type', dbType);
@@ -67,14 +79,19 @@ export async function importFromDatabase(
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('数据库导入失败', { status: response.status, error: errorText });
     throw new Error('数据库导入失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('数据库导入成功', { sessionId, dbType, database, table });
+  return result;
 }
 
 // 结束会话
 export async function endSession(sessionId: string): Promise<ApiResponse<any>> {
+  frontendLogger.info('结束会话', { sessionId });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   
@@ -84,32 +101,46 @@ export async function endSession(sessionId: string): Promise<ApiResponse<any>> {
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('结束会话失败', { status: response.status, error: errorText });
     throw new Error('结束会话失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('会话结束成功', { sessionId });
+  return result;
 }
 
 // 获取数据预览
 export async function getDataPreview(sessionId: string): Promise<ApiResponse<any>> {
+  frontendLogger.info('获取数据预览', { sessionId });
   const response = await fetch(`${API_BASE_URL}/preview/data-preview?session_id=${sessionId}`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取数据预览失败', { status: response.status, error: errorText });
     throw new Error('获取数据预览失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('数据预览获取成功', { sessionId });
+  return result;
 }
 
 // 获取数据集信息
 export async function getDatasetInfo(sessionId: string): Promise<ApiResponse<any>> {
+  frontendLogger.info('获取数据集信息', { sessionId });
   const response = await fetch(`${API_BASE_URL}/preview/dataset-info?session_id=${sessionId}`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取数据集信息失败', { status: response.status, error: errorText });
     throw new Error('获取数据集信息失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('数据集信息获取成功', { sessionId });
+  return result;
 }
 
 // 数据清洗
@@ -122,6 +153,7 @@ export async function cleanData(
   } = {},
   targetCol?: string
 ): Promise<ApiResponse<any>> {
+  frontendLogger.info('数据清洗', { sessionId, mode, isCustom });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   formData.append('mode', mode);
@@ -137,21 +169,30 @@ export async function cleanData(
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('数据清洗失败', { status: response.status, error: errorText });
     throw new Error('数据清洗失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('数据清洗成功', { sessionId, mode });
+  return result;
 }
 
 // 获取清洗模式
 export async function getCleaningModes(): Promise<ApiResponse<string[]>> {
+  frontendLogger.info('获取清洗模式');
   const response = await fetch(`${API_BASE_URL}/cleaning/cleaning-modes`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取清洗模式失败', { status: response.status, error: errorText });
     throw new Error('获取清洗模式失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('清洗模式获取成功');
+  return result;
 }
 
 // 运行分析
@@ -175,6 +216,7 @@ export async function runAnalysis(
     model_params?: Record<string, any>;
   } = {}
 ): Promise<ApiResponse<any>> {
+  frontendLogger.info('运行分析', { sessionId, modelType });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   formData.append('model_type', modelType);
@@ -186,21 +228,30 @@ export async function runAnalysis(
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('数据分析失败', { status: response.status, error: errorText });
     throw new Error('数据分析失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('数据分析成功', { sessionId, modelType });
+  return result;
 }
 
 // 获取可用模型
 export async function getAvailableModels(): Promise<ApiResponse<string[]>> {
+  frontendLogger.info('获取可用模型');
   const response = await fetch(`${API_BASE_URL}/analysis/available-models`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取可用模型失败', { status: response.status, error: errorText });
     throw new Error('获取可用模型失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('可用模型获取成功');
+  return result;
 }
 
 // 生成图表
@@ -215,6 +266,7 @@ export async function generateChart(
     predict?: any;
   } = {}
 ): Promise<ApiResponse<any>> {
+  frontendLogger.info('生成图表', { sessionId, chartType });
   const formData = new FormData();
   formData.append('session_id', sessionId);
   formData.append('chart_type', chartType);
@@ -226,19 +278,28 @@ export async function generateChart(
   });
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('生成图表失败', { status: response.status, error: errorText });
     throw new Error('生成图表失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('图表生成成功', { sessionId, chartType });
+  return result;
 }
 
 // 获取可用图表类型
 export async function getAvailableCharts(): Promise<ApiResponse<string[]>> {
+  frontendLogger.info('获取可用图表类型');
   const response = await fetch(`${API_BASE_URL}/visualization/available-charts`);
   
   if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取可用图表类型失败', { status: response.status, error: errorText });
     throw new Error('获取可用图表类型失败');
   }
   
-  return await response.json();
+  const result = await response.json();
+  frontendLogger.info('可用图表类型获取成功');
+  return result;
 }

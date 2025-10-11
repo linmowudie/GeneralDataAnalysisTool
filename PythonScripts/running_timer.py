@@ -6,7 +6,7 @@ import os
 from pathlib import Path
 from typing import Any, Callable
 
-def _setup_module_logging(module_name: str, log_dir: str = "Logs", level=logging.DEBUG):
+def _setup_module_logging(module_name: str, log_dir: str = "Logs", level=logging.INFO):
     """
     为特定模块配置独立的日志文件（内部函数）
     :param module_name: 模块名称
