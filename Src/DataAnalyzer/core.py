@@ -16,7 +16,7 @@ import pickle
 from datetime import datetime
 
 
-# 添加项目根目录到Python路径
+# 添加项目根目录到Python路径中
 project_root = Path(__file__).parent.parent.parent.parent
 if str(project_root) not in sys.path:
     sys.path.insert(0, str(project_root))
@@ -69,6 +69,10 @@ class DataProcessingEngine:
         # 记录最后导入的文件名
         self._last_imported_file: Optional[str] = None
         
+        # 步骤状态管理
+        self.completed_steps: List[str] = []  # 已完成的步骤
+        self.locked_steps: List[str] = []     # 已锁定的步骤
+        
         # 初始化临时存储管理器
         self.temp_storage = TempStorageManager(auto_cleanup=auto_cleanup)
         
@@ -76,6 +80,91 @@ class DataProcessingEngine:
         self.auto_extract_model = False
         
         self.logger.info("core: 数据处理引擎初始化完成")
+
+    def mark_step_completed(self, step: str) -> None:
+        """
+        标记步骤为已完成
+        
+        Args:
+            step: 步骤名称
+        """
+        if step not in self.completed_steps:
+            self.completed_steps.append(step)
+            self.logger.debug(f"步骤 {step} 标记为已完成")
+
+    def lock_step(self, step: str) -> None:
+        """
+        锁定步骤
+        
+        Args:
+            step: 步骤名称
+        """
+        if step not in self.locked_steps:
+            self.locked_steps.append(step)
+            self.logger.debug(f"步骤 {step} 已锁定")
+
+    def reset_step_and_following(self, step: str) -> None:
+        """
+        重置步骤及其后续步骤
+        
+        Args:
+            step: 步骤名称
+        """
+        step_order = ['import', 'preview', 'cleaning', 'analysis', 'visualization', 'report']
+        step_index = step_order.index(step) if step in step_order else -1
+        
+        if step_index != -1:
+            # 解锁当前步骤及后续所有步骤
+            steps_to_unlock = step_order[step_index:]
+            self.locked_steps = [s for s in self.locked_steps if s not in steps_to_unlock]
+            
+            # 移除当前步骤及后续步骤的完成状态
+            steps_to_remove = step_order[step_index:]
+            self.completed_steps = [s for s in self.completed_steps if s not in steps_to_remove]
+            
+            # 根据步骤类型清理数据
+            for step_to_reset in steps_to_remove:
+                self._clear_step_data(step_to_reset)
+            
+            self.logger.info(f"已重置步骤 {step} 及后续步骤")
+
+    def _clear_step_data(self, step: str) -> None:
+        """
+        清除特定步骤的数据
+        
+        Args:
+            step: 步骤名称
+        """
+        if step == 'import':
+            self.imported_data = None
+            # 清理导入的临时数据
+            self.temp_storage.clear_stage_data('imported')
+        elif step == 'cleaning':
+            self.cleaned_data = None
+            # 清理清洗的临时数据
+            self.temp_storage.clear_stage_data('cleaned')
+        elif step == 'analysis':
+            self.analyzed_data = None
+            # 清理分析的临时数据
+            self.temp_storage.clear_stage_data('analyzed')
+        elif step == 'visualization':
+            self.visualized_plot = None
+            # 清理可视化的临时数据
+            self.temp_storage.clear_stage_data('visualized')
+        elif step == 'report':
+            self.report_data = None
+
+    def get_step_status(self) -> Dict[str, Any]:
+        """
+        获取步骤状态
+        
+        Returns:
+            Dict: 包含已完成步骤和已锁定步骤的字典
+        """
+        return {
+            'completed_steps': self.completed_steps,
+            'locked_steps': self.locked_steps
+        }
 
     def import_data(
         self,

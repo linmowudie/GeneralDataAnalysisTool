@@ -1,5 +1,5 @@
 from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from typing import Optional
+from typing import Optional, Dict, Any
 import os
 import sys
 import logging
@@ -61,6 +61,10 @@ async def upload_file(
                 resource_type=file.filename.split('.')[-1] if file.filename else 'csv'
             )
             
+            # 标记导入步骤为完成并锁定
+            engine.mark_step_completed('import')
+            engine.lock_step('import')
+            
             return {"message": f"文件 {file.filename} 上传并导入成功", "session_id": session_id}
         else:
             raise ValueError("文件名为空")
@@ -103,6 +107,11 @@ async def import_from_database(
             query=f"SELECT * FROM {table}",
             is_database=True
         )
+        
+        # 标记导入步骤为完成并锁定
+        engine.mark_step_completed('import')
+        engine.lock_step('import')
+        
         api_logger.info("数据库导入成功")
         
         return {
@@ -120,6 +129,52 @@ async def import_from_database(
     except Exception as e:
         api_logger.error(f"数据库导入失败: {str(e)}")
         raise HTTPException(status_code=400, detail=f"数据库导入失败: {str(e)}")
+
+@router.post("/reset-step")
+async def reset_step(
+    session_id: str = Form(...),
+    step: str = Form(...)
+):
+    """重置指定步骤及其后续步骤"""
+    try:
+        api_logger.info(f"重置步骤: {step}，会话ID: {session_id}")
+        success = session_manager.reset_session_step(session_id, step)
+        if success:
+            api_logger.info(f"步骤 {step} 重置成功")
+            return {
+                "session_id": session_id,
+                "step": step,
+                "message": f"步骤 {step} 重置成功"
+            }
+        else:
+            api_logger.warning(f"步骤 {step} 重置失败")
+            raise HTTPException(status_code=400, detail=f"步骤 {step} 重置失败")
+    except ValueError as e:
+        api_logger.error(f"会话错误: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
+    except Exception as e:
+        api_logger.error(f"重置步骤失败: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"重置步骤失败: {str(e)}")
+
+@router.get("/step-status")
+async def get_step_status(
+    session_id: str
+):
+    """获取步骤状态"""
+    try:
+        api_logger.info(f"获取步骤状态，会话ID: {session_id}")
+        status = session_manager.get_session_step_status(session_id)
+        api_logger.info(f"步骤状态获取成功: {status}")
+        return {
+            "session_id": session_id,
+            "status": status
+        }
+    except ValueError as e:
+        api_logger.error(f"会话错误: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
+    except Exception as e:
+        api_logger.error(f"获取步骤状态失败: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"获取步骤状态失败: {str(e)}")
 
 @router.post("/end-session")
 async def end_session(

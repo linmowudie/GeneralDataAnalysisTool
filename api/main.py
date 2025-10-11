@@ -5,8 +5,6 @@ from typing import Optional
 import os
 import sys
 import logging
-import shutil
-from pathlib import Path
 
 # 将项目根目录添加到Python路径中
 sys.path.append(os.path.dirname(os.path.dirname(__file__)))
@@ -20,37 +18,8 @@ from api.cleanup_task import cleanup_task
 from Src.DataAnalyzer.Configs.log_setting import get_component_logger
 api_logger = get_component_logger('api', 'api_main')
 
-# 清理临时数据目录
-def cleanup_temp_directories():
-    """清理临时数据目录"""
-    try:
-        # 清理APIOutput目录
-        api_output_dir = Path("APIOutput")
-        if api_output_dir.exists():
-            for item in api_output_dir.iterdir():
-                if item.is_file():
-                    item.unlink()
-                elif item.is_dir():
-                    shutil.rmtree(item)
-            api_logger.info("APIOutput目录清理完成")
-        
-        # 清理临时存储目录
-        temp_storage_dir = Path("Src/DataAnalyzer/TempStorage")
-        if temp_storage_dir.exists():
-            for stage in ['imported', 'cleaned', 'analyzed', 'visualized']:
-                stage_path = temp_storage_dir / stage
-                if stage_path.exists():
-                    for item in stage_path.iterdir():
-                        if item.is_file():
-                            item.unlink()
-                        elif item.is_dir():
-                            shutil.rmtree(item)
-            api_logger.info("临时存储目录清理完成")
-    except Exception as e:
-        api_logger.error(f"清理临时目录时出错: {e}")
-
 # 在启动时清理临时数据
-cleanup_temp_directories()
+cleanup_task.cleanup_temp_directories()
 
 doc_reader = DocumentReader(os.path.dirname(__file__))
 

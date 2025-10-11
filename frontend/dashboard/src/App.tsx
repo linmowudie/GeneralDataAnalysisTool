@@ -1,4 +1,4 @@
-import { useState } from 'react'
+import { useState, useEffect } from 'react'
 import './App.css'
 import { useSession } from './hooks/useSession'
 import { useDataPreview } from './hooks/useDataPreview'
@@ -47,9 +47,121 @@ function App() {
     password: ''
   })
 
+  // 步骤状态管理
+  const [completedSteps, setCompletedSteps] = useState<string[]>([])
+  const [lockedSteps, setLockedSteps] = useState<string[]>([])
+
   const { sessionId, loading: sessionLoading, error: sessionError } = useSession()
   const { dataPreview, datasetInfo, loading: previewLoading, error: previewError, refetch: fetchDataPreview } = useDataPreview(sessionId)
-  const { loading: analysisLoading, error: analysisError, runAnalysis, cleanData, generateChart, importFromDatabase } = useDataAnalysis()
+  const { loading: analysisLoading, error: analysisError, runAnalysis, cleanData, generateChart, importFromDatabase, resetStep } = useDataAnalysis()
+
+  // 获取步骤状态
+  useEffect(() => {
+    const fetchStepStatus = async () => {
+      if (!sessionId) return;
+      
+      try {
+        const response = await fetch(`http://localhost:8000/api/import/step-status?session_id=${sessionId}`);
+        if (response.ok) {
+          const data = await response.json();
+          setCompletedSteps(data.status.completed_steps || []);
+          setLockedSteps(data.status.locked_steps || []);
+        }
+      } catch (error) {
+        console.error('获取步骤状态失败:', error);
+      }
+    };
+
+    fetchStepStatus();
+  }, [sessionId]);
+
+  // 标记步骤为已完成
+  const markStepAsCompleted = (step: string) => {
+    if (!completedSteps.includes(step)) {
+      setCompletedSteps(prev => [...prev, step])
+    }
+  }
+
+  // 锁定步骤
+  const lockStep = (step: string) => {
+    if (!lockedSteps.includes(step)) {
+      setLockedSteps(prev => [...prev, step])
+    }
+  }
+
+  // 重置步骤及其后续步骤
+  const resetStepAndFollowing = async (step: string) => {
+    if (!sessionId) {
+      setResultMessage('会话未创建')
+      return
+    }
+
+    try {
+      await resetStep(sessionId, step);
+      
+      const stepOrder = ['import', 'preview', 'cleaning', 'analysis', 'visualization', 'report']
+      const stepIndex = stepOrder.indexOf(step)
+      
+      if (stepIndex !== -1) {
+        // 解锁当前步骤及后续所有步骤
+        const stepsToUnlock = stepOrder.slice(stepIndex)
+        setLockedSteps(prev => prev.filter(s => !stepsToUnlock.includes(s)))
+        
+        // 移除当前步骤及后续步骤的完成状态
+        const stepsToRemove = stepOrder.slice(stepIndex)
+        setCompletedSteps(prev => prev.filter(s => !stepsToRemove.includes(s)))
+      }
+      
+      setResultMessage(`步骤 ${step} 及后续步骤已重置`)
+    } catch (error) {
+      setResultMessage('重置步骤失败: ' + (error as Error).message)
+    }
+  }
+
+  // 清空所有数据
+  const clearAllData = async () => {
+    if (!sessionId) {
+      setResultMessage('会话未创建')
+      return
+    }
+
+    try {
+      // 调用API结束会话
+      const formData = new FormData()
+      formData.append('session_id', sessionId)
+
+      const response = await fetch('http://localhost:8000/api/import/end-session', {
+        method: 'POST',
+        body: formData,
+      })
+
+      if (!response.ok) {
+        const errorText = await response.text();
+        throw new Error(`清空数据失败: ${response.status} ${response.statusText}`)
+      }
+
+      // 重置所有状态
+      setCompletedSteps([])
+      setLockedSteps([])
+      setSelectedModel('')
+      setCleaningMode('standard')
+      setCustomCleaningParams('')
+      setFile(null)
+      setDbParams({
+        dbType: '',
+        host: 'localhost',
+        port: 3306,
+        database: '',
+        table: '',
+        username: '',
+        password: ''
+      })
+      
+      setResultMessage('所有数据已清空')
+    } catch (error) {
+      setResultMessage('清空数据失败: ' + (error as Error).message)
+    }
+  }
 
   // 模拟执行操作并显示结果
   const handleAction = (action: string) => {
@@ -98,6 +210,10 @@ function App() {
       frontendLogger.info('文件上传成功', { fileName: file.name });
       setResultMessage(result.message || '文件上传成功')
       
+      // 标记导入步骤为完成并锁定
+      markStepAsCompleted('import')
+      lockStep('import')
+      
       // 上传成功后自动获取预览
       setTimeout(fetchDataPreview, 1000)
     } catch (error) {
@@ -108,35 +224,61 @@ function App() {
 
   // 处理模型选择变化
   const handleModelChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setSelectedModel(e.target.value)
+    if (!lockedSteps.includes('analysis')) {
+      setSelectedModel(e.target.value)
+    }
   }
 
   // 处理清洗模式变化
   const handleCleaningModeChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
-    setCleaningMode(e.target.value)
+    if (!lockedSteps.includes('cleaning')) {
+      setCleaningMode(e.target.value)
+    }
   }
 
   // 处理参数变化
   const handleParamChange = (param: string, value: string | number | boolean) => {
-    setAnalysisParams(prev => ({
-      ...prev,
-      [param]: value
-    }))
+    // 检查当前步骤是否被锁定
+    const stepParamsMap: Record<string, string[]> = {
+      analysis: ['random_state', 'is_split', 'split_ratio', 'feature_cols', 'target_col', 
+                'is_return_model_param', 'metrics_list', 'is_return_model_score', 
+                'is_return_training_set', 'is_return_model_predicting_set', 
+                'feature_cols_encoding', 'target_col_encoding', 'test_set', 'model_params']
+    }
+
+    let isLocked = false
+    for (const [step, params] of Object.entries(stepParamsMap)) {
+      if (params.includes(param) && lockedSteps.includes(step)) {
+        isLocked = true
+        break
+      }
+    }
+
+    if (!isLocked) {
+      setAnalysisParams(prev => ({
+        ...prev,
+        [param]: value
+      }))
+    }
   }
 
   // 处理文件选择
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
-    if (e.target.files && e.target.files[0]) {
-      setFile(e.target.files[0])
+    if (!lockedSteps.includes('import')) {
+      if (e.target.files && e.target.files[0]) {
+        setFile(e.target.files[0])
+      }
     }
   }
 
   // 处理数据库参数变化
   const handleDbParamChange = (param: string, value: string | number) => {
-    setDbParams(prev => ({
-      ...prev,
-      [param]: value
-    }))
+    if (!lockedSteps.includes('import')) {
+      setDbParams(prev => ({
+        ...prev,
+        [param]: value
+      }))
+    }
   }
 
   // 处理数据库导入
@@ -158,6 +300,10 @@ function App() {
       })
       setResultMessage('数据库导入成功')
       fetchDataPreview()
+      
+      // 标记导入步骤为完成并锁定
+      markStepAsCompleted('import')
+      lockStep('import')
     } catch (error) {
       setResultMessage('数据库导入失败: ' + (error as Error).message)
     }
@@ -196,6 +342,10 @@ function App() {
 
       await runAnalysis(sessionId, selectedModel, params)
       setResultMessage('数据分析执行成功')
+      
+      // 标记分析步骤为完成并锁定
+      markStepAsCompleted('analysis')
+      lockStep('analysis')
     } catch (error) {
       setResultMessage('数据分析失败: ' + (error as Error).message)
     }
@@ -228,6 +378,10 @@ function App() {
       )
       setResultMessage('数据清洗执行成功')
       fetchDataPreview()
+      
+      // 标记清洗步骤为完成并锁定
+      markStepAsCompleted('cleaning')
+      lockStep('cleaning')
     } catch (error) {
       setResultMessage('数据清洗失败: ' + (error as Error).message)
     }
@@ -247,8 +401,9 @@ function App() {
           <button 
             className={activeTab === 'import' ? 'active' : ''}
             onClick={() => setActiveTab('import')}
+            disabled={lockedSteps.includes('import') && activeTab !== 'import'}
           >
-            数据导入
+            {completedSteps.includes('import') ? '✓ 数据导入' : '数据导入'}
           </button>
           <button 
             className={activeTab === 'preview' ? 'active' : ''}
@@ -256,37 +411,56 @@ function App() {
               setActiveTab('preview')
               fetchDataPreview()
             }}
+            disabled={lockedSteps.includes('preview') && activeTab !== 'preview'}
           >
-            数据预览
+            {completedSteps.includes('preview') ? '✓ 数据预览' : '数据预览'}
           </button>
           <button 
             className={activeTab === 'cleaning' ? 'active' : ''}
             onClick={() => setActiveTab('cleaning')}
+            disabled={lockedSteps.includes('cleaning') && activeTab !== 'cleaning'}
           >
-            数据清洗
+            {completedSteps.includes('cleaning') ? '✓ 数据清洗' : '数据清洗'}
           </button>
           <button 
             className={activeTab === 'analysis' ? 'active' : ''}
             onClick={() => setActiveTab('analysis')}
+            disabled={lockedSteps.includes('analysis') && activeTab !== 'analysis'}
           >
-            数据分析
+            {completedSteps.includes('analysis') ? '✓ 数据分析' : '数据分析'}
           </button>
           <button 
             className={activeTab === 'visualization' ? 'active' : ''}
             onClick={() => setActiveTab('visualization')}
+            disabled={lockedSteps.includes('visualization') && activeTab !== 'visualization'}
           >
-            数据可视化
+            {completedSteps.includes('visualization') ? '✓ 数据可视化' : '数据可视化'}
           </button>
           <button 
             className={activeTab === 'report' ? 'active' : ''}
             onClick={() => setActiveTab('report')}
+            disabled={lockedSteps.includes('report') && activeTab !== 'report'}
           >
-            报表生成
+            {completedSteps.includes('report') ? '✓ 报表生成' : '报表生成'}
           </button>
         </nav>
       </header>
 
       <main className="app-main">
+        {/* 控制按钮区域 */}
+        <div className="control-buttons">
+          <button onClick={clearAllData} className="clear-button">
+            清空所有数据
+          </button>
+          <button 
+            onClick={() => resetStepAndFollowing(activeTab)} 
+            className="reset-button"
+            disabled={!lockedSteps.includes(activeTab)}
+          >
+            重置当前步骤
+          </button>
+        </div>
+
         {activeTab === 'dashboard' && (
           <div className="dashboard">
             <h2>仪表板</h2>
@@ -328,18 +502,21 @@ function App() {
               <button 
                 className={importType === 'file' ? 'active' : ''}
                 onClick={() => setImportType('file')}
+                disabled={lockedSteps.includes('import')}
               >
                 从文件导入
               </button>
               <button 
                 className={importType === 'database' ? 'active' : ''}
                 onClick={() => setImportType('database')}
+                disabled={lockedSteps.includes('import')}
               >
                 从数据库导入
               </button>
               <button 
                 className={importType === 'api' ? 'active' : ''}
                 onClick={() => setImportType('api')}
+                disabled={lockedSteps.includes('import')}
               >
                 从API导入
               </button>
@@ -348,8 +525,17 @@ function App() {
             {importType === 'file' && (
               <div className="file-upload">
                 <p>拖拽文件到此处或点击选择文件</p>
-                <input type="file" onChange={handleFileChange} />
-                <button onClick={handleFileUpload}>导入文件</button>
+                <input 
+                  type="file" 
+                  onChange={handleFileChange} 
+                  disabled={lockedSteps.includes('import')}
+                />
+                <button 
+                  onClick={handleFileUpload} 
+                  disabled={analysisLoading || lockedSteps.includes('import')}
+                >
+                  导入文件
+                </button>
               </div>
             )}
 
@@ -357,7 +543,11 @@ function App() {
               <div className="database-import">
                 <div className="form-group">
                   <label>数据库类型:</label>
-                  <select value={dbParams.dbType} onChange={(e) => handleDbParamChange('dbType', e.target.value)}>
+                  <select 
+                    value={dbParams.dbType} 
+                    onChange={(e) => handleDbParamChange('dbType', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
+                  >
                     <option value="">请选择数据库类型</option>
                     <option value="mysql">MySQL</option>
                     <option value="postgresql">PostgreSQL</option>
@@ -373,6 +563,7 @@ function App() {
                     placeholder="localhost" 
                     value={dbParams.host}
                     onChange={(e) => handleDbParamChange('host', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
                 <div className="form-group">
@@ -382,6 +573,7 @@ function App() {
                     placeholder="3306" 
                     value={dbParams.port}
                     onChange={(e) => handleDbParamChange('port', parseInt(e.target.value) || 0)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
                 <div className="form-group">
@@ -391,6 +583,7 @@ function App() {
                     placeholder="database_name" 
                     value={dbParams.database}
                     onChange={(e) => handleDbParamChange('database', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
                 <div className="form-group">
@@ -400,6 +593,7 @@ function App() {
                     placeholder="table_name" 
                     value={dbParams.table}
                     onChange={(e) => handleDbParamChange('table', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
                 <div className="form-group">
@@ -409,6 +603,7 @@ function App() {
                     placeholder="username" 
                     value={dbParams.username}
                     onChange={(e) => handleDbParamChange('username', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
                 <div className="form-group">
@@ -418,9 +613,13 @@ function App() {
                     placeholder="password" 
                     value={dbParams.password}
                     onChange={(e) => handleDbParamChange('password', e.target.value)}
+                    disabled={lockedSteps.includes('import')}
                   />
                 </div>
-                <button onClick={handleDatabaseImport} disabled={analysisLoading}>
+                <button 
+                  onClick={handleDatabaseImport} 
+                  disabled={analysisLoading || lockedSteps.includes('import')}
+                >
                   {analysisLoading ? '导入中...' : '连接并导入'}
                 </button>
               </div>
@@ -430,24 +629,39 @@ function App() {
               <div className="api-import">
                 <div className="form-group">
                   <label>API地址:</label>
-                  <input type="text" placeholder="https://api.example.com/data" />
+                  <input 
+                    type="text" 
+                    placeholder="https://api.example.com/data" 
+                    disabled={lockedSteps.includes('import')}
+                  />
                 </div>
                 <div className="form-group">
                   <label>请求方法:</label>
-                  <select>
+                  <select disabled={lockedSteps.includes('import')}>
                     <option value="GET">GET</option>
                     <option value="POST">POST</option>
                   </select>
                 </div>
                 <div className="form-group">
                   <label>请求头 (可选):</label>
-                  <textarea placeholder='{"Authorization": "Bearer token"}' />
+                  <textarea 
+                    placeholder='{"Authorization": "Bearer token"}' 
+                    disabled={lockedSteps.includes('import')}
+                  />
                 </div>
                 <div className="form-group">
                   <label>请求体 (POST):</label>
-                  <textarea placeholder='{"key": "value"}' />
+                  <textarea 
+                    placeholder='{"key": "value"}' 
+                    disabled={lockedSteps.includes('import')}
+                  />
                 </div>
-                <button onClick={() => handleAction('API获取并导入')}>获取并导入</button>
+                <button 
+                  onClick={() => handleAction('API获取并导入')} 
+                  disabled={lockedSteps.includes('import')}
+                >
+                  获取并导入
+                </button>
               </div>
             )}
           </div>
@@ -457,7 +671,10 @@ function App() {
           <div className="data-preview">
             <h2>数据预览</h2>
             <div className="preview-controls">
-              <button onClick={fetchDataPreview} disabled={previewLoading}>
+              <button 
+                onClick={fetchDataPreview} 
+                disabled={previewLoading || lockedSteps.includes('preview')}
+              >
                 {previewLoading ? '加载中...' : '刷新数据'}
               </button>
             </div>
@@ -507,7 +724,11 @@ function App() {
             <div className="cleaning-options">
               <div className="form-group">
                 <label>清洗模式:</label>
-                <select value={cleaningMode} onChange={handleCleaningModeChange}>
+                <select 
+                  value={cleaningMode} 
+                  onChange={handleCleaningModeChange}
+                  disabled={lockedSteps.includes('cleaning')}
+                >
                   <option value="standard">标准模式</option>
                   <option value="strict">严格模式</option>
                   <option value="relaxed">宽松模式</option>
@@ -521,12 +742,20 @@ function App() {
                   <textarea 
                     placeholder='{"custom_params": ["handle_missing=drop", "outlier_method=iqr", "outlier_threshold=1.5"]}'
                     value={customCleaningParams}
-                    onChange={(e) => setCustomCleaningParams(e.target.value)}
+                    onChange={(e) => {
+                      if (!lockedSteps.includes('cleaning')) {
+                        setCustomCleaningParams(e.target.value)
+                      }
+                    }}
+                    disabled={lockedSteps.includes('cleaning')}
                   />
                 </div>
               )}
               
-              <button onClick={handleCleanData} disabled={analysisLoading}>
+              <button 
+                onClick={handleCleanData} 
+                disabled={analysisLoading || lockedSteps.includes('cleaning')}
+              >
                 {analysisLoading ? '清洗中...' : '开始清洗'}
               </button>
             </div>
@@ -547,7 +776,11 @@ function App() {
           <div className="data-analysis">
             <h2>数据分析</h2>
             <div className="analysis-options">
-              <select value={selectedModel} onChange={handleModelChange}>
+              <select 
+                value={selectedModel} 
+                onChange={handleModelChange}
+                disabled={lockedSteps.includes('analysis')}
+              >
                 <option value="">选择分析模型</option>
                 <optgroup label="回归分析">
                   <option value="linearregression">线性回归</option>
@@ -576,7 +809,10 @@ function App() {
                   <option value="associationrules">关联规则</option>
                 </optgroup>
               </select>
-              <button onClick={handleRunAnalysis} disabled={analysisLoading}>
+              <button 
+                onClick={handleRunAnalysis} 
+                disabled={analysisLoading || lockedSteps.includes('analysis')}
+              >
                 {analysisLoading ? '分析中...' : '开始分析'}
               </button>
             </div>
@@ -586,6 +822,7 @@ function App() {
               <button 
                 className="toggle-advanced"
                 onClick={() => setShowAdvancedOptions(!showAdvancedOptions)}
+                disabled={lockedSteps.includes('analysis')}
               >
                 {showAdvancedOptions ? '隐藏高级选项' : '显示高级选项'}
               </button>
@@ -598,6 +835,7 @@ function App() {
                       type="number" 
                       value={analysisParams.random_state || 42}
                       onChange={(e) => handleParamChange('random_state', parseInt(e.target.value) || 42)}
+                      disabled={lockedSteps.includes('analysis')}
                     />
                   </div>
                   
@@ -607,6 +845,7 @@ function App() {
                         type="checkbox" 
                         checked={analysisParams.is_split ?? true}
                         onChange={(e) => handleParamChange('is_split', e.target.checked)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                       数据集划分
                     </label>
@@ -622,6 +861,7 @@ function App() {
                         step="0.1"
                         value={analysisParams.split_ratio || 0.8}
                         onChange={(e) => handleParamChange('split_ratio', parseFloat(e.target.value) || 0.8)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                     </div>
                   )}
@@ -633,6 +873,7 @@ function App() {
                       placeholder="col1,col2,col3"
                       value={analysisParams.feature_cols || ''}
                       onChange={(e) => handleParamChange('feature_cols', e.target.value)}
+                      disabled={lockedSteps.includes('analysis')}
                     />
                   </div>
                   
@@ -643,6 +884,7 @@ function App() {
                       placeholder="target_column"
                       value={analysisParams.target_col || ''}
                       onChange={(e) => handleParamChange('target_col', e.target.value)}
+                      disabled={lockedSteps.includes('analysis')}
                     />
                   </div>
                   
@@ -653,6 +895,7 @@ function App() {
                       placeholder="accuracy,precision,recall"
                       value={analysisParams.metrics_list || ''}
                       onChange={(e) => handleParamChange('metrics_list', e.target.value)}
+                      disabled={lockedSteps.includes('analysis')}
                     />
                   </div>
                   
@@ -662,6 +905,7 @@ function App() {
                         type="checkbox" 
                         checked={analysisParams.is_return_model_param ?? false}
                         onChange={(e) => handleParamChange('is_return_model_param', e.target.checked)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                       返回模型参数
                     </label>
@@ -673,6 +917,7 @@ function App() {
                         type="checkbox" 
                         checked={analysisParams.is_return_model_score ?? true}
                         onChange={(e) => handleParamChange('is_return_model_score', e.target.checked)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                       返回模型评分
                     </label>
@@ -684,6 +929,7 @@ function App() {
                         type="checkbox" 
                         checked={analysisParams.is_return_training_set ?? false}
                         onChange={(e) => handleParamChange('is_return_training_set', e.target.checked)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                       返回训练集
                     </label>
@@ -695,6 +941,7 @@ function App() {
                         type="checkbox" 
                         checked={analysisParams.is_return_model_predicting_set ?? false}
                         onChange={(e) => handleParamChange('is_return_model_predicting_set', e.target.checked)}
+                        disabled={lockedSteps.includes('analysis')}
                       />
                       返回预测结果
                     </label>
@@ -707,7 +954,7 @@ function App() {
             {selectedModel && (
               <div className="model-specific-params">
                 <h3>{getModelDisplayName(selectedModel)} 参数设置</h3>
-                {renderModelSpecificParams(selectedModel)}
+                {renderModelSpecificParams(selectedModel, lockedSteps.includes('analysis'))}
               </div>
             )}
           </div>
@@ -717,14 +964,17 @@ function App() {
           <div className="data-visualization">
             <h2>数据可视化</h2>
             <div className="visualization-options">
-              <select>
+              <select disabled={lockedSteps.includes('visualization')}>
                 <option>选择图表类型</option>
                 <option>散点图</option>
                 <option>折线图</option>
                 <option>柱状图</option>
                 <option>饼图</option>
               </select>
-              <button onClick={() => handleAction('生成图表')} disabled={analysisLoading}>
+              <button 
+                onClick={() => handleAction('生成图表')} 
+                disabled={analysisLoading || lockedSteps.includes('visualization')}
+              >
                 {analysisLoading ? '生成中...' : '生成图表'}
               </button>
             </div>
@@ -735,13 +985,16 @@ function App() {
           <div className="report-generation">
             <h2>报表生成</h2>
             <div className="report-options">
-              <select>
+              <select disabled={lockedSteps.includes('report')}>
                 <option>选择报告格式</option>
                 <option>PDF</option>
                 <option>HTML</option>
                 <option>Word</option>
               </select>
-              <button onClick={() => handleAction('生成报告')} disabled={analysisLoading}>
+              <button 
+                onClick={() => handleAction('生成报告')} 
+                disabled={analysisLoading || lockedSteps.includes('report')}
+              >
                 {analysisLoading ? '生成中...' : '生成报告'}
               </button>
             </div>
@@ -789,13 +1042,16 @@ function getModelDisplayName(modelKey: string): string {
 }
 
 // 渲染模型特定参数设置
-function renderModelSpecificParams(modelKey: string) {
+function renderModelSpecificParams(modelKey: string, isLocked: boolean) {
   switch (modelKey) {
     case 'linearregression':
       return (
         <div className="form-group">
           <label>
-            <input type="checkbox" />
+            <input 
+              type="checkbox" 
+              disabled={isLocked}
+            />
             是否拟合截距
           </label>
         </div>
@@ -806,11 +1062,20 @@ function renderModelSpecificParams(modelKey: string) {
         <>
           <div className="form-group">
             <label>正则化强度 (alpha):</label>
-            <input type="number" step="0.1" defaultValue="1.0" />
+            <input 
+              type="number" 
+              step="0.1" 
+              defaultValue="1.0" 
+              disabled={isLocked}
+            />
           </div>
           <div className="form-group">
             <label>随机种子:</label>
-            <input type="number" defaultValue="42" />
+            <input 
+              type="number" 
+              defaultValue="42" 
+              disabled={isLocked}
+            />
           </div>
         </>
       )
@@ -820,15 +1085,27 @@ function renderModelSpecificParams(modelKey: string) {
         <>
           <div className="form-group">
             <label>最大深度:</label>
-            <input type="number" placeholder="无限制" />
+            <input 
+              type="number" 
+              placeholder="无限制" 
+              disabled={isLocked}
+            />
           </div>
           <div className="form-group">
             <label>最小分割样本数:</label>
-            <input type="number" defaultValue="2" />
+            <input 
+              type="number" 
+              defaultValue="2" 
+              disabled={isLocked}
+            />
           </div>
           <div className="form-group">
             <label>随机种子:</label>
-            <input type="number" defaultValue="42" />
+            <input 
+              type="number" 
+              defaultValue="42" 
+              disabled={isLocked}
+            />
           </div>
         </>
       )
@@ -838,11 +1115,19 @@ function renderModelSpecificParams(modelKey: string) {
         <>
           <div className="form-group">
             <label>聚类数量:</label>
-            <input type="number" defaultValue="3" />
+            <input 
+              type="number" 
+              defaultValue="3" 
+              disabled={isLocked}
+            />
           </div>
           <div className="form-group">
             <label>随机种子:</label>
-            <input type="number" defaultValue="42" />
+            <input 
+              type="number" 
+              defaultValue="42" 
+              disabled={isLocked}
+            />
           </div>
         </>
       )
@@ -852,7 +1137,12 @@ function renderModelSpecificParams(modelKey: string) {
         <>
           <div className="form-group">
             <label>最小支持度:</label>
-            <input type="number" step="0.01" defaultValue="0.1" />
+            <input 
+              type="number" 
+              step="0.01" 
+              defaultValue="0.1" 
+              disabled={isLocked}
+            />
           </div>
         </>
       )

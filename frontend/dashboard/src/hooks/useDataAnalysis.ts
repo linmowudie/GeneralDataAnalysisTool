@@ -88,12 +88,30 @@ export function useDataAnalysis() {
     }
   };
 
+  const resetStep = async (
+    sessionId: string,
+    step: string
+  ) => {
+    setLoading(true);
+    setError(null);
+    try {
+      const result = await api.resetStep(sessionId, step);
+      return result;
+    } catch (err) {
+      setError((err as Error).message || '重置步骤失败');
+      throw err;
+    } finally {
+      setLoading(false);
+    }
+  };
+
   return {
     loading,
     error,
     runAnalysis,
     cleanData,
     generateChart,
-    importFromDatabase
+    importFromDatabase,
+    resetStep
   };
 }

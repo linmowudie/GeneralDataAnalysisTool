@@ -96,6 +96,50 @@ class SessionManager:
         api_logger.warning("尝试删除不存在的会话: %s", session_id)
         return False
     
+    def reset_session_step(self, session_id: str, step: str) -> bool:
+        """
+        重置会话中的特定步骤及其后续步骤
+        
+        Args:
+            session_id: 会话ID
+            step: 要重置的步骤名称
+            
+        Returns:
+            bool: 重置成功返回True，否则返回False
+        """
+        try:
+            if session_id not in self.sessions:
+                api_logger.warning("会话ID不存在: %s", session_id)
+                return False
+            
+            engine = self.sessions[session_id]['engine']
+            engine.reset_step_and_following(step)
+            return True
+        except Exception as e:
+            api_logger.error(f"重置会话步骤失败: {e}")
+            return False
+    
+    def get_session_step_status(self, session_id: str) -> Dict[str, Any]:
+        """
+        获取会话的步骤状态
+        
+        Args:
+            session_id: 会话ID
+            
+        Returns:
+            Dict: 包含已完成步骤和已锁定步骤的字典
+        """
+        try:
+            if session_id not in self.sessions:
+                api_logger.warning("会话ID不存在: %s", session_id)
+                return {'completed_steps': [], 'locked_steps': []}
+            
+            engine = self.sessions[session_id]['engine']
+            return engine.get_step_status()
+        except Exception as e:
+            api_logger.error(f"获取会话步骤状态失败: {e}")
+            return {'completed_steps': [], 'locked_steps': []}
+    
     def cleanup_expired_sessions(self) -> int:
         """
         清理过期会话

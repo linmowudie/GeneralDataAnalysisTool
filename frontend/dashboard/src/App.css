@@ -53,6 +53,12 @@ html, body {
   color: #282c34;
 }
 
+.app-header button:disabled {
+  background-color: #cccccc;
+  color: #666666;
+  cursor: not-allowed;
+}
+
 @media (max-width: 768px) {
   .app-header {
     flex-direction: column;
@@ -73,6 +79,39 @@ html, body {
   display: flex;
   flex-direction: column;
   align-items: center;
+  position: relative;
+}
+
+/* 控制按钮样式 */
+.control-buttons {
+  position: absolute;
+  right: 1rem;
+  top: 1rem;
+  display: flex;
+  flex-direction: column;
+  gap: 0.5rem;
+  z-index: 10;
+}
+
+.control-buttons button {
+  background-color: #ff6b6b;
+  border: none;
+  color: white;
+  padding: 0.5rem;
+  border-radius: 4px;
+  cursor: pointer;
+  font-weight: bold;
+  width: 100px;
+  font-size: 0.9rem;
+}
+
+.control-buttons button:hover:not(:disabled) {
+  background-color: #ff5252;
+}
+
+.control-buttons button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 .dashboard {
@@ -156,7 +195,11 @@ html, body {
 }
 
 .import-options button:disabled,
-.preview-controls button:disabled {
+.preview-controls button:disabled,
+.analysis-options button:disabled,
+.visualization-options button:disabled,
+.report-options button:disabled,
+.cleaning-options button:disabled {
   background-color: #cccccc;
   cursor: not-allowed;
 }
@@ -181,6 +224,11 @@ html, body {
 
 .file-upload input {
   margin-top: 1rem;
+}
+
+.file-upload input:disabled {
+  background-color: #f5f5f5;
+  cursor: not-allowed;
 }
 
 .database-import, .api-import {
@@ -211,6 +259,14 @@ html, body {
   border: 1px solid #ccc;
 }
 
+.form-group input:disabled,
+.form-group select:disabled,
+.form-group textarea:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
 .form-group textarea {
   min-height: 80px;
   resize: vertical;
@@ -234,6 +290,13 @@ html, body {
 .api-import button:hover,
 .file-upload button:hover {
   background-color: #21a9c7;
+}
+
+.database-import button:disabled, 
+.api-import button:disabled,
+.file-upload button:disabled {
+  background-color: #cccccc;
+  cursor: not-allowed;
 }
 
 /* 结果显示容器样式 */
@@ -277,6 +340,12 @@ html, body {
   background-color: #e0e0e0;
 }
 
+.toggle-advanced:disabled {
+  background-color: #f5f5f5;
+  color: #999;
+  cursor: not-allowed;
+}
+
 .advanced-options-content {
   background-color: #f9f9f9;
   border: 1px solid #ddd;
@@ -299,6 +368,11 @@ html, body {
 .advanced-options-content .form-group input[type="text"],
 .advanced-options-content .form-group input[type="number"] {
   flex: 1;
+}
+
+.advanced-options-content .form-group input:disabled {
+  background-color: #f5f5f5;
+  color: #999;
 }
 
 /* 模型特定参数样式 */
@@ -418,5 +492,19 @@ html, body {
   .advanced-options-content .form-group label {
     margin-right: 0;
     margin-bottom: 0.5rem;
+  }
+  
+  /* 移动端控制按钮 */
+  .control-buttons {
+    position: static;
+    flex-direction: row;
+    justify-content: center;
+    margin-bottom: 1rem;
+    width: 100%;
+  }
+  
+  .control-buttons button {
+    width: auto;
+    min-width: 120px;
   }
 }

@@ -89,6 +89,45 @@ export async function importFromDatabase(
   return result;
 }
 
+// 重置步骤
+export async function resetStep(sessionId: string, step: string): Promise<ApiResponse<any>> {
+  frontendLogger.info('重置步骤', { sessionId, step });
+  const formData = new FormData();
+  formData.append('session_id', sessionId);
+  formData.append('step', step);
+  
+  const response = await fetch(`${API_BASE_URL}/import/reset-step`, {
+    method: 'POST',
+    body: formData,
+  });
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('重置步骤失败', { status: response.status, error: errorText });
+    throw new Error('重置步骤失败');
+  }
+  
+  const result = await response.json();
+  frontendLogger.info('步骤重置成功', { sessionId, step });
+  return result;
+}
+
+// 获取步骤状态
+export async function getStepStatus(sessionId: string): Promise<ApiResponse<any>> {
+  frontendLogger.info('获取步骤状态', { sessionId });
+  const response = await fetch(`${API_BASE_URL}/import/step-status?session_id=${sessionId}`);
+  
+  if (!response.ok) {
+    const errorText = await response.text();
+    frontendLogger.error('获取步骤状态失败', { status: response.status, error: errorText });
+    throw new Error('获取步骤状态失败');
+  }
+  
+  const result = await response.json();
+  frontendLogger.info('步骤状态获取成功', { sessionId, status: result.status });
+  return result;
+}
+
 // 结束会话
 export async function endSession(sessionId: string): Promise<ApiResponse<any>> {
   frontendLogger.info('结束会话', { sessionId });
