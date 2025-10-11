@@ -35,6 +35,12 @@
 - 模型转移功能（从自动保存目录到用户提取目录）
 - 自动清理过期模型文件，防止存储空间占用过多
 
+### 会话和步骤管理
+- 用户会话状态跟踪和管理
+- 步骤完成状态自动标记
+- 参数锁定机制防止误操作
+- 灵活的步骤重置功能
+
 ### 系统特性
 - 模块化设计，易于扩展
 - 完整的测试覆盖
@@ -115,6 +121,14 @@ engine.visualize_data(param_dict)
 
 # 生成报告
 engine.generate_report()
+
+# 查看步骤状态
+status = engine.get_step_status()
+print(f"已完成步骤: {status['completed_steps']}")
+print(f"已锁定步骤: {status['locked_steps']}")
+
+# 重置分析步骤及其后续步骤
+engine.reset_step_and_following('analysis')
 ```
 
 ### 脚本工具使用
@@ -149,6 +163,12 @@ API提供了以下模型管理端点：
 - `POST /api/model/manage` - 管理自动保存的模型
 - `GET /api/model/list` - 列出自动保存的模型
 - `GET /api/model/auto-save-count` - 获取自动保存模型数量
+
+API还提供了以下会话管理端点：
+- `POST /api/import/create-session` - 创建新会话
+- `POST /api/import/reset-step` - 重置指定步骤
+- `GET /api/import/step-status` - 获取步骤状态
+- `POST /api/import/end-session` - 结束会话
 
 ### 更多示例
 
