@@ -1,6 +1,6 @@
 # visualization/plots/linear_regression.py
 """
-Src/DataAnalyzer/visualization/plots/linearregression.py
+Src/DataAnalyzer/VisualizationModule/Plots/linearregression.py
 线性回归可视化模块
 
 该模块提供线性回归模型的可视化功能，

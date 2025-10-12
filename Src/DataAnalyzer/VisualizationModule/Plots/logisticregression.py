@@ -1,6 +1,6 @@
 # visualization/plots/logisticregression.py
 """
-Src/DataAnalyzer/visualization/plots/logisticregression.py
+Src/DataAnalyzer/VisualizationModule/Plots/logisticregression.py
 逻辑回归可视化模块
 
 该模块提供逻辑回归模型的可视化功能，

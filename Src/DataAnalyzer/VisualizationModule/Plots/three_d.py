@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/plots/three_d.py
+Src/DataAnalyzer/VisualizationModule/Plots/three_d.py
 3D可视化模块
 
 该模块提供3D数据可视化功能，

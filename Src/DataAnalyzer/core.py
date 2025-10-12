@@ -6,11 +6,9 @@ Src/DataAnalyzer/core.py
 通过统一的接口协调各个子模块的工作，实现端到端的数据处理能力。
 """
 
-import logging
 import pandas as pd
 from typing import Dict, List, Optional, Any, Union
 import sys
-import os
 from pathlib import Path
 import pickle
 from datetime import datetime
@@ -45,7 +43,17 @@ class DataProcessingEngine:
     3. 数据分析 (analyze_data)
     4. 数据可视化 (visualize_data)
     5. 报告生成 (generate_report)
-    
+
+    该类提供以下方法：
+    1. import_data: 导入数据
+    2. clean_data: 清洗数据
+    3. analyze_data: 分析数据
+    4. visualize_data: 可视化数据
+    5. generate_report: 生成报告
+    6. get_step_status: 获取步骤状态
+    7. mark_step_completed: 标记步骤为已完成
+    8. lock_step: 锁定步骤
+
     各阶段处理结果会自动保存到临时存储中，支持断点续处理。
     """
     
@@ -135,24 +143,23 @@ class DataProcessingEngine:
         Args:
             step: 步骤名称
         """
-        if step == 'import':
-            self.imported_data = None
-            # 清理导入的临时数据
-            self.temp_storage.clear_stage_data('imported')
-        elif step == 'cleaning':
-            self.cleaned_data = None
-            # 清理清洗的临时数据
-            self.temp_storage.clear_stage_data('cleaned')
-        elif step == 'analysis':
-            self.analyzed_data = None
-            # 清理分析的临时数据
-            self.temp_storage.clear_stage_data('analyzed')
-        elif step == 'visualization':
-            self.visualized_plot = None
-            # 清理可视化的临时数据
-            self.temp_storage.clear_stage_data('visualized')
-        elif step == 'report':
-            self.report_data = None
+        step_data_map = {
+            'import': ('imported_data', 'imported'),
+            'cleaning': ('cleaned_data', 'cleaned'),
+            'analysis': ('analyzed_data', 'analyzed'),
+            'visualization': ('visualized_plot', 'visualized'),
+            'report': ('report_data', None)
+        }
+        
+        if step in step_data_map:
+            # 清理内存中的数据
+            data_attr, temp_storage_key = step_data_map[step]
+            if hasattr(self, data_attr):
+                setattr(self, data_attr, None)
+            
+            # 清理临时存储中的数据
+            if temp_storage_key:
+                self.temp_storage.clear_stage_data(temp_storage_key)
 
     def get_step_status(self) -> Dict[str, Any]:
         """

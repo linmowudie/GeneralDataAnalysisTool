@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/decisiontreeclassifier.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/decisiontreeclassifier.py
 决策树分类器交互式可视化模块
 
 该模块提供决策树分类器模型的交互式可视化功能，
@@ -49,8 +49,8 @@ def plot_decision_tree_interactive(params: Dict[str, Any]) -> Dict[str, go.Figur
         n_classes = len(unique_classes)
         confusion_data = np.random.randint(0, 100, size=(n_classes, n_classes))
         confusion_df = pd.DataFrame(confusion_data, 
-                                   index=[f'真实-{c}' for c in unique_classes],
-                                   columns=[f'预测-{c}' for c in unique_classes])
+                                   index=pd.Index([f'真实-{c}' for c in unique_classes]),
+                                   columns=pd.Index([f'预测-{c}' for c in unique_classes]))
         
         fig2 = px.imshow(confusion_df, 
                         labels=dict(x="预测标签", y="真实标签", color="数量"),

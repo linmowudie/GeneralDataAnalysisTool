@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/linearregression.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/linearregression.py
 线性回归交互式可视化模块
 
 该模块提供线性回归模型的交互式可视化功能，

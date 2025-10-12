@@ -1,6 +1,6 @@
 # visualization/plots/kmeans.py
 """
-Src/DataAnalyzer/visualization/plots/kmeans.py
+Src/DataAnalyzer/VisualizationModule/Plots/kmeans.py
 K-Means聚类可视化模块
 
 该模块提供K-Means聚类模型的可视化功能，
@@ -75,7 +75,7 @@ def plot_kmeans(params: Dict[str, Any]) -> Dict[str, Figure]:
         if model and hasattr(model, 'labels_'):
             cluster_counts = pd.Series(model.labels_).value_counts().sort_index()
             fig2, ax2 = plt.subplots(figsize=(8, 6))
-            bars = ax2.bar(range(len(cluster_counts)), cluster_counts.values, 
+            bars = ax2.bar(range(len(cluster_counts)), cluster_counts.values.tolist(), 
                           color=point_colors[:len(cluster_counts)] if len(point_colors) >= len(cluster_counts) else point_colors)
             ax2.set(title="Cluster Sizes", xlabel="Cluster", ylabel="Number of Points")
             ax2.set_xticks(range(len(cluster_counts)))
@@ -83,7 +83,7 @@ def plot_kmeans(params: Dict[str, Any]) -> Dict[str, Figure]:
             ax2.grid(True, alpha=0.3)
             
             # 在每个条形上添加数值标签
-            for i, (bar, count) in enumerate(zip(bars, cluster_counts.values)):
+            for i, (bar, count) in enumerate(zip(bars, cluster_counts.values.tolist())):
                 ax2.text(bar.get_x() + bar.get_width()/2, bar.get_height() + 0.5, 
                         str(count), ha='center', va='bottom')
             

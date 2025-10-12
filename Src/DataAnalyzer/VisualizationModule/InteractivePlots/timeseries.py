@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/timeseries.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/timeseries.py
 时间序列交互式可视化模块
 
 该模块提供时间序列数据的交互式可视化功能，

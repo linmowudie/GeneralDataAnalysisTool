@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/kmeans.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/kmeans.py
 K-Means聚类交互式可视化模块
 
 该模块提供K-Means聚类模型的交互式可视化功能，
@@ -41,6 +41,9 @@ def plot_kmeans_interactive(params: Dict[str, Any]) -> Dict[str, go.Figure]:
             'cluster': labels
         })
         
+        x_label = "Feature 1"
+        y_label = "Feature 2"
+        
         if hasattr(feature, 'columns'):
             x_label = feature.columns[0] if len(feature.columns) > 0 else "Feature 1"
             y_label = feature.columns[1] if len(feature.columns) > 1 else "Feature 2"
@@ -49,7 +52,7 @@ def plot_kmeans_interactive(params: Dict[str, Any]) -> Dict[str, go.Figure]:
         # 二维散点图
         fig1 = px.scatter(plot_data, x=plot_data.columns[0], y=plot_data.columns[1], 
                          color='cluster', title='KMeans Clustering Results',
-                         labels={plot_data.columns[0]: x_label, plot_data.columns[1]: y_label})
+                         labels={str(plot_data.columns[0]): x_label, str(plot_data.columns[1]): y_label})
         
         # 绘制聚类中心
         centers = model.cluster_centers_ if model and hasattr(model, 'cluster_centers_') else None
@@ -93,6 +96,9 @@ def plot_kmeans_interactive(params: Dict[str, Any]) -> Dict[str, go.Figure]:
                 'cluster': labels
             })
             
+            x_label_3d = "Feature 3"
+            y_label_3d = "Feature 2"
+            
             if hasattr(feature, 'columns'):
                 x_label_3d = feature.columns[2] if len(feature.columns) > 2 else "Feature 3"
                 y_label_3d = feature.columns[1] if len(feature.columns) > 1 else "Feature 2"
@@ -100,7 +106,7 @@ def plot_kmeans_interactive(params: Dict[str, Any]) -> Dict[str, go.Figure]:
             
             fig3 = px.scatter(plot_data_3d, x=plot_data_3d.columns[0], y=plot_data_3d.columns[1],
                              color='cluster', title='KMeans Clustering (Features 3 vs 2)',
-                             labels={plot_data_3d.columns[0]: x_label_3d, plot_data_3d.columns[1]: y_label_3d})
+                             labels={str(plot_data_3d.columns[0]): x_label_3d, str(plot_data_3d.columns[1]): y_label_3d})
             
             figures["cluster_scatter_3v2_interactive"] = fig3
 

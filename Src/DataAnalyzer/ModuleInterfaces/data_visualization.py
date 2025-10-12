@@ -1,24 +1,30 @@
 # data_visualization.py
 import logging
-from typing import Dict, Any
+from typing import Dict, Any, Union
 import matplotlib.pyplot as plt
 from matplotlib.figure import Figure
 import plotly.graph_objects as go
 import pandas as pd
 import numpy as np
+from typing import TYPE_CHECKING
+
+if TYPE_CHECKING:
+    from matplotlib.figure import Figure as MatplotlibFigure
+    from plotly.graph_objects import Figure as PlotlyFigure
 
 from ..VisualizationModule.registry import plot_registry
 from ..VisualizationModule.interactive_registry import interactive_plot_registry
 
 # 确保导入所有可视化插件
 from ..VisualizationModule.Plots import linearregression, logisticregression, kmeans
-from ..VisualizationModule.Plots import three_d  # 3D可视化模块
+from ..VisualizationModule.Plots import three_d, no_model  # 3D可视化模块和无模型可视化模块
 from ..VisualizationModule.InteractivePlots import linearregression as interactive_linearregression
 from ..VisualizationModule.InteractivePlots import kmeans as interactive_kmeans
 from ..VisualizationModule.InteractivePlots import three_d as interactive_three_d  # 交互式3D可视化模块
 from ..VisualizationModule.InteractivePlots import decisiontreeclassifier as interactive_decisiontreeclassifier
 from ..VisualizationModule.InteractivePlots import timeseries as interactive_timeseries
 from ..VisualizationModule.InteractivePlots import featureimportance as interactive_featureimportance
+from ..VisualizationModule.InteractivePlots import no_model as interactive_no_model  # 交互式无模型可视化模块
 
 logger = logging.getLogger(__name__)
 
@@ -39,6 +45,7 @@ class DataVisualization:
             - font_style: 字体样式
             - model_specific: 模型特定参数 (如聚类中心、解释方差等)
             - interactive: 是否使用交互式可视化 (布尔值，默认为False)
+            - chart_type: 图表类型 (仅在model_name为no_model时使用)
         """
         self.param_dict = param_dict
         self.registry = plot_registry
@@ -57,7 +64,7 @@ class DataVisualization:
             if "target" not in self.param_dict or "predict" not in self.param_dict:
                 raise ValueError(f"{task_type} tasks require 'target' and 'predict' parameters")
     
-    def plot_chart(self) -> Dict[str, Figure]:
+    def plot_chart(self) -> Dict[str, Union[Figure, go.Figure]]:
         """生成图表"""
         # 首先确保数据一致性
         self._ensure_data_consistency()
@@ -107,7 +114,7 @@ class DataVisualization:
                     else:
                         logger.warning("目标值和预测值没有共同索引")
     
-    def _plot_static_chart(self) -> Dict[str, Figure]:
+    def _plot_static_chart(self) -> Dict[str, Union[Figure, go.Figure]]:
         """生成静态图表"""
         task_type = self.param_dict["task_type"]
         model_name = self.param_dict["model_name"].lower()
@@ -130,7 +137,7 @@ class DataVisualization:
         logger.debug(f"绘图函数返回了 {len(result)} 个图表")
         return result
     
-    def _plot_interactive_chart(self) -> Dict[str, go.Figure]:
+    def _plot_interactive_chart(self) -> Dict[str, Union[Figure, go.Figure]]:
         """生成交互式图表"""
         task_type = self.param_dict["task_type"]
         model_name = self.param_dict["model_name"].lower()

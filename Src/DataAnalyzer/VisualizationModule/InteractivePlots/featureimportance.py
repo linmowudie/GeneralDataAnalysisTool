@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/featureimportance.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/featureimportance.py
 特征重要性交互式可视化模块
 
 该模块提供模型特征重要性的交互式可视化功能，

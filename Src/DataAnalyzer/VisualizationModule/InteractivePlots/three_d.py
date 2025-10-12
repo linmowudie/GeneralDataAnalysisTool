@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_plots/three_d.py
+Src/DataAnalyzer/VisualizationModule/InteractivePlots/three_d.py
 3D交互式可视化模块
 
 该模块提供基于Plotly的3D数据交互式可视化功能。

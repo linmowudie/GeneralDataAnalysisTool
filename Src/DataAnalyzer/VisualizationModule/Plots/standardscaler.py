@@ -1,6 +1,6 @@
 # visualization/plots/standardscaler.py
 """
-Src/DataAnalyzer/visualization/plots/standardscaler.py
+Src/DataAnalyzer/VisualizationModule/Plots/standardscaler.py
 标准化缩放器可视化模块
 
 该模块提供标准化缩放器的可视化功能，
@@ -13,6 +13,7 @@ from typing import Dict, Any
 from ..registry import plot_registry
 from matplotlib.figure import Figure
 import pandas as pd
+import numpy as np
 
 
 @plot_registry.register("transformer", "standardscaler")
@@ -32,9 +33,9 @@ def plot_standardscaler(params: Dict[str, Any]) -> Dict[str, Figure]:
     cols = df_original.columns[:n_cols]
     fig1, axes = plt.subplots(nrows=n_cols, ncols=2, figsize=(10, 4 * n_cols))
     for i, col in enumerate(cols):
-        sns.histplot(df_original[col], kde=True, ax=axes[i, 0], color="steelblue")
+        sns.histplot(pd.DataFrame(df_original[col]), kde=True, ax=axes[i, 0], color="steelblue")
         axes[i, 0].set_title(f"Original: {col}")
-        sns.histplot(df_scaled[col], kde=True, ax=axes[i, 1], color="seagreen")
+        sns.histplot(pd.DataFrame(df_scaled[col]), kde=True, ax=axes[i, 1], color="seagreen")
         axes[i, 1].set_title(f"Scaled: {col}")
     plt.tight_layout()
     figures["distribution_comparison"] = fig1

@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive_registry.py
+Src/DataAnalyzer/VisualizationModule/interactive_registry.py
 交互式可视化注册表模块
 
 该模块提供一个注册表系统，用于管理和注册各种交互式图表类型的绘制函数，

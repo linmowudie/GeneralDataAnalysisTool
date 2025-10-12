@@ -447,49 +447,56 @@ function App() {
       </header>
 
       <main className="app-main">
-        {/* 控制按钮区域 */}
-        <div className="control-buttons">
-          <button onClick={clearAllData} className="clear-button">
-            清空所有数据
-          </button>
-          <button 
-            onClick={() => resetStepAndFollowing(activeTab)} 
-            className="reset-button"
-            disabled={!lockedSteps.includes(activeTab)}
-          >
-            重置当前步骤
-          </button>
-        </div>
+        {/* 控制按钮区域 - 仅在非仪表板页面显示 */}
+        {activeTab !== 'dashboard' && (
+          <div className="control-buttons">
+            <button onClick={clearAllData} className="clear-button">
+              清空所有数据
+            </button>
+            <button 
+              onClick={() => resetStepAndFollowing(activeTab)} 
+              className="reset-button"
+              disabled={!lockedSteps.includes(activeTab)}
+            >
+              重置当前步骤
+            </button>
+          </div>
+        )}
 
         {activeTab === 'dashboard' && (
-          <div className="dashboard">
-            <h2>仪表板</h2>
-            <div className="dashboard-grid">
-              <div className="card">
-                <h3>数据概览</h3>
-                {datasetInfo ? (
-                  <>
-                    <p>数据集名称: {datasetInfo.dataset_name}</p>
-                    <p>总记录数: {datasetInfo.total_records}</p>
-                    <p>特征数量: {datasetInfo.features_count}</p>
-                    <p>目标变量: {datasetInfo.target_variable}</p>
-                  </>
-                ) : (
-                  <p>暂无数据</p>
-                )}
-              </div>
-              <div className="card">
-                <h3>最近分析</h3>
-                <p>暂无分析记录</p>
-              </div>
-              <div className="card">
-                <h3>可视化图表</h3>
-                <p>暂无图表</p>
-              </div>
-              <div className="card">
-                <h3>系统状态</h3>
-                <p>{sessionId ? '会话已创建' : '会话未创建'}</p>
-                {sessionError && <p style={{color: 'red'}}>错误: {sessionError}</p>}
+          <div className="dashboard-container">
+            <div className="dashboard">
+              <h2>仪表板</h2>
+              <div className="dashboard-grid">
+                <div className="card">
+                  <h3>数据概览</h3>
+                  {datasetInfo ? (
+                    <>
+                      <p>数据集名称: {datasetInfo.dataset_name}</p>
+                      <p>总记录数: {datasetInfo.total_records}</p>
+                      <p>特征数量: {datasetInfo.features_count}</p>
+                      <p>目标变量: {datasetInfo.target_variable}</p>
+                    </>
+                  ) : (
+                    <p>暂无数据</p>
+                  )}
+                </div>
+                <div className="card">
+                  <h3>最近分析</h3>
+                  <p>暂无分析记录</p>
+                </div>
+                <div className="card">
+                  <h3>可视化图表</h3>
+                  <p>暂无图表</p>
+                </div>
+                <div className="card">
+                  <h3>系统状态</h3>
+                  <p>{sessionId ? '会话已创建' : '会话未创建'}</p>
+                  <p>会话ID: {sessionId || '无'}</p>
+                  {sessionError && <p style={{color: 'red'}}>错误: {sessionError}</p>}
+                  <p>已完成步骤: {completedSteps.length > 0 ? completedSteps.join(', ') : '无'}</p>
+                  <p>已锁定步骤: {lockedSteps.length > 0 ? lockedSteps.join(', ') : '无'}</p>
+                </div>
               </div>
             </div>
           </div>

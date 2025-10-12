@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/plots/__init__.py
+Src/DataAnalyzer/VisualizationModule/Plots/__init__.py
 可视化绘图插件初始化模块
 
 该模块负责自动导入和注册所有可视化绘图插件，

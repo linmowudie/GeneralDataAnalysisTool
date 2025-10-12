@@ -1,5 +1,5 @@
 """
-Src/DataAnalyzer/visualization/interactive.py
+Src/DataAnalyzer/VisualizationModule/interactive.py
 交互式可视化模块
 
 该模块提供基于Plotly的交互式可视化功能，
