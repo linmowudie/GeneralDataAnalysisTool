@@ -18,7 +18,7 @@ frontend/
 │   │   ├── data-import/  # 数据导入模块
 │   │   ├── data-preview/ # 数据预览模块
 │   │   ├── data-cleaning/# 数据清洗模块
-│   │   ├── data-analysis/# 数据分析模块
+│   │   ├── analysis/     # 数据分析模块
 │   │   ├── visualization/# 数据可视化模块
 │   │   └── reporting/    # 报表生成模块
 │   ├── services/         # API服务

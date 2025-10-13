@@ -54,7 +54,7 @@ export class SessionService {
    * @param step 步骤名称
    * @returns Promise<boolean> 重置是否成功
    */
-  async resetSessionStep(sessionId: string, step: string): Promise<boolean> {
+  async resetSessionStep(_sessionId: string, step: string): Promise<boolean> {
     try {
       // 注意：后端API中没有直接的重置会话步骤接口
       // 这里只是一个示例实现，实际需要根据后端API调整
