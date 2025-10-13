@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from api.document_reader import DocumentReader
 
-from api import data_import, data_analysis, data_visualization, data_preview, data_cleaning, model_extractor
+from api import data_import, data_analysis, data_visualization, data_preview, data_cleaning, model_extractor, step_lock
 from api.cleanup_task import cleanup_task
 
 # 配置API日志
@@ -49,6 +49,7 @@ app.include_router(data_analysis.router, prefix="/api/analysis", tags=["数据�
 app.include_router(data_visualization.router, prefix="/api/visualization", tags=["数据可视化"])
 app.include_router(data_cleaning.router, prefix="/api/cleaning", tags=["数据清洗"])
 app.include_router(model_extractor.router, prefix="/api/model", tags=["模型管理"])
+app.include_router(step_lock.router, tags=["步骤锁管理"])
 
 @app.get("/api/health")
 async def health_check():

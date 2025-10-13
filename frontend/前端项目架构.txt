@@ -1,0 +1,36 @@
+# 通用数据分析工具前端项目架构
+
+## 项目结构
+```
+frontend/
+├── public/
+│   ├── favicon.ico
+│   └── index.html
+├── src/
+│   ├── assets/           # 静态资源
+│   ├── components/       # 通用组件
+│   │   ├── common/       # 公共组件
+│   │   ├── Header.tsx    # 顶部导航栏
+│   │   ├── Sidebar.tsx   # 侧边栏
+│   │   └── ...
+│   ├── modules/          # 业务模块
+│   │   ├── dashboard/    # 仪表板模块
+│   │   ├── data-import/  # 数据导入模块
+│   │   ├── data-preview/ # 数据预览模块
+│   │   ├── data-cleaning/# 数据清洗模块
+│   │   ├── data-analysis/# 数据分析模块
+│   │   ├── visualization/# 数据可视化模块
+│   │   └── reporting/    # 报表生成模块
+│   ├── services/         # API服务
+│   ├── hooks/            # 自定义Hooks
+│   ├── context/          # React Context
+│   ├── utils/            # 工具函数
+│   ├── types/            # TypeScript类型定义
+│   ├── App.tsx
+│   ├── main.tsx
+│   └── index.css
+├── .gitignore
+├── package.json
+├── tsconfig.json
+└── vite.config.ts
+```

@@ -13,7 +13,11 @@ api/
 ├── data_analysis.py     # 数据分析相关接口
 ├── data_visualization.py # 数据可视化相关接口
 ├── data_cleaning.py     # 数据清洗相关接口
-└── model_extractor.py   # 模型提取相关接口
+├── model_extractor.py   # 模型提取相关接口
+├── session_manager.py   # 会话管理模块
+├── cleanup_task.py      # 清理任务模块
+├── document_reader.py   # 文档读取模块
+└── README.md            # API文档
 ```
 
 ## 启动API服务
@@ -41,6 +45,8 @@ uvicorn run_api:app --reload
 - `POST /api/import/create-session` - 创建新的会话
 - `POST /api/import/upload-file` - 上传文件
 - `POST /api/import/import-from-database` - 从数据库导入数据
+- `POST /api/import/reset-step` - 重置指定步骤及其后续步骤
+- `GET /api/import/step-status` - 获取步骤状态
 - `POST /api/import/end-session` - 结束会话并清理资源
 
 ### 数据预览
@@ -63,6 +69,11 @@ uvicorn run_api:app --reload
 - `POST /api/model/transfer` - 转移模型
 - `POST /api/model/manage` - 管理自动保存的模型
 - `GET /api/model/list` - 列出自动保存的模型
+
+### 健康检查和文档
+- `GET /api/health` - 健康检查端点
+- `GET /api/docs/project` - 项目文档
+- `GET /api/docs/technical` - 技术文档
 
 ## CORS配置
 
