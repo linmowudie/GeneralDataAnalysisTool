@@ -18,9 +18,8 @@ export class DataPreviewService {
         throw new Error('没有可用的会话ID，请先创建会话');
       }
 
-      const response = await apiService.get('/api/preview/data-preview', {
-        params: { session_id: targetSessionId }
-      });
+      // 直接将 session_id 作为查询参数传递
+      const response = await apiService.get(`/api/preview/data-preview?session_id=${encodeURIComponent(targetSessionId)}`);
       return response;
     } catch (error) {
       console.error('获取数据预览失败:', error);
@@ -40,9 +39,8 @@ export class DataPreviewService {
         throw new Error('没有可用的会话ID，请先创建会话');
       }
 
-      const response = await apiService.get('/api/preview/dataset-info', {
-        params: { session_id: targetSessionId }
-      });
+      // 直接将 session_id 作为查询参数传递
+      const response = await apiService.get(`/api/preview/dataset-info?session_id=${encodeURIComponent(targetSessionId)}`);
       return response;
     } catch (error) {
       console.error('获取数据集信息失败:', error);

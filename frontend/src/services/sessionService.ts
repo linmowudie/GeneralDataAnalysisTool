@@ -11,8 +11,8 @@ export class SessionService {
    */
   async createSession(): Promise<string> {
     try {
-      const response: any = await apiService.post('/api/import/create-session');
-      const sessionId = response.session_id;
+      const data: any = await apiService.post('/api/import/create-session');
+      const sessionId = data.session_id;
       apiService.setSessionId(sessionId);
       return sessionId;
     } catch (error) {

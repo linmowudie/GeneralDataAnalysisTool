@@ -2,7 +2,6 @@ import React, { useState, useEffect, useContext } from 'react';
 import './DataPreviewModule.css';
 import { dataPreviewService } from '../../services/dataPreviewService';
 import { sessionService } from '../../services/sessionService';
-import type { Message } from '../../components/MessagePanel';
 
 // 添加消息的函数类型定义
 type AddMessageType = (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
@@ -22,7 +21,6 @@ const DataPreviewModule: React.FC = () => {
       try {
         setLoading(true);
         setError(null);
-        addMessage && addMessage('正在加载数据...', 'info');
         
         const sessionId = sessionService.getCurrentSessionId();
         if (!sessionId) {
@@ -36,11 +34,9 @@ const DataPreviewModule: React.FC = () => {
         // 获取数据集信息
         const info = await dataPreviewService.getDatasetInfo(sessionId);
         setDatasetInfo(info);
-        addMessage && addMessage('数据加载成功', 'success');
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : '获取数据失败';
         setError(errorMessage);
-        addMessage && addMessage(errorMessage, 'error');
         console.error('获取数据预览失败:', err);
       } finally {
         setLoading(false);

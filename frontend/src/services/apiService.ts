@@ -32,7 +32,7 @@ export class ApiService {
     // 响应拦截器
     this.axiosInstance.interceptors.response.use(
       (response: AxiosResponse) => {
-        return response.data;
+        return response;
       },
       (error: AxiosError) => {
         // 统一错误处理
@@ -76,7 +76,8 @@ export class ApiService {
    * @returns Promise<any>
    */
   async post<T>(url: string, data?: Record<string, any>): Promise<T> {
-    return this.axiosInstance.post<T>(url, data).then(response => response.data);
+    const response = await this.axiosInstance.post<T>(url, data);
+    return response.data;
   }
 
   /**

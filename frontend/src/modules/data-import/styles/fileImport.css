@@ -62,3 +62,81 @@
   color: #666;
   text-align: center;
 }
+
+/* 文件输入容器 */
+.file-input-container {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+  width: 100%;
+  max-width: 400px;
+  margin: 0 auto;
+}
+
+/* 原来是 .upload-button，现在改为 .import-btn.primary */
+.import-btn.primary {
+  padding: 8px 16px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  background: var(--primary-color);
+  color: white;
+  transition: all 0.3s ease;
+}
+
+/* 悬停状态：这才是关键！ */
+.import-btn.primary:hover:not(:disabled) {
+  background: var(--primary-hover-color);
+  transform: translateY(-1px);
+  color: black !important; /* 悬停时文字变黑 */
+}
+
+/* 禁用状态 */
+.import-btn.primary:disabled {
+  background: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  color: #999;
+}
+
+/* 上传进度条 */
+.progress-container {
+  width: 100%;
+  height: 8px;
+  background: #e9ecef;
+  border-radius: 4px;
+  overflow: hidden;
+  margin-top: 10px;
+}
+
+.progress-bar {
+  width: 100%;
+  height: 100%;
+  position: relative;
+}
+
+.progress-fill {
+  height: 100%;
+  background: var(--primary-color);
+  border-radius: 4px;
+  transition: width 0.3s ease;
+}
+
+/* 进度信息 */
+.progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+}
+
+.progress-text {
+  font-weight: 500;
+}
+
+.progress-percent {
+  font-weight: 500;
+}

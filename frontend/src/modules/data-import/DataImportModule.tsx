@@ -204,14 +204,14 @@ const DataImportModule: React.FC = () => {
       }
       
       setDbImportStatus('importing');
-      setDbImportMessage('正在从数据库导入...');
+      setDbImportMessage('正在导入数据库数据...');
       updateGlobalState({
         dbImportStatus: 'importing',
-        dbImportMessage: '正在从数据库导入...'
+        dbImportMessage: '正在导入数据库数据...'
       });
-      addMessage && addMessage('正在从数据库导入...', 'info');
+      addMessage && addMessage('正在导入数据库数据...', 'info');
       
-      // 导入数据
+      // 导入数据库数据
       const response = await dataImportService.importFromDatabase(
         dbType,
         host,
@@ -223,19 +223,27 @@ const DataImportModule: React.FC = () => {
         sessionId
       );
       
-      setDbImportStatus('success');
-      setDbImportMessage('数据库导入成功');
-      updateGlobalState({
-        dbImportStatus: 'success',
-        dbImportMessage: '数据库导入成功'
-      });
-      addMessage && addMessage('数据库导入成功', 'success');
-      
-      console.log('数据库导入结果:', response);
-      
-      // 触发父组件的消息更新
-      if (window && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('dataImportSuccess', { detail: { importType: 'database', dbType, table } }));
+      if (response.success) {
+        setDbImportStatus('success');
+        setDbImportMessage('数据库数据导入成功');
+        updateGlobalState({
+          dbImportStatus: 'success',
+          dbImportMessage: '数据库数据导入成功'
+        });
+        addMessage && addMessage('数据库数据导入成功', 'success');
+        
+        // 触发父组件的消息更新
+        if (window && window.dispatchEvent) {
+          window.dispatchEvent(new CustomEvent('dataImportSuccess', { 
+            detail: { 
+              importType: 'database', 
+              dbType,
+              table
+            } 
+          }));
+        }
+      } else {
+        throw new Error(response.message || '数据库导入失败');
       }
       
     } catch (error) {
@@ -250,381 +258,268 @@ const DataImportModule: React.FC = () => {
     }
   };
   
-  // 渲染文件导入界面
-  const renderFileImport = () => (
-    <div className="file-import-container">
-      <div className="import-section">
-        <div className="form-group">
-          <label htmlFor="file-upload">选择文件</label>
-          <input 
-            type="file" 
-            id="file-upload" 
-            onChange={handleFileChange} 
-            accept=".csv,.xlsx,.xls,.json,.html,.db"
-          />
-          {selectedFile && (
-            <div className="selected-file">
-              <span>{selectedFile.name}</span>
-              <button 
-                className="remove-file-btn" 
-                onClick={() => {
-                  setSelectedFile(null);
-                  setUploadStatus('idle');
-                  setUploadMessage('');
-                  updateGlobalState({
-                    uploadStatus: 'idle',
-                    uploadMessage: ''
-                  });
-                }}
-              >
-                移除
-              </button>
-            </div>
-          )}
-        </div>
-        
-        <div className="form-group">
-          <button 
-            className="import-btn primary" 
-            onClick={handleFileUpload}
-            disabled={!selectedFile || uploadStatus === 'uploading'}
-          >
-            {uploadStatus === 'uploading' ? '上传中...' : '上传文件'}
-          </button>
-        </div>
-        
-        {uploadProgress > 0 && (
-          <div className="progress-container">
-            <div className="progress-bar">
-              <div 
-                className="progress-fill" 
-                style={{ width: `${uploadProgress}%` }}
-              ></div>
-            </div>
-          </div>
-        )}
-        
-        {uploadMessage && (
-          <div className={`status-message ${uploadStatus}`}>
-            {uploadMessage}
-          </div>
-        )}
-        
-        <div className="supported-formats">
-          <p>支持的文件格式: {dataImportService.getSupportedFileFormats().join(', ')}</p>
-        </div>
-      </div>
-    </div>
-  );
-  
-  // 获取数据库的默认端口占位符
-  const getDefaultPortPlaceholder = (dbType: string) => {
-    switch (dbType) {
-      case 'mysql': return '3306';
-      case 'postgresql': return '5432';
-      case 'mssql': return '1433';
-      case 'oracle': return '1521';
-      case 'mongodb': return '27017';
-      case 'redis': return '6379';
-      case 'sqlite': return '';
-      default: return '3306';
-    }
+  // 处理API导入
+  const handleApiImport = async () => {
+    addMessage && addMessage('API导入功能尚未实现', 'warning');
   };
   
-  // 获取数据库名占位符
-  const getDatabasePlaceholder = (dbType: string) => {
-    switch (dbType) {
-      case 'mongodb': return '数据库名称/集合名称';
-      case 'redis': return '数据库索引(0-15)';
-      case 'sqlite': return '数据库文件路径';
-      default: return '数据库名称';
-    }
+  // 重置表单
+  const resetForm = () => {
+    setSelectedFile(null);
+    setUploadProgress(0);
+    setUploadStatus('idle');
+    setUploadMessage('');
+    
+    setDbType('mysql');
+    setHost('localhost');
+    setPort('3306');
+    setDatabase('');
+    setTable('');
+    setUsername('');
+    setPassword('');
+    setDbImportStatus('idle');
+    setDbImportMessage('');
+    
+    updateGlobalState({
+      importType: 'file',
+      uploadProgress: 0,
+      uploadStatus: 'idle',
+      uploadMessage: '',
+      dbType: 'mysql',
+      host: 'localhost',
+      port: '3306',
+      database: '',
+      table: '',
+      username: '',
+      password: '',
+      dbImportStatus: 'idle',
+      dbImportMessage: ''
+    });
   };
-  
-  // 获取表名占位符
-  const getTablePlaceholder = (dbType: string) => {
-    switch (dbType) {
-      case 'mongodb': return '集合名称';
-      case 'redis': return '键模式';
-      default: return '表名称';
-    }
-  };
-  
-  // 获取数据库显示名称
-  const getDbDisplayName = (dbType: string) => {
-    switch (dbType) {
-      case 'mysql': return 'MySQL';
-      case 'postgresql': return 'PostgreSQL';
-      case 'mssql': return 'SQL Server';
-      case 'oracle': return 'Oracle';
-      case 'sqlite': return 'SQLite';
-      case 'mongodb': return 'MongoDB';
-      case 'redis': return 'Redis';
-      default: return '数据库';
-    }
-  };
-  
-  // 渲染数据库导入界面
-  const renderDatabaseImport = () => (
-    <div className="import-section database-import-container">
-      {/* 左侧数据库类型选择器 */}
-      <div className="database-type-selector">
-        <h3>选择数据库类型</h3>
-        <div className="db-type-options">
-          <button 
-            className={`db-type-option ${dbType === 'mysql' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('mysql')}
-          >
-            MySQL
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'postgresql' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('postgresql')}
-          >
-            PostgreSQL
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'mssql' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('mssql')}
-          >
-            SQL Server
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'oracle' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('oracle')}
-          >
-            Oracle
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'sqlite' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('sqlite')}
-          >
-            SQLite
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'mongodb' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('mongodb')}
-          >
-            MongoDB
-          </button>
-          <button 
-            className={`db-type-option ${dbType === 'redis' ? 'active' : ''}`}
-            onClick={() => handleDbTypeChange('redis')}
-          >
-            Redis
-          </button>
-        </div>
-      </div>
-      
-      {/* 右侧连接参数表单 */}
-      <div className="database-params-form">
-        <h3>{dbType.toUpperCase()} 连接参数</h3>
-        <div className="form-content">
-          <div className="form-group">
-            <label htmlFor="db-host">主机名</label>
-            <input 
-              type="text" 
-              id="db-host" 
-              value={host} 
-              onChange={(e) => {
-                setHost(e.target.value);
-                updateGlobalState({
-                  host: e.target.value
-                });
-              }}
-              placeholder="localhost"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="db-port">端口</label>
-            <input 
-              type="text" 
-              id="db-port" 
-              value={port} 
-              onChange={(e) => {
-                setPort(e.target.value);
-                updateGlobalState({
-                  port: e.target.value
-                });
-              }}
-              placeholder={getDefaultPortPlaceholder(dbType)}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="db-name">{getDatabasePlaceholder(dbType)}</label>
-            <input 
-              type="text" 
-              id="db-name" 
-              value={database} 
-              onChange={(e) => {
-                setDatabase(e.target.value);
-                updateGlobalState({
-                  database: e.target.value
-                });
-              }}
-              placeholder={getDatabasePlaceholder(dbType)}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="db-table">{getTablePlaceholder(dbType)}</label>
-            <input 
-              type="text" 
-              id="db-table" 
-              value={table} 
-              onChange={(e) => {
-                setTable(e.target.value);
-                updateGlobalState({
-                  table: e.target.value
-                });
-              }}
-              placeholder={getTablePlaceholder(dbType)}
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="db-username">用户名</label>
-            <input 
-              type="text" 
-              id="db-username" 
-              value={username} 
-              onChange={(e) => {
-                setUsername(e.target.value);
-                updateGlobalState({
-                  username: e.target.value
-                });
-              }}
-              placeholder="可选"
-            />
-          </div>
-          
-          <div className="form-group">
-            <label htmlFor="db-password">密码</label>
-            <input 
-              type="password" 
-              id="db-password" 
-              value={password} 
-              onChange={(e) => {
-                setPassword(e.target.value);
-                updateGlobalState({
-                  password: e.target.value
-                });
-              }}
-              placeholder="可选"
-            />
-          </div>
-          
-          <div className="form-group">
-            <button 
-              className="import-btn primary" 
-              onClick={handleDatabaseImport}
-              disabled={dbImportStatus === 'importing'}
-            >
-              {dbImportStatus === 'importing' ? '导入中...' : `从${getDbDisplayName(dbType)}导入`}
-            </button>
-          </div>
-          
-          {dbImportMessage && (
-            <div className={`status-message ${dbImportStatus}`}>
-              {dbImportMessage}
-            </div>
-          )}
-        </div>
-      </div>
-    </div>
-  );
-  
-  // 渲染API导入界面（后端未实现）
-  const renderApiImport = () => (
-    <div className="import-section">
-      <div className="api-import-placeholder">
-        <h4>API导入功能即将上线</h4>
-        <p>此功能正在开发中，敬请期待...</p>
-        
-        <div className="api-import-preview">
-          <div className="form-group">
-            <label>API URL</label>
-            <input 
-              type="text" 
-              placeholder="https://api.example.com/data" 
-              disabled
-            />
-          </div>
-          
-          <div className="form-group">
-            <label>请求方法</label>
-            <select disabled>
-              <option value="GET">GET</option>
-              <option value="POST">POST</option>
-            </select>
-          </div>
-          
-          <div className="form-group">
-            <label>认证方式</label>
-            <select disabled>
-              <option value="none">无</option>
-              <option value="basic">Basic Auth</option>
-              <option value="token">API Token</option>
-            </select>
-          </div>
-          
-          <button 
-            className="import-btn primary disabled"
-            disabled
-          >
-            从API导入
-          </button>
-        </div>
-      </div>
-    </div>
-  );
-  
-// 移除旧的useEffect，因为现在使用全局状态管理
 
   return (
-    <div className="data-import-module">
+    <div className="data-import-container">
       <div className="import-type-selector">
-        <button 
-          className={`import-type-btn ${importType === 'file' ? 'active' : ''}`}
-          onClick={() => {
-            setImportType('file');
-            updateGlobalState({
-              importType: 'file'
-            });
-          }}
-        >
-          文件导入
-        </button>
-        <button 
-          className={`import-type-btn ${importType === 'database' ? 'active' : ''}`}
-          onClick={() => {
-            setImportType('database');
-            updateGlobalState({
-              importType: 'database'
-            });
-          }}
-        >
-          数据库导入
-        </button>
-        <button 
-          className={`import-type-btn ${importType === 'api' ? 'active' : ''}`}
-          onClick={() => {
-            setImportType('api');
-            updateGlobalState({
-              importType: 'api'
-            });
-          }}
-        >
-          API导入
-        </button>
+        <div className="selector-buttons">
+          <button 
+            className={`import-type-btn ${importType === 'file' ? 'active' : ''}`}
+            onClick={() => {
+              setImportType('file');
+              updateGlobalState({ importType: 'file' });
+            }}
+          >
+            文件导入
+          </button>
+          <button 
+            className={`import-type-btn ${importType === 'database' ? 'active' : ''}`}
+            onClick={() => {
+              setImportType('database');
+              updateGlobalState({ importType: 'database' });
+            }}
+          >
+            数据库导入
+          </button>
+          <button 
+            className={`import-type-btn ${importType === 'api' ? 'active' : ''}`}
+            onClick={() => {
+              setImportType('api');
+              updateGlobalState({ importType: 'api' });
+            }}
+          >
+            API导入
+          </button>
+        </div>
       </div>
-      
+
       <div className="import-content">
-        {importType === 'file' && renderFileImport()}
-        {importType === 'database' && renderDatabaseImport()}
-        {importType === 'api' && renderApiImport()}
+        {/* 文件导入表单 */}
+        {importType === 'file' && (
+          <div className="file-import-container">
+            <h4>选择文件</h4>
+            <div className="file-input-container">
+              <input 
+                type="file" 
+                id="fileInput" 
+                onChange={handleFileChange}
+                className="file-input"
+              />
+              <button 
+                className="import-btn primary"
+                onClick={handleFileUpload}
+                disabled={uploadStatus === 'uploading'}
+              >
+                {uploadStatus === 'uploading' ? '上传中...' : '上传'}
+              </button>
+            </div>
+            
+            {/* 上传进度条 */}
+            {(uploadStatus === 'uploading' || uploadStatus === 'success' || uploadStatus === 'error') && (
+              <div className="progress-container">
+                <div className="progress-bar">
+                  <div 
+                    className="progress-fill"
+                    style={{ width: `${uploadProgress}%` }}
+                  ></div>
+                </div>
+                <div className="progress-info">
+                  <span className="progress-text">{uploadMessage}</span>
+                  <span className="progress-percent">{uploadProgress}%</span>
+                </div>
+              </div>
+            )}
+          </div>
+        )}
+
+        {/* 数据库导入表单 */}
+        {importType === 'database' && (
+          <div className="database-import-container">
+            <div className="database-type-selector">
+              <h3>数据库类型</h3>
+              <div className="db-type-options">
+                {['mysql', 'postgresql', 'mssql', 'oracle', 'mongodb', 'redis', 'sqlite'].map((type) => (
+                  <div
+                    key={type}
+                    className={`db-type-option ${dbType === type ? 'active' : ''}`}
+                    onClick={() => handleDbTypeChange(type)}
+                  >
+                    {type}
+                  </div>
+                ))}
+              </div>
+            </div>
+            
+            <div className="database-params-form">
+              <h3>数据库连接参数</h3>
+              <div className="form-content">
+                <div className="form-group">
+                  <label htmlFor="host">主机地址:</label>
+                  <input 
+                    type="text" 
+                    id="host" 
+                    value={host} 
+                    onChange={(e) => {
+                      setHost(e.target.value);
+                      updateGlobalState({ host: e.target.value });
+                    }}
+                    placeholder="例如: localhost"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="port">端口:</label>
+                  <input 
+                    type="text" 
+                    id="port" 
+                    value={port} 
+                    onChange={(e) => {
+                      setPort(e.target.value);
+                      updateGlobalState({ port: e.target.value });
+                    }}
+                    placeholder="例如: 3306"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="database">数据库名:</label>
+                  <input 
+                    type="text" 
+                    id="database" 
+                    value={database} 
+                    onChange={(e) => {
+                      setDatabase(e.target.value);
+                      updateGlobalState({ database: e.target.value });
+                    }}
+                    placeholder="输入数据库名称"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="table">表名:</label>
+                  <input 
+                    type="text" 
+                    id="table" 
+                    value={table} 
+                    onChange={(e) => {
+                      setTable(e.target.value);
+                      updateGlobalState({ table: e.target.value });
+                    }}
+                    placeholder="输入表名"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="username">用户名:</label>
+                  <input 
+                    type="text" 
+                    id="username" 
+                    value={username} 
+                    onChange={(e) => {
+                      setUsername(e.target.value);
+                      updateGlobalState({ username: e.target.value });
+                    }}
+                    placeholder="输入用户名"
+                  />
+                </div>
+                
+                <div className="form-group">
+                  <label htmlFor="password">密码:</label>
+                  <input 
+                    type="password" 
+                    id="password" 
+                    value={password} 
+                    onChange={(e) => {
+                      setPassword(e.target.value);
+                      updateGlobalState({ password: e.target.value });
+                    }}
+                    placeholder="输入密码"
+                  />
+                </div>
+                
+                <div className="form-actions">
+                  <button 
+                    className="import-btn primary"
+                    onClick={handleDatabaseImport}
+                    disabled={dbImportStatus === 'importing'}
+                  >
+                    {dbImportStatus === 'importing' ? '导入中...' : '导入'}
+                  </button>
+                  <button 
+                    className="import-btn"
+                    onClick={resetForm}
+                  >
+                    重置
+                  </button>
+                </div>
+                
+                {/* 数据库导入状态 */}
+                {(dbImportStatus === 'importing' || dbImportStatus === 'success' || dbImportStatus === 'error') && (
+                  <div className={`status-message ${dbImportStatus}`}>
+                    <span className="status-icon">
+                      {dbImportStatus === 'success' ? '✓' : dbImportStatus === 'error' ? '✗' : '⏳'}
+                    </span>
+                    <span className="status-message">{dbImportMessage}</span>
+                  </div>
+                )}
+              </div>
+            </div>
+          </div>
+        )}
+
+        {/* API导入表单 */}
+        {importType === 'api' && (
+          <div className="api-import-placeholder">
+            <h4>API导入</h4>
+            <div className="api-import-content">
+              <p>API导入功能正在开发中...</p>
+              <button 
+                className="import-btn primary"
+                onClick={handleApiImport}
+              >
+                导入
+              </button>
+            </div>
+          </div>
+        )}
       </div>
     </div>
   );

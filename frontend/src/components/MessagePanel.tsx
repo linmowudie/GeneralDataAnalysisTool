@@ -44,7 +44,7 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
         <h3>消息返回</h3>
         {onClear && (
           <button className="clear-messages-btn" onClick={onClear}>
-            清空
+            🗑️
           </button>
         )}
       </div>

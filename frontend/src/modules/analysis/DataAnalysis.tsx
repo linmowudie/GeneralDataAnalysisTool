@@ -9,6 +9,7 @@ import VisualizationModule, { MessageContext as VisualizationMessageContext } fr
 import ReportingModule, { MessageContext as ReportingMessageContext } from '../reporting/ReportingModule';
 import MessagePanel from '../../components/MessagePanel';
 import type { Message as MessageType } from '../../components/MessagePanel';
+import { useGlobalState } from '../../context/GlobalStateContext';
 
 // 定义消息类型
 interface Message {
@@ -25,6 +26,7 @@ interface DataAnalysisProps {
 const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   const navigate = useNavigate();
   const location = useLocation();
+  const { resetState } = useGlobalState();
 
   // 根据URL设置初始步骤
   useEffect(() => {
@@ -53,7 +55,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   // 添加消息到消息面板
   const addMessage = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
     const newMessage: Message = {
-      id: Date.now().toString(),
+      id: Date.now().toString() + Math.random().toString(36).substr(2, 9), // 添加随机字符串确保唯一性
       type,
       content: message,
       timestamp: new Date()
@@ -220,6 +222,11 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
     }
   };
 
+  // 判断是否需要显示结果面板
+  const shouldShowResultPanel = () => {
+    return activeStep !== 'import' && activeStep !== 'preview' && activeStep !== 'cleaning';
+  };
+
   // 清空消息
   const clearMessages = () => {
     setMessages([]);
@@ -228,6 +235,19 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   // 移除单个消息
   const dismissMessage = (id: string) => {
     setMessages(prev => prev.filter(msg => msg.id !== id));
+  };
+
+  // 重置所有状态
+  const handleReset = () => {
+    // 重置全局状态
+    resetState();
+    // 重置本地状态
+    setActiveStep('import');
+    setMessages([]);
+    setAnalysisResult(null);
+    // 导航到导入步骤
+    navigate('/analysis/import');
+    addMessage('已重置所有状态', 'info');
   };
 
   return (
@@ -302,7 +322,10 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
         <div className="center-panel" ref={containerRef}>
           <div 
             className="parameter-panel" 
-            style={{ height: panelHeights.top }}
+            style={{ 
+              height: shouldShowResultPanel() ? panelHeights.top : '100%',
+              borderBottom: shouldShowResultPanel() ? '1px solid var(--border-color)' : 'none'
+            }}
           >
             <h3>参数输入及控制面板</h3>
             <div className="parameter-content">
@@ -310,21 +333,25 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
             </div>
           </div>
           
-          <div 
-            className="draggable-divider" 
-            ref={dividerRef}
-            onMouseDown={handleMouseDown}
-          ></div>
-          
-          <div 
-            className="result-panel" 
-            style={{ height: panelHeights.bottom }}
-          >
-            <h3>分析结果展示</h3>
-            <div className="result-content">
-              {renderResultContent()}
-            </div>
-          </div>
+          {shouldShowResultPanel() && (
+            <>
+              <div 
+                className="draggable-divider" 
+                ref={dividerRef}
+                onMouseDown={handleMouseDown}
+              ></div>
+              
+              <div 
+                className="result-panel" 
+                style={{ height: panelHeights.bottom }}
+              >
+                <h3>分析结果展示</h3>
+                <div className="result-content">
+                  {renderResultContent()}
+                </div>
+              </div>
+            </>
+          )}
         </div>
         
         <div className="right-panel">
@@ -335,7 +362,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
           />
           <div className="control-buttons">
             <button className="control-btn" onClick={clearMessages}>清空</button>
-            <button className="control-btn">重置</button>
+            <button className="control-btn" onClick={handleReset}>重置</button>
           </div>
         </div>
       </div>
