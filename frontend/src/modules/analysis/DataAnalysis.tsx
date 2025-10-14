@@ -1,12 +1,22 @@
 import React, { useState, useRef, useEffect } from 'react';
 import { useNavigate, useLocation } from 'react-router-dom';
 import './DataAnalysis.css';
-import DataImportModule from '../data-import/DataImportModule';
-import DataPreviewModule from '../data-preview/DataPreviewModule';
-import DataCleaningModule from '../data-cleaning/DataCleaningModule';
-import DataAnalysisModule from '../data-analysis/DataAnalysisModule';
-import VisualizationModule from '../visualization/VisualizationModule';
-import ReportingModule from '../reporting/ReportingModule';
+import DataImportModule, { MessageContext as ImportMessageContext } from '../data-import/DataImportModule';
+import DataPreviewModule, { MessageContext as PreviewMessageContext } from '../data-preview/DataPreviewModule';
+import DataCleaningModule, { MessageContext as CleaningMessageContext } from '../data-cleaning/DataCleaningModule';
+import DataAnalysisModule, { MessageContext as AnalysisMessageContext } from '../data-analysis/DataAnalysisModule';
+import VisualizationModule, { MessageContext as VisualizationMessageContext } from '../visualization/VisualizationModule';
+import ReportingModule, { MessageContext as ReportingMessageContext } from '../reporting/ReportingModule';
+import MessagePanel from '../../components/MessagePanel';
+import type { Message as MessageType } from '../../components/MessagePanel';
+
+// 定义消息类型
+interface Message {
+  id: string;
+  type: 'info' | 'success' | 'warning' | 'error';
+  content: string;
+  timestamp: Date;
+}
 
 interface DataAnalysisProps {
   onTabChange: (tab: 'dashboard' | 'analysis' | 'visualization') => void;
@@ -28,21 +38,12 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   }, [location]);
 
   const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
-    switch (tab) {
-      case 'dashboard':
-        navigate('/');
-        break;
-      case 'visualization':
-        navigate('/visualization');
-        break;
-      default:
-        navigate('/analysis');
-    }
+    onTabChange(tab);
   };
   const [panelHeights, setPanelHeights] = useState<{ top: string; bottom: string }>({ top: '70%', bottom: '30%' });
   const [isDragging, setIsDragging] = useState(false);
   const [activeStep, setActiveStep] = useState<'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report'>('import');
-  const [messages, setMessages] = useState<string[]>([]);
+  const [messages, setMessages] = useState<Message[]>([]);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
   
@@ -50,8 +51,14 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 添加消息到消息面板
-  const addMessage = (message: string) => {
-    setMessages(prev => [...prev, message]);
+  const addMessage = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    const newMessage: Message = {
+      id: Date.now().toString(),
+      type,
+      content: message,
+      timestamp: new Date()
+    };
+    setMessages(prev => [...prev, newMessage]);
   };
 
   // 滚动到最新消息
@@ -73,7 +80,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       }
       
       if (message) {
-        addMessage(message);
+        addMessage(message, 'success');
       }
     };
 
@@ -145,17 +152,41 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   const renderParameterContent = () => {
     switch (activeStep) {
       case 'import':
-        return <DataImportModule />;
+        return (
+          <ImportMessageContext.Provider value={addMessage}>
+            <DataImportModule />
+          </ImportMessageContext.Provider>
+        );
       case 'preview':
-        return <DataPreviewModule />;
+        return (
+          <PreviewMessageContext.Provider value={addMessage}>
+            <DataPreviewModule />
+          </PreviewMessageContext.Provider>
+        );
       case 'cleaning':
-        return <DataCleaningModule />;
+        return (
+          <CleaningMessageContext.Provider value={addMessage}>
+            <DataCleaningModule />
+          </CleaningMessageContext.Provider>
+        );
       case 'analysis':
-        return <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />;
+        return (
+          <AnalysisMessageContext.Provider value={addMessage}>
+            <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />
+          </AnalysisMessageContext.Provider>
+        );
       case 'visualization':
-        return <VisualizationModule />;
+        return (
+          <VisualizationMessageContext.Provider value={addMessage}>
+            <VisualizationModule />
+          </VisualizationMessageContext.Provider>
+        );
       case 'report':
-        return <ReportingModule />;
+        return (
+          <ReportingMessageContext.Provider value={addMessage}>
+            <ReportingModule />
+          </ReportingMessageContext.Provider>
+        );
       default:
         return <div>请选择一个操作步骤</div>;
     }
@@ -187,6 +218,16 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       default:
         return <div>请先选择一个操作步骤</div>;
     }
+  };
+
+  // 清空消息
+  const clearMessages = () => {
+    setMessages([]);
+  };
+
+  // 移除单个消息
+  const dismissMessage = (id: string) => {
+    setMessages(prev => prev.filter(msg => msg.id !== id));
   };
 
   return (
@@ -287,17 +328,13 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
         </div>
         
         <div className="right-panel">
-          <div className="message-panel">
-            <h3>消息返回</h3>
-            <div className="messages-content">
-              {messages.map((msg, index) => (
-                <div key={index} className="message-item">{msg}</div>
-              ))}
-              <div ref={messagesEndRef} />
-            </div>
-          </div>
+          <MessagePanel 
+            messages={messages}
+            onClear={clearMessages}
+            onDismiss={dismissMessage}
+          />
           <div className="control-buttons">
-            <button className="control-btn">清空</button>
+            <button className="control-btn" onClick={clearMessages}>清空</button>
             <button className="control-btn">重置</button>
           </div>
         </div>

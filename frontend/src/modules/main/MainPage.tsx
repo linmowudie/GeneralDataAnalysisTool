@@ -12,7 +12,7 @@ const MainPage: React.FC = () => {
   // 根据URL设置初始标签页
   useEffect(() => {
     const path = location.pathname;
-    if (path === '/analysis') {
+    if (path.startsWith('/analysis')) {
       setActiveTab('analysis');
     } else if (path === '/visualization') {
       setActiveTab('visualization');

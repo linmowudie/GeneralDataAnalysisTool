@@ -1,4 +1,4 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './styles/layout.css';
 import './styles/importTypes.css';
 import './styles/forms.css';
@@ -12,9 +12,17 @@ import './styles/apiImport.css';
 import { dataImportService } from '../../services/dataImportService';
 import { sessionService } from '../../services/sessionService';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import type { Message } from '../../components/MessagePanel';
+
+// 添加消息的函数类型定义
+type AddMessageType = (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+
+// 创建 Context 用于传递 addMessage 函数
+export const MessageContext = React.createContext<AddMessageType | null>(null);
 
 const DataImportModule: React.FC = () => {
   const { state, updateDataImportState } = useGlobalState();
+  const addMessage = useContext(MessageContext);
   
   // 导入类型切换状态
   const [importType, setImportType] = useState<'file' | 'database' | 'api'>(state.dataImport.importType);
@@ -61,6 +69,7 @@ const DataImportModule: React.FC = () => {
       updateGlobalState({
         uploadMessage: '请选择一个文件'
       });
+      addMessage && addMessage('请选择一个文件', 'warning');
       return;
     }
     
@@ -83,6 +92,7 @@ const DataImportModule: React.FC = () => {
         uploadProgress: 0,
         uploadMessage: '正在上传文件...'
       });
+      addMessage && addMessage('正在上传文件...', 'info');
       
       // 模拟进度更新
       const progressInterval = setInterval(() => {
@@ -107,6 +117,7 @@ const DataImportModule: React.FC = () => {
         uploadStatus: 'success',
         uploadMessage: '文件上传成功'
       });
+      addMessage && addMessage('文件上传成功', 'success');
       
       console.log('文件上传结果:', response);
       
@@ -123,6 +134,7 @@ const DataImportModule: React.FC = () => {
         uploadStatus: 'error',
         uploadMessage: error instanceof Error ? error.message : '文件上传失败'
       });
+      addMessage && addMessage(error instanceof Error ? error.message : '文件上传失败', 'error');
     }
   };
   
@@ -176,6 +188,7 @@ const DataImportModule: React.FC = () => {
       updateGlobalState({
         dbImportMessage: '请填写必填字段'
       });
+      addMessage && addMessage('请填写必填字段', 'warning');
       return;
     }
     
@@ -196,6 +209,7 @@ const DataImportModule: React.FC = () => {
         dbImportStatus: 'importing',
         dbImportMessage: '正在从数据库导入...'
       });
+      addMessage && addMessage('正在从数据库导入...', 'info');
       
       // 导入数据
       const response = await dataImportService.importFromDatabase(
@@ -215,6 +229,7 @@ const DataImportModule: React.FC = () => {
         dbImportStatus: 'success',
         dbImportMessage: '数据库导入成功'
       });
+      addMessage && addMessage('数据库导入成功', 'success');
       
       console.log('数据库导入结果:', response);
       
@@ -231,6 +246,7 @@ const DataImportModule: React.FC = () => {
         dbImportStatus: 'error',
         dbImportMessage: error instanceof Error ? error.message : '数据库导入失败'
       });
+      addMessage && addMessage(error instanceof Error ? error.message : '数据库导入失败', 'error');
     }
   };
   

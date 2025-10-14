@@ -10,16 +10,7 @@ const Dashboard: React.FC<DashboardProps> = ({ onTabChange }) => {
   const navigate = useNavigate();
 
   const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
-    switch (tab) {
-      case 'analysis':
-        navigate('/analysis');
-        break;
-      case 'visualization':
-        navigate('/visualization');
-        break;
-      default:
-        navigate('/');
-    }
+    onTabChange(tab);
   };
   // 模拟数据
   const recentProjects = [

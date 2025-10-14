@@ -1,7 +1,14 @@
-import React, { useState, useEffect } from 'react';
+import React, { useState, useEffect, useContext } from 'react';
 import './DataAnalysisModule.css';
 import { dataAnalysisService } from '../../services/dataAnalysisService';
 import { sessionService } from '../../services/sessionService';
+import type { Message } from '../../components/MessagePanel';
+
+// 添加消息的函数类型定义
+type AddMessageType = (message: string, type?: 'info' | 'success' | 'warning' | 'error') => void;
+
+// 创建 Context 用于传递 addMessage 函数
+export const MessageContext = React.createContext<AddMessageType | null>(null);
 
 interface DataAnalysisModuleProps {
   onAnalysisComplete: (result: any) => void;
@@ -13,19 +20,24 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
   const [parameters, setParameters] = useState<Record<string, any>>({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const addMessage = useContext(MessageContext);
 
   // 初始化时获取可用模型
   useEffect(() => {
     const fetchAvailableModels = async () => {
       try {
+        addMessage && addMessage('正在获取模型列表...', 'info');
         const models = await dataAnalysisService.getAvailableModels();
         setAvailableModels(models);
         if (models.length > 0) {
           setSelectedModel(models[0]);
           setParameters(dataAnalysisService.getDefaultParameters(models[0]));
         }
+        addMessage && addMessage('模型列表获取成功', 'success');
       } catch (err) {
-        setError('获取模型列表失败: ' + (err instanceof Error ? err.message : '未知错误'));
+        const errorMessage = '获取模型列表失败: ' + (err instanceof Error ? err.message : '未知错误');
+        setError(errorMessage);
+        addMessage && addMessage(errorMessage, 'error');
         console.error('获取模型列表失败:', err);
       }
     };
@@ -37,6 +49,7 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
   const handleModelChange = (model: string) => {
     setSelectedModel(model);
     setParameters(dataAnalysisService.getDefaultParameters(model));
+    addMessage && addMessage(`已选择模型: ${model}`, 'info');
   };
 
   // 处理参数变化
@@ -50,19 +63,24 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
   // 运行数据分析
   const handleRunAnalysis = async () => {
     if (!selectedModel) {
-      setError('请选择一个模型');
+      const errorMessage = '请选择一个模型';
+      setError(errorMessage);
+      addMessage && addMessage(errorMessage, 'warning');
       return;
     }
 
     const sessionId = sessionService.getCurrentSessionId();
     if (!sessionId) {
-      setError('未找到有效的会话ID，请先创建会话');
+      const errorMessage = '未找到有效的会话ID，请先创建会话';
+      setError(errorMessage);
+      addMessage && addMessage(errorMessage, 'error');
       return;
     }
 
     try {
       setIsAnalyzing(true);
       setError(null);
+      addMessage && addMessage('正在运行数据分析...', 'info');
       
       const result = await dataAnalysisService.runAnalysis(
         selectedModel,
@@ -71,8 +89,11 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
       );
       
       onAnalysisComplete(result);
+      addMessage && addMessage('数据分析完成', 'success');
     } catch (err) {
-      setError('数据分析失败: ' + (err instanceof Error ? err.message : '未知错误'));
+      const errorMessage = '数据分析失败: ' + (err instanceof Error ? err.message : '未知错误');
+      setError(errorMessage);
+      addMessage && addMessage(errorMessage, 'error');
       console.error('数据分析失败:', err);
     } finally {
       setIsAnalyzing(false);

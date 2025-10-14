@@ -76,9 +76,10 @@
   padding: 20px 10px;
   display: flex;
   flex-direction: column;
-  justify-content: center;
   gap: 30px;
   box-shadow: 2px 0 8px rgba(0, 0, 0, 0.05);
+  overflow-y: auto;
+  align-items: center;
 }
 
 .process-step {
@@ -380,4 +381,39 @@
   border-radius: 4px;
   margin-bottom: 15px;
   border: 1px solid #ffccc7;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .database-import-container {
+    flex-direction: column;
+    align-items: center;
+  }
+  
+  .left-panel {
+    flex-direction: row;
+    width: 100%;
+    overflow-y: hidden;
+    overflow-x: auto;
+    padding: 10px 20px;
+    gap: 20px;
+    justify-content: flex-start;
+  }
+  
+  .process-step {
+    flex-direction: row;
+    align-items: center;
+    gap: 8px;
+    min-width: fit-content;
+  }
+  
+  .step-button {
+    width: auto;
+    padding: 8px 12px;
+  }
+  
+  .step-indicator {
+    width: 10px;
+    height: 10px;
+  }
 }
