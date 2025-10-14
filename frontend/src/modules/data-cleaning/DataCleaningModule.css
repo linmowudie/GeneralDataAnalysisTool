@@ -1,0 +1,10 @@
+.data-cleaning-module {
+  padding: 15px;
+}
+
+.data-cleaning-module h3 {
+  margin-top: 0;
+  color: var(--warning-color);
+  border-bottom: 1px solid var(--border-color);
+  padding-bottom: 8px;
+}

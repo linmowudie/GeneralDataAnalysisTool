@@ -1,4 +1,5 @@
 import React from 'react';
+import { useNavigate } from 'react-router-dom';
 import './Dashboard.css';
 
 interface DashboardProps {
@@ -6,6 +7,20 @@ interface DashboardProps {
 }
 
 const Dashboard: React.FC<DashboardProps> = ({ onTabChange }) => {
+  const navigate = useNavigate();
+
+  const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
+    switch (tab) {
+      case 'analysis':
+        navigate('/analysis');
+        break;
+      case 'visualization':
+        navigate('/visualization');
+        break;
+      default:
+        navigate('/');
+    }
+  };
   // 模拟数据
   const recentProjects = [
     { id: 1, name: '乳腺癌数据分析', date: '2024-05-20', status: '已完成' },
@@ -33,141 +48,197 @@ const Dashboard: React.FC<DashboardProps> = ({ onTabChange }) => {
     { id: 4, name: '模型训练', icon: '⚙️', color: 'error' },
   ];
 
+  // 用户信息
+  const userInfo = {
+    name: '数据分析用户',
+    role: '高级分析师',
+    department: '数据科学部',
+    lastLogin: '2024-05-20 09:30',
+  };
+
   return (
     <div className="dashboard-container">
       <div className="dashboard-header">
         <h2>通用数据分析工具</h2>
         <div className="dashboard-tabs">
-          <button className="tab-button active" onClick={() => onTabChange('dashboard')}>仪表盘</button>
-          <button className="tab-button" onClick={() => onTabChange('analysis')}>数据分析</button>
-          <button className="tab-button" onClick={() => onTabChange('visualization')}>绘图</button>
+          <button className="tab-button active" onClick={() => handleTabChange('dashboard')}>仪表盘</button>
+          <button className="tab-button" onClick={() => handleTabChange('analysis')}>数据分析</button>
+          <button className="tab-button" onClick={() => handleTabChange('visualization')}>绘图</button>
         </div>
       </div>
 
-      {/* 仪表盘内容区域 - 卡片式布局 */}
+      {/* 仪表盘内容区域 - 按照设计图布局 */}
       <div className="dashboard-dashboard-content">
-        {/* 数据统计卡片 */}
-        <div className="dashboard-stats-grid">
-          <div className="dashboard-stat-card">
-            <h3>总项目数</h3>
-            <p className="dashboard-stat-value">{dataStats.totalProjects}</p>
-            <p className="dashboard-stat-description">所有分析项目</p>
-          </div>
-          <div className="dashboard-stat-card">
-            <h3>已完成项目</h3>
-            <p className="dashboard-stat-value">{dataStats.completedProjects}</p>
-            <p className="dashboard-stat-description">成功完成的项目</p>
-          </div>
-          <div className="dashboard-stat-card">
-            <h3>进行中项目</h3>
-            <p className="dashboard-stat-value">{dataStats.pendingProjects}</p>
-            <p className="dashboard-stat-description">正在处理的项目</p>
-          </div>
-          <div className="dashboard-stat-card">
-            <h3>数据总量</h3>
-            <p className="dashboard-stat-value">{dataStats.totalDataSize}</p>
-            <p className="dashboard-stat-description">已处理数据</p>
-          </div>
-        </div>
-
-        {/* 主要内容区域 - 左右布局 */}
-        <div className="dashboard-main-grid">
-          {/* 左侧区域 */}
-          <div className="dashboard-left-section">
-            {/* 最近项目卡片 */}
-            <div className="dashboard-card">
-              <div className="dashboard-card-header">
-                <h3>最近项目</h3>
-                <button className="dashboard-card-action">查看全部</button>
-              </div>
-              <div className="dashboard-card-body">
-                <table className="dashboard-project-table">
-                  <thead>
-                    <tr>
-                      <th>项目名称</th>
-                      <th>日期</th>
-                      <th>状态</th>
-                    </tr>
-                  </thead>
-                  <tbody>
-                    {recentProjects.map(project => (
-                      <tr key={project.id}>
-                        <td>{project.name}</td>
-                        <td>{project.date}</td>
-                        <td>
-                          <span className={`dashboard-status-badge ${project.status === '已完成' ? 'completed' : 'pending'}`}>
-                            {project.status}
-                          </span>
-                        </td>
-                      </tr>
+        {/* 主要内容区域 - 6+1布局 */}
+        <div className="dashboard-grid-layout">
+          {/* 左侧6个卡片区域 */}
+          <div className="dashboard-left-6cards">
+            {/* 第一行 */}
+            <div className="dashboard-grid-row">
+              {/* 快速操作卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>快速操作</h3>
+                </div>
+                <div className="dashboard-card-body">
+                  <div className="dashboard-quick-actions">
+                    {quickActions.map(action => (
+                      <button key={action.id} className={`dashboard-quick-action-btn ${action.color}`}>
+                        <span className="dashboard-action-icon">{action.icon}</span>
+                        <span>{action.name}</span>
+                      </button>
                     ))}
-                  </tbody>
-                </table>
-              </div>
-            </div>
-
-            {/* 常用工具卡片 */}
-            <div className="dashboard-card">
-              <div className="dashboard-card-header">
-                <h3>快速操作</h3>
-              </div>
-              <div className="dashboard-card-body">
-                <div className="dashboard-quick-actions">
-                  {quickActions.map(action => (
-                    <button key={action.id} className={`dashboard-quick-action-btn ${action.color}`}>
-                      <span className="dashboard-action-icon">{action.icon}</span>
-                      <span>{action.name}</span>
-                    </button>
-                  ))}
+                  </div>
                 </div>
               </div>
-            </div>
-          </div>
 
-          {/* 右侧区域 */}
-          <div className="dashboard-right-section">
-            {/* 可视化卡片 */}
-            <div className="dashboard-card">
-              <div className="dashboard-card-header">
-                <h3>数据分布概览</h3>
-                <div className="dashboard-card-filter">
-                  <select>
-                    <option>最近7天</option>
-                    <option>最近30天</option>
-                    <option>全部</option>
-                  </select>
+              {/* 总项目卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>总项目</h3>
                 </div>
-              </div>
-              <div className="dashboard-card-body">
-                <div className="dashboard-chart-placeholder">
-                  <div className="dashboard-chart-bar" style={{ height: '70%', backgroundColor: '#1890ff' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '85%', backgroundColor: '#52c41a' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '60%', backgroundColor: '#faad14' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '90%', backgroundColor: '#f5222d' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '75%', backgroundColor: '#13c2c2' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '65%', backgroundColor: '#722ed1' }}></div>
-                  <div className="dashboard-chart-bar" style={{ height: '80%', backgroundColor: '#fa8c16' }}></div>
+                <div className="dashboard-card-body">
+                  <div className="dashboard-stat-display">
+                    <p className="dashboard-stat-value-large">{dataStats.totalProjects}</p>
+                    <p className="dashboard-stat-detail">
+                      已完成: <span className="stat-success">{dataStats.completedProjects}</span>
+                    </p>
+                    <p className="dashboard-stat-detail">
+                      进行中: <span className="stat-warning">{dataStats.pendingProjects}</span>
+                    </p>
+                  </div>
                 </div>
               </div>
             </div>
 
-            {/* 通知中心卡片 */}
-            <div className="dashboard-card">
-              <div className="dashboard-card-header">
-                <h3>通知中心</h3>
-                <span className="dashboard-notification-badge">{notifications.filter(n => !n.isRead).length}</span>
+            {/* 第二行 */}
+            <div className="dashboard-grid-row">
+              {/* 最近项目卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>最近项目</h3>
+                  <button className="dashboard-card-action">查看全部</button>
+                </div>
+                <div className="dashboard-card-body">
+                  <table className="dashboard-project-table">
+                    <thead>
+                      <tr>
+                        <th>项目名称</th>
+                        <th>日期</th>
+                        <th>状态</th>
+                      </tr>
+                    </thead>
+                    <tbody>
+                      {recentProjects.map(project => (
+                        <tr key={project.id}>
+                          <td>{project.name}</td>
+                          <td>{project.date}</td>
+                          <td>
+                            <span className={`dashboard-status-badge ${project.status === '已完成' ? 'completed' : 'pending'}`}>
+                              {project.status}
+                            </span>
+                          </td>
+                        </tr>
+                      ))}
+                    </tbody>
+                  </table>
+                </div>
               </div>
-              <div className="dashboard-card-body">
-                <div className="dashboard-notifications">
-                  {notifications.map(notification => (
-                    <div key={notification.id} className={`dashboard-notification ${!notification.isRead ? 'unread' : ''}`}>
-                      <div className="dashboard-notification-content">
-                        <p>{notification.message}</p>
-                        <span className="dashboard-notification-time">{notification.time}</span>
+
+              {/* 进行中项目卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>进行中</h3>
+                </div>
+                <div className="dashboard-card-body">
+                  <div className="dashboard-progress-projects">
+                    {recentProjects.filter(p => p.status === '进行中').map(project => (
+                      <div key={project.id} className="dashboard-progress-item">
+                        <div className="dashboard-progress-info">
+                          <span className="dashboard-progress-name">{project.name}</span>
+                          <span className="dashboard-progress-date">{project.date}</span>
+                        </div>
+                        <div className="dashboard-progress-bar">
+                          <div className="dashboard-progress-fill" style={{ width: `${Math.random() * 80 + 20}%` }}></div>
+                        </div>
+                      </div>
+                    ))}
+                    {recentProjects.filter(p => p.status === '进行中').length === 0 && (
+                      <div className="dashboard-no-projects">暂无进行中项目</div>
+                    )}
+                  </div>
+                </div>
+              </div>
+            </div>
+
+            {/* 第三行 */}
+            <div className="dashboard-grid-row">
+              {/* 通知卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>通知</h3>
+                  <span className="dashboard-notification-badge">{notifications.filter(n => !n.isRead).length}</span>
+                </div>
+                <div className="dashboard-card-body">
+                  <div className="dashboard-notifications">
+                    {notifications.map(notification => (
+                      <div key={notification.id} className={`dashboard-notification ${!notification.isRead ? 'unread' : ''}`}>
+                        <div className="dashboard-notification-content">
+                          <p>{notification.message}</p>
+                          <span className="dashboard-notification-time">{notification.time}</span>
+                        </div>
+                      </div>
+                    ))}
+                  </div>
+                </div>
+              </div>
+
+              {/* 已处理数据卡片 */}
+              <div className="dashboard-grid-card">
+                <div className="dashboard-card-header">
+                  <h3>已处理数据</h3>
+                </div>
+                <div className="dashboard-card-body">
+                  <div className="dashboard-data-stats">
+                    <p className="dashboard-stat-value-large">{dataStats.totalDataSize}</p>
+                    <div className="dashboard-data-types">
+                      <div className="dashboard-data-type-item">
+                        <span className="dashboard-data-type-color csv"></span>
+                        <span className="dashboard-data-type-name">CSV文件</span>
+                        <span className="dashboard-data-type-size">1.2GB</span>
+                      </div>
+                      <div className="dashboard-data-type-item">
+                        <span className="dashboard-data-type-color excel"></span>
+                        <span className="dashboard-data-type-name">Excel文件</span>
+                        <span className="dashboard-data-type-size">800MB</span>
+                      </div>
+                      <div className="dashboard-data-type-item">
+                        <span className="dashboard-data-type-color db"></span>
+                        <span className="dashboard-data-type-name">数据库</span>
+                        <span className="dashboard-data-type-size">500MB</span>
                       </div>
                     </div>
-                  ))}
+                  </div>
                 </div>
+              </div>
+            </div>
+          </div>
+
+          {/* 右侧用户信息区域 */}
+          <div className="dashboard-right-userarea">
+            <div className="dashboard-user-info-card">
+              <div className="dashboard-user-avatar">
+                <div className="avatar-placeholder">头像</div>
+              </div>
+              <div className="dashboard-user-details">
+                <h4>{userInfo.name}</h4>
+                <p className="dashboard-user-role">{userInfo.role}</p>
+                <p className="dashboard-user-department">{userInfo.department}</p>
+                <p className="dashboard-user-lastlogin">上次登录: {userInfo.lastLogin}</p>
+              </div>
+              <div className="dashboard-user-actions">
+                <button className="dashboard-user-action-btn">设置</button>
+                <button className="dashboard-user-action-btn logout">退出登录</button>
               </div>
             </div>
           </div>

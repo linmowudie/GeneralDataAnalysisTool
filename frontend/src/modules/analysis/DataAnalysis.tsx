@@ -1,16 +1,98 @@
 import React, { useState, useRef, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import './DataAnalysis.css';
+import DataImportModule from '../data-import/DataImportModule';
+import DataPreviewModule from '../data-preview/DataPreviewModule';
+import DataCleaningModule from '../data-cleaning/DataCleaningModule';
+import DataAnalysisModule from '../data-analysis/DataAnalysisModule';
+import VisualizationModule from '../visualization/VisualizationModule';
+import ReportingModule from '../reporting/ReportingModule';
 
 interface DataAnalysisProps {
   onTabChange: (tab: 'dashboard' | 'analysis' | 'visualization') => void;
 }
 
 const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
-  const [panelHeights, setPanelHeights] = useState<{ top: string; bottom: string }>({ top: '50%', bottom: '50%' });
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 根据URL设置初始步骤
+  useEffect(() => {
+    const path = location.pathname;
+    if (path.startsWith('/analysis/')) {
+      const step = path.split('/')[2] as 'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report';
+      if (['import', 'preview', 'cleaning', 'analysis', 'visualization', 'report'].includes(step)) {
+        setActiveStep(step);
+      }
+    }
+  }, [location]);
+
+  const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
+    switch (tab) {
+      case 'dashboard':
+        navigate('/');
+        break;
+      case 'visualization':
+        navigate('/visualization');
+        break;
+      default:
+        navigate('/analysis');
+    }
+  };
+  const [panelHeights, setPanelHeights] = useState<{ top: string; bottom: string }>({ top: '70%', bottom: '30%' });
   const [isDragging, setIsDragging] = useState(false);
-  const [activeStep, setActiveStep] = useState<'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report'>('analysis');
+  const [activeStep, setActiveStep] = useState<'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report'>('import');
+  const [messages, setMessages] = useState<string[]>([]);
+  const [analysisResult, setAnalysisResult] = useState<any>(null);
+  const messagesEndRef = useRef<HTMLDivElement>(null);
+  
   const dividerRef = useRef<HTMLDivElement>(null);
   const containerRef = useRef<HTMLDivElement>(null);
+
+  // 添加消息到消息面板
+  const addMessage = (message: string) => {
+    setMessages(prev => [...prev, message]);
+  };
+
+  // 滚动到最新消息
+  const scrollToBottom = () => {
+    messagesEndRef.current?.scrollIntoView({ behavior: 'smooth' });
+  };
+
+  // 监听数据导入成功事件
+  useEffect(() => {
+    const handleDataImportSuccess = (event: Event) => {
+      const customEvent = event as CustomEvent;
+      const { importType, fileName, dbType, table } = customEvent.detail;
+      
+      let message = '';
+      if (importType === 'file') {
+        message = `文件导入成功: ${fileName}`;
+      } else if (importType === 'database') {
+        message = `数据库导入成功: ${dbType} - ${table}`;
+      }
+      
+      if (message) {
+        addMessage(message);
+      }
+    };
+
+    // 添加事件监听器
+    if (window && window.addEventListener) {
+      window.addEventListener('dataImportSuccess', handleDataImportSuccess);
+    }
+
+    // 清理事件监听器
+    return () => {
+      if (window && window.removeEventListener) {
+        window.removeEventListener('dataImportSuccess', handleDataImportSuccess);
+      }
+    };
+  }, []);
+
+  useEffect(() => {
+    scrollToBottom();
+  }, [messages]);
 
   useEffect(() => {
     const handleMouseMove = (e: MouseEvent) => {
@@ -51,22 +133,29 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
 
   const handleStepChange = (step: 'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report') => {
     setActiveStep(step);
+    // 更新URL但不刷新页面
+    navigate(`/analysis/${step}`);
+  };
+
+  const handleAnalysisComplete = (result: any) => {
+    setAnalysisResult(result);
+    addMessage('数据分析完成');
   };
 
   const renderParameterContent = () => {
     switch (activeStep) {
       case 'import':
-        return <div>数据导入参数设置区域</div>;
+        return <DataImportModule />;
       case 'preview':
-        return <div>数据预览控制区域</div>;
+        return <DataPreviewModule />;
       case 'cleaning':
-        return <div>数据清洗参数设置区域</div>;
+        return <DataCleaningModule />;
       case 'analysis':
-        return <div>数据分析参数设置区域</div>;
+        return <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />;
       case 'visualization':
-        return <div>可视化参数设置区域</div>;
+        return <VisualizationModule />;
       case 'report':
-        return <div>报表生成参数设置区域</div>;
+        return <ReportingModule />;
       default:
         return <div>请选择一个操作步骤</div>;
     }
@@ -81,7 +170,16 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       case 'cleaning':
         return <div>数据清洗结果展示区域</div>;
       case 'analysis':
-        return <div>数据分析结果展示区域</div>;
+        return (
+          <div>
+            <h4>数据分析结果</h4>
+            {analysisResult ? (
+              <pre>{JSON.stringify(analysisResult, null, 2)}</pre>
+            ) : (
+              <p>请先运行数据分析</p>
+            )}
+          </div>
+        );
       case 'visualization':
         return <div>可视化结果展示区域</div>;
       case 'report':
@@ -96,9 +194,9 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       <div className="analysis-header">
         <h2>通用数据分析工具</h2>
         <div className="analysis-tabs">
-          <button className="tab-button" onClick={() => onTabChange('dashboard')}>仪表盘</button>
-          <button className="tab-button active" onClick={() => onTabChange('analysis')}>数据分析</button>
-          <button className="tab-button" onClick={() => onTabChange('visualization')}>绘图</button>
+          <button className="tab-button" onClick={() => handleTabChange('dashboard')}>仪表盘</button>
+          <button className="tab-button active" onClick={() => handleTabChange('analysis')}>数据分析</button>
+          <button className="tab-button" onClick={() => handleTabChange('visualization')}>绘图</button>
         </div>
       </div>
       
@@ -191,7 +289,12 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
         <div className="right-panel">
           <div className="message-panel">
             <h3>消息返回</h3>
-            {/* 系统消息将在这里显示 */}
+            <div className="messages-content">
+              {messages.map((msg, index) => (
+                <div key={index} className="message-item">{msg}</div>
+              ))}
+              <div ref={messagesEndRef} />
+            </div>
           </div>
           <div className="control-buttons">
             <button className="control-btn">清空</button>

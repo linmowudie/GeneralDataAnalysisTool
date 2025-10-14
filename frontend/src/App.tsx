@@ -1,11 +1,17 @@
+import { Routes, Route } from 'react-router-dom';
 import MainPage from './modules/main/MainPage';
+import { GlobalStateProvider } from './context/GlobalStateContext';
 import './App.css';
 
 function App() {
   return (
-    <div className="app-container">
-      <MainPage />
-    </div>
+    <GlobalStateProvider>
+      <div className="app-container">
+        <Routes>
+          <Route path="/*" element={<MainPage />} />
+        </Routes>
+      </div>
+    </GlobalStateProvider>
   );
 }
 

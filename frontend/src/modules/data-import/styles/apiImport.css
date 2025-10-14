@@ -1,0 +1,40 @@
+/* API导入占位符 */
+.api-import-placeholder {
+  text-align: center;
+  padding: 40px 20px;
+  background: #f8f9fa;
+  border-radius: 8px;
+  border: 1px dashed #dee2e6;
+}
+
+.api-import-placeholder h4 {
+  color: #6c757d;
+  margin-bottom: 10px;
+}
+
+.api-import-placeholder p {
+  color: #adb5bd;
+  margin-bottom: 20px;
+}
+
+.api-import-preview {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+  max-width: 400px;
+  margin: 0 auto;
+  padding: 20px;
+  background: rgba(255, 255, 255, 0.7);
+  border-radius: 6px;
+  border: 1px solid #e9ecef;
+}
+
+.api-import-preview .form-group {
+  margin-bottom: 0;
+}
+
+.api-import-preview input,
+.api-import-preview select {
+  background: #f8f9fa;
+  color: #6c757d;
+}

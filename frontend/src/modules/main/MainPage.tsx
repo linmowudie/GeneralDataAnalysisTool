@@ -1,13 +1,39 @@
-import React, { useState } from 'react';
+import React, { useState, useEffect } from 'react';
+import { useNavigate, useLocation } from 'react-router-dom';
 import Dashboard from '../dashboard/Dashboard';
 import DataAnalysis from '../analysis/DataAnalysis';
 import './MainPage.css';
 
 const MainPage: React.FC = () => {
   const [activeTab, setActiveTab] = useState<'dashboard' | 'analysis' | 'visualization'>('dashboard');
+  const navigate = useNavigate();
+  const location = useLocation();
+
+  // 根据URL设置初始标签页
+  useEffect(() => {
+    const path = location.pathname;
+    if (path === '/analysis') {
+      setActiveTab('analysis');
+    } else if (path === '/visualization') {
+      setActiveTab('visualization');
+    } else {
+      setActiveTab('dashboard');
+    }
+  }, [location]);
 
   const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
     setActiveTab(tab);
+    // 更新URL但不刷新页面
+    switch (tab) {
+      case 'analysis':
+        navigate('/analysis');
+        break;
+      case 'visualization':
+        navigate('/visualization');
+        break;
+      default:
+        navigate('/');
+    }
   };
 
   const renderContent = () => {

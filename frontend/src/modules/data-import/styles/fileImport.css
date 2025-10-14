@@ -1,0 +1,64 @@
+/* 文件上传样式 */
+#file-upload {
+  padding: 8px;
+  border: 1px dashed #ddd;
+  background: #fafafa;
+}
+
+/* 文件导入容器 */
+.file-import-container {
+  width: 60%;
+  margin: 0 auto;
+  display: flex;
+  justify-content: center;
+  align-items: center;
+  flex-direction: column;
+}
+
+.file-import-container .import-section {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+}
+
+@media (max-width: 768px) {
+  .file-import-container {
+    width: 100%;
+  }
+}
+
+.selected-file {
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+  padding: 10px;
+  background: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  margin-top: 8px;
+  font-size: 14px;
+}
+
+.remove-file-btn {
+  padding: 4px 12px;
+  background: #dc3545;
+  color: white;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 12px;
+  transition: background 0.3s ease;
+}
+
+.remove-file-btn:hover {
+  background: #c82333;
+}
+
+/* 支持的格式 */
+.supported-formats {
+  margin-top: 10px;
+  font-size: 12px;
+  color: #666;
+  text-align: center;
+}

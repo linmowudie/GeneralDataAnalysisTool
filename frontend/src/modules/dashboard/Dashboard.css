@@ -70,105 +70,133 @@
   flex: 1;
   padding: 20px;
   overflow-y: auto;
+  display: flex;
+  flex-direction: column;
 }
 
-/* 数据统计卡片网格布局 */
-.dashboard-stats-grid {
-  display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(240px, 1fr));
+/* 6+1布局网格 */
+.dashboard-grid-layout {
+  display: flex;
   gap: 20px;
-  margin-bottom: 20px;
+  flex: 1;
+  height: 100%;
 }
 
-.dashboard-stat-card {
-  background: var(--card-bg);
-  border-radius: 8px;
-  padding: 20px;
-  box-shadow: 0 2px 8px var(--shadow-color);
-  border: 1px solid var(--border-color);
-  transition: all 0.3s ease;
-}
-
-.dashboard-stat-card:hover {
-  transform: translateY(-5px);
-  box-shadow: 0 6px 16px var(--shadow-color);
-}
-
-.dashboard-stat-card h3 {
-  margin: 0 0 10px 0;
-  font-size: 16px;
-  color: var(--text-color);
-  font-weight: 500;
-}
-
-.dashboard-stat-value {
-  margin: 0 0 5px 0;
-  font-size: 28px;
-  font-weight: 600;
-  color: var(--primary-color);
-}
-
-.dashboard-stat-description {
-  margin: 0;
-  font-size: 14px;
-  color: #666;
-}
-
-/* 主要内容区域网格布局 */
-.dashboard-main-grid {
-  display: grid;
-  grid-template-columns: 1fr 1fr;
-  gap: 20px;
-}
-
-/* 左右区域 */
-.dashboard-left-section,
-.dashboard-right-section {
+/* 左侧6个卡片区域 */
+.dashboard-left-6cards {
+  flex: 1;
   display: flex;
   flex-direction: column;
   gap: 20px;
+  overflow-y: auto;
 }
 
-/* 卡片通用样式 */
-.dashboard-card {
+/* 网格行 */
+.dashboard-grid-row {
+  display: flex;
+  gap: 20px;
+  flex: 1;
+}
+
+/* 网格卡片 */
+.dashboard-grid-card {
+  flex: 1;
   background: var(--card-bg);
   border-radius: 8px;
   border: 1px solid var(--border-color);
   box-shadow: 0 2px 8px var(--shadow-color);
   overflow: hidden;
   transition: all 0.3s ease;
+  display: flex;
+  flex-direction: column;
 }
 
-.dashboard-card:hover {
+.dashboard-grid-card:hover {
   box-shadow: 0 6px 16px var(--shadow-color);
 }
 
+/* 右侧用户信息区域 */
+.dashboard-right-userarea {
+  width: 300px;
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 20px;
+  height: calc(100vh - 120px);
+  align-self: flex-start;
+  justify-content: center;
+}
+
+/* 卡片头部样式 */
 .dashboard-card-header {
+  padding: 15px 20px;
+  border-bottom: 1px solid var(--border-color);
   display: flex;
   justify-content: space-between;
   align-items: center;
-  padding: 16px 20px;
-  border-bottom: 1px solid var(--border-color);
   background-color: #fafafa;
 }
 
 .dashboard-card-header h3 {
   margin: 0;
-  font-size: 18px;
+  font-size: 16px;
   font-weight: 600;
   color: var(--text-color);
 }
 
 .dashboard-card-action {
+  padding: 4px 12px;
   background: none;
-  border: none;
+  border: 1px solid var(--primary-color);
   color: var(--primary-color);
+  border-radius: 4px;
   cursor: pointer;
   font-size: 14px;
+  transition: all 0.3s ease;
 }
 
+.dashboard-card-action:hover {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 卡片内容区域样式 */
 .dashboard-card-body {
   padding: 20px;
+  flex: 1;
+  overflow-y: auto;
+}
+
+/* 统计数据展示 */
+.dashboard-stat-display {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  height: 100%;
+}
+
+.dashboard-stat-value-large {
+  margin: 0 0 15px 0;
+  font-size: 36px;
+  font-weight: 700;
+  color: var(--primary-color);
+}
+
+.dashboard-stat-detail {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+.stat-success {
+  color: var(--success-color);
+  font-weight: 600;
+}
+
+.stat-warning {
+  color: var(--warning-color);
+  font-weight: 600;
 }
 
 /* 项目表格样式 */
@@ -177,149 +205,164 @@
   border-collapse: collapse;
 }
 
-.dashboard-project-table th,
-.dashboard-project-table td {
-  padding: 12px 15px;
+.dashboard-project-table th {
   text-align: left;
+  padding: 10px 0;
+  font-weight: 600;
+  color: var(--text-color);
+  font-size: 14px;
   border-bottom: 1px solid var(--border-color);
 }
 
-.dashboard-project-table th {
-  font-weight: 600;
-  color: #555;
-  font-size: 14px;
-}
-
 .dashboard-project-table td {
+  padding: 12px 0;
   font-size: 14px;
-  color: var(--text-color);
-}
-
-.dashboard-project-table tr:last-child td {
-  border-bottom: none;
+  border-bottom: 1px solid #f0f0f0;
 }
 
 .dashboard-project-table tr:hover {
   background-color: var(--hover-color);
 }
 
+/* 状态标签样式 */
 .dashboard-status-badge {
-  padding: 4px 8px;
-  border-radius: 4px;
+  padding: 4px 10px;
+  border-radius: 12px;
   font-size: 12px;
   font-weight: 500;
 }
 
 .dashboard-status-badge.completed {
-  background-color: #f6ffed;
+  background-color: rgba(82, 196, 26, 0.1);
   color: var(--success-color);
-  border: 1px solid #b7eb8f;
 }
 
 .dashboard-status-badge.pending {
-  background-color: #fffbe6;
+  background-color: rgba(250, 173, 20, 0.1);
   color: var(--warning-color);
-  border: 1px solid #ffe58f;
 }
 
 /* 快速操作按钮样式 */
 .dashboard-quick-actions {
   display: grid;
-  grid-template-columns: repeat(auto-fit, minmax(120px, 1fr));
+  grid-template-columns: repeat(2, 1fr);
   gap: 15px;
+  height: 100%;
+  align-content: center;
 }
 
 .dashboard-quick-action-btn {
+  padding: 15px 10px;
+  border: none;
+  border-radius: 6px;
+  cursor: pointer;
+  font-weight: 500;
+  font-size: 14px;
   display: flex;
   flex-direction: column;
   align-items: center;
   justify-content: center;
-  padding: 15px 10px;
-  border: 1px solid var(--border-color);
-  border-radius: 6px;
-  background: var(--card-bg);
-  cursor: pointer;
   transition: all 0.3s ease;
+  color: white;
 }
 
 .dashboard-quick-action-btn:hover {
-  transform: translateY(-3px);
-  box-shadow: 0 4px 12px var(--shadow-color);
-  border-color: var(--primary-color);
-}
-
-.dashboard-action-icon {
-  font-size: 20px;
-  margin-bottom: 8px;
+  transform: translateY(-2px);
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
 .dashboard-quick-action-btn.primary {
-  color: var(--primary-color);
-  border-color: var(--primary-color);
+  background-color: var(--primary-color);
 }
 
 .dashboard-quick-action-btn.success {
-  color: var(--success-color);
-  border-color: var(--success-color);
+  background-color: var(--success-color);
 }
 
 .dashboard-quick-action-btn.warning {
-  color: var(--warning-color);
-  border-color: var(--warning-color);
+  background-color: var(--warning-color);
 }
 
 .dashboard-quick-action-btn.error {
-  color: var(--error-color);
-  border-color: var(--error-color);
-}
-
-/* 图表占位符样式 */
-.dashboard-chart-placeholder {
-  display: flex;
-  align-items: flex-end;
-  justify-content: space-around;
-  height: 200px;
-  padding: 20px 0;
-  border: 1px solid var(--border-color);
-  border-radius: 4px;
-  background: #fafafa;
-}
-
-.dashboard-chart-bar {
-  width: 30px;
-  border-radius: 4px 4px 0 0;
-  transition: height 0.5s ease;
-}
-
-/* 通知样式 */
-.dashboard-notification-badge {
   background-color: var(--error-color);
-  color: white;
-  border-radius: 50%;
-  width: 20px;
-  height: 20px;
-  display: flex;
-  align-items: center;
-  justify-content: center;
-  font-size: 12px;
 }
 
-.dashboard-notifications {
+.dashboard-action-icon {
+  font-size: 28px;
+  margin-bottom: 8px;
+}
+
+/* 进行中项目样式 */
+.dashboard-progress-projects {
   display: flex;
   flex-direction: column;
   gap: 15px;
 }
 
-.dashboard-notification {
-  padding: 12px 15px;
+.dashboard-progress-item {
+  margin-bottom: 15px;
+}
+
+.dashboard-progress-info {
+  display: flex;
+  justify-content: space-between;
+  margin-bottom: 5px;
+}
+
+.dashboard-progress-name {
+  font-weight: 500;
+  font-size: 14px;
+}
+
+.dashboard-progress-date {
+  font-size: 12px;
+  color: #999;
+}
+
+.dashboard-progress-bar {
+  height: 8px;
+  background-color: #f0f0f0;
   border-radius: 4px;
-  background-color: #f5f5f5;
-  border-left: 3px solid #d9d9d9;
+  overflow: hidden;
+}
+
+.dashboard-progress-fill {
+  height: 100%;
+  background: linear-gradient(90deg, var(--primary-color), #40a9ff);
+  border-radius: 4px;
+  transition: width 0.6s ease;
+}
+
+.dashboard-no-projects {
+  text-align: center;
+  color: #999;
+  font-style: italic;
+  padding: 20px 0;
+}
+
+/* 通知样式 */
+.dashboard-notifications {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-notification {
+  padding: 12px;
+  background-color: #fafafa;
+  border-radius: 4px;
+  border-left: 3px solid var(--info-color);
+  transition: all 0.3s ease;
+}
+
+.dashboard-notification:hover {
+  background-color: var(--hover-color);
 }
 
 .dashboard-notification.unread {
   background-color: #e6f7ff;
-  border-left: 3px solid var(--primary-color);
+  border-left-color: var(--primary-color);
+  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
 }
 
 .dashboard-notification-content p {
@@ -333,33 +376,212 @@
   color: #999;
 }
 
+/* 通知徽章样式 */
+.dashboard-notification-badge {
+  display: inline-block;
+  padding: 2px 8px;
+  background-color: var(--error-color);
+  color: white;
+  border-radius: 12px;
+  font-size: 12px;
+  font-weight: 500;
+}
+
+/* 已处理数据样式 */
+.dashboard-data-stats {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  height: 100%;
+  justify-content: space-between;
+}
+
+.dashboard-data-types {
+  width: 100%;
+  display: flex;
+  flex-direction: column;
+  gap: 12px;
+}
+
+.dashboard-data-type-item {
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.dashboard-data-type-color {
+  width: 12px;
+  height: 12px;
+  border-radius: 50%;
+}
+
+.dashboard-data-type-color.csv {
+  background-color: var(--primary-color);
+}
+
+.dashboard-data-type-color.excel {
+  background-color: var(--success-color);
+}
+
+.dashboard-data-type-color.db {
+  background-color: var(--warning-color);
+}
+
+.dashboard-data-type-name {
+  flex: 1;
+  font-size: 14px;
+}
+
+.dashboard-data-type-size {
+  font-size: 12px;
+  color: #666;
+}
+
+/* 用户信息卡片样式 */
+.dashboard-user-info-card {
+  background: var(--card-bg);
+  border-radius: 8px;
+  border: 1px solid var(--border-color);
+  box-shadow: 0 2px 8px var(--shadow-color);
+  overflow: hidden;
+  padding: 25px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.dashboard-user-avatar {
+  display: flex;
+  justify-content: center;
+  margin-bottom: 20px;
+}
+
+.avatar-placeholder {
+  width: 80px;
+  height: 80px;
+  border-radius: 50%;
+  background: linear-gradient(135deg, var(--primary-color) 0%, #40a9ff 100%);
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  color: white;
+  font-weight: 600;
+  font-size: 18px;
+}
+
+.dashboard-user-details {
+  text-align: center;
+  margin-bottom: 30px;
+}
+
+.dashboard-user-details h4 {
+  margin: 0 0 10px 0;
+  font-size: 18px;
+  color: var(--text-color);
+}
+
+.dashboard-user-role,
+.dashboard-user-department,
+.dashboard-user-lastlogin {
+  margin: 5px 0;
+  font-size: 14px;
+  color: #666;
+}
+
+/* 用户操作按钮样式 */
+.dashboard-user-actions {
+  display: flex;
+  flex-direction: column;
+  gap: 10px;
+}
+
+.dashboard-user-action-btn {
+  padding: 12px 20px;
+  border: none;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  font-weight: 500;
+  transition: all 0.3s ease;
+}
+
+.dashboard-user-action-btn:first-child {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+.dashboard-user-action-btn:first-child:hover {
+  background-color: #40a9ff;
+}
+
+.dashboard-user-action-btn.logout {
+  background-color: #f5f5f5;
+  color: var(--text-color);
+  border: 1px solid var(--border-color);
+}
+
+.dashboard-user-action-btn.logout:hover {
+  background-color: #e8e8e8;
+}
+
 /* 响应式设计 */
 @media (max-width: 1200px) {
-  .dashboard-main-grid {
-    grid-template-columns: 1fr;
+  .dashboard-grid-layout {
+    flex-direction: column;
   }
-  
-  .dashboard-stats-grid {
-    grid-template-columns: repeat(2, 1fr);
+
+  .dashboard-right-userarea {
+    width: 100%;
+    position: static;
+    height: auto;
+  }
+
+  .dashboard-user-info-card {
+    display: flex;
+    align-items: center;
+    gap: 20px;
+  }
+
+  .dashboard-user-avatar {
+    margin-bottom: 0;
+  }
+
+  .dashboard-user-details {
+    margin-bottom: 0;
+    text-align: left;
+  }
+
+  .dashboard-user-actions {
+    margin-left: auto;
   }
 }
 
 @media (max-width: 768px) {
-  .dashboard-stats-grid {
-    grid-template-columns: 1fr;
-  }
-  
   .dashboard-header {
     flex-direction: column;
+    align-items: flex-start;
     gap: 10px;
-    padding: 15px;
   }
-  
-  .dashboard-dashboard-content {
-    padding: 15px;
+
+  .dashboard-tabs {
+    width: 100%;
+    justify-content: space-around;
   }
-  
+
+  .dashboard-grid-row {
+    flex-direction: column;
+  }
+
   .dashboard-quick-actions {
-    grid-template-columns: repeat(2, 1fr);
+    grid-template-columns: 1fr;
+  }
+
+  .dashboard-user-info-card {
+    flex-direction: column;
+    text-align: center;
+  }
+
+  .dashboard-user-actions {
+    width: 100%;
+    margin-left: 0;
   }
 }

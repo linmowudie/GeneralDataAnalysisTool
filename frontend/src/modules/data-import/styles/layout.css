@@ -1,0 +1,48 @@
+/* 数据库导入容器 - 左右布局 */
+.database-import-container {
+  display: flex;
+  flex-direction: row;
+  gap: 15px;
+  align-items: stretch;
+  min-height: 300px;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* 数据导入主容器 */
+.data-import-container {
+  width: 60%;
+  margin: 0 auto;
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  padding: 20px;
+  box-sizing: border-box;
+}
+
+@media (max-width: 768px) {
+  .data-import-container {
+    width: 100%;
+    padding: 10px;
+  }
+}
+
+/* 新增的并列容器样式 */
+.parallel-container {
+  display: flex;
+  flex-direction: row;
+  gap: 20px;
+  align-items: stretch;
+  justify-content: center;
+  width: 100%;
+  margin: 0 auto;
+}
+
+/* 响应式布局 */
+@media (max-width: 768px) {
+  .database-import-container {
+    flex-direction: column;
+    align-items: center;
+  }
+}
