@@ -10,6 +10,7 @@ import ReportingModule, { MessageContext as ReportingMessageContext } from '../r
 import MessagePanel from '../../components/MessagePanel';
 import type { Message as MessageType } from '../../components/MessagePanel';
 import { useGlobalState } from '../../context/GlobalStateContext';
+import CleanupTaskModule from '../cleanup-task/CleanupTaskModule';
 
 // 定义消息类型
 interface Message {
@@ -237,17 +238,29 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
     setMessages(prev => prev.filter(msg => msg.id !== id));
   };
 
-  // 重置所有状态
-  const handleReset = () => {
+  // 处理清空完成事件
+  const handleClearComplete = () => {
+    // 清空分析结果
+    const steps = ['import', 'preview', 'cleaning', 'analysis', 'visualization', 'report'];
+    const currentStepIndex = steps.indexOf(activeStep);
+    
+    if (currentStepIndex <= 3) { // 3是analysis步骤的索引
+      setAnalysisResult(null);
+    }
+  };
+
+  // 处理重置完成事件
+  const handleResetComplete = () => {
     // 重置全局状态
     resetState();
+    
     // 重置本地状态
     setActiveStep('import');
     setMessages([]);
     setAnalysisResult(null);
+    
     // 导航到导入步骤
     navigate('/analysis/import');
-    addMessage('已重置所有状态', 'info');
   };
 
   return (
@@ -360,10 +373,12 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
             onClear={clearMessages}
             onDismiss={dismissMessage}
           />
-          <div className="control-buttons">
-            <button className="control-btn" onClick={clearMessages}>清空</button>
-            <button className="control-btn" onClick={handleReset}>重置</button>
-          </div>
+          <CleanupTaskModule 
+            activeStep={activeStep}
+            onClearComplete={handleClearComplete}
+            onResetComplete={handleResetComplete}
+            addMessage={addMessage}
+          />
         </div>
       </div>
     </div>

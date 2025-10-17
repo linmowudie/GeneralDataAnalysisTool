@@ -1,5 +1,6 @@
 import React from 'react';
 import '../modules/analysis/DataAnalysis.css';
+import './MessagePanel.css';
 
 // 导出消息接口
 export interface Message {
@@ -57,19 +58,23 @@ const MessagePanel: React.FC<MessagePanelProps> = ({
               key={message.id} 
               className={`message-item ${getTypeClass(message.type)}`}
             >
-              <span className="message-icon">{getTypeIcon(message.type)}</span>
-              <span className="message-content">{message.content}</span>
-              <span className="message-time">
-                {message.timestamp.toLocaleTimeString()}
-              </span>
-              {onDismiss && (
-                <button 
-                  className="dismiss-message-btn"
-                  onClick={() => onDismiss(message.id)}
-                >
-                  ×
-                </button>
-              )}
+              <div className="message-body">
+                <span className="message-icon">{getTypeIcon(message.type)}</span>
+                <span className="message-content">{message.content}</span>
+              </div>
+              <div className="message-footer">
+                <span className="message-time">
+                  {message.timestamp.toLocaleTimeString()}
+                </span>
+                {onDismiss && (
+                  <button 
+                    className="dismiss-message-btn"
+                    onClick={() => onDismiss(message.id)}
+                  >
+                    ×
+                  </button>
+                )}
+              </div>
             </div>
           ))
         )}
