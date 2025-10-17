@@ -156,6 +156,30 @@ async def reset_step(
         api_logger.error(f"重置步骤失败: {str(e)}")
         raise HTTPException(status_code=400, detail=f"重置步骤失败: {str(e)}")
 
+@router.post("/reset-all")
+async def reset_all(
+    session_id: str = Form(...)
+):
+    """重置会话中的所有数据"""
+    try:
+        api_logger.info(f"重置所有数据，会话ID: {session_id}")
+        success = session_manager.reset_all_session_data(session_id)
+        if success:
+            api_logger.info(f"会话 {session_id} 所有数据重置成功")
+            return {
+                "session_id": session_id,
+                "message": f"会话 {session_id} 所有数据重置成功"
+            }
+        else:
+            api_logger.warning(f"会话 {session_id} 所有数据重置失败")
+            raise HTTPException(status_code=400, detail=f"会话 {session_id} 所有数据重置失败")
+    except ValueError as e:
+        api_logger.error(f"会话错误: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
+    except Exception as e:
+        api_logger.error(f"重置所有数据失败: {str(e)}")
+        raise HTTPException(status_code=400, detail=f"重置所有数据失败: {str(e)}")
+
 @router.get("/step-status")
 async def get_step_status(
     session_id: str

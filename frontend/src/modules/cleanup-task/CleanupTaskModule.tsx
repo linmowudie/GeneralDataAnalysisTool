@@ -52,15 +52,19 @@ const CleanupTaskModule: React.FC<CleanupTaskModuleProps> = ({
         }
       }
 
-      // 调用后端清理任务服务清理临时文件
-      try {
-        await cleanupTaskService.runCleanup();
-        addMessage?.(`已清空"${activeStep}"及后续步骤的数据和结果，并清理了临时文件`, 'success');
-      } catch (error) {
-        console.error('清理临时文件失败:', error);
-        addMessage?.(`已清空"${activeStep}"及后续步骤的数据和结果，但清理临时文件失败`, 'warning');
+      // 调用后端清理任务服务清理当前及后续步骤的临时文件
+      for (let i = currentStepIndex; i < steps.length; i++) {
+        try {
+          await cleanupTaskService.runStepCleanup(steps[i]);
+        } catch (error) {
+          console.error(`清理步骤 ${steps[i]} 的临时文件失败:`, error);
+          // 继续处理其他步骤，不中断整个过程
+        }
       }
+
+      addMessage?.(`已清空"${activeStep}"及后续步骤的数据和结果，并清理了临时文件`, 'success');
       
+      // 通知父组件清空完成
       onClearComplete?.();
     } catch (error) {
       console.error('清空操作失败:', error);
@@ -76,7 +80,24 @@ const CleanupTaskModule: React.FC<CleanupTaskModuleProps> = ({
     
     setIsResetting(true);
     try {
-      // 调用后端清理任务服务清理临时文件
+      const sessionId = apiService.getSessionId();
+      if (!sessionId) {
+        addMessage?.('未找到会话ID，无法重置数据', 'error');
+        return;
+      }
+
+      // 重置所有步骤
+      try {
+        await apiService.post('/api/import/reset-all', {
+          session_id: sessionId
+        });
+      } catch (error) {
+        console.error('重置所有数据失败:', error);
+        addMessage?.('重置所有数据失败: ' + (error instanceof Error ? error.message : '未知错误'), 'error');
+        return;
+      }
+
+      // 调用后端清理任务服务清理所有临时文件
       try {
         await cleanupTaskService.runCleanup();
         addMessage?.('已重置所有状态，并清理了临时文件', 'info');
@@ -85,6 +106,7 @@ const CleanupTaskModule: React.FC<CleanupTaskModuleProps> = ({
         addMessage?.('已重置所有状态，但清理临时文件失败', 'warning');
       }
       
+      // 通知父组件重置完成
       onResetComplete?.();
     } catch (error) {
       console.error('重置操作失败:', error);

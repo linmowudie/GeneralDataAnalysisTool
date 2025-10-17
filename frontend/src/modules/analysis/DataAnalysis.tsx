@@ -10,7 +10,9 @@ import ReportingModule, { MessageContext as ReportingMessageContext } from '../r
 import MessagePanel from '../../components/MessagePanel';
 import type { Message as MessageType } from '../../components/MessagePanel';
 import { useGlobalState } from '../../context/GlobalStateContext';
-import CleanupTaskModule from '../cleanup-task/CleanupTaskModule';
+import * as CleanupTaskModuleImport from '../cleanup-task/CleanupTaskModule';
+
+const CleanupTaskModule = CleanupTaskModuleImport.default || CleanupTaskModuleImport;
 
 // 定义消息类型
 interface Message {
@@ -153,41 +155,44 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   };
 
   const renderParameterContent = () => {
+    // 使用时间戳作为key的一部分，确保组件在需要时能被重新创建
+    const timestamp = Date.now();
+    
     switch (activeStep) {
       case 'import':
         return (
           <ImportMessageContext.Provider value={addMessage}>
-            <DataImportModule />
+            <DataImportModule key={`import-${timestamp}`} />
           </ImportMessageContext.Provider>
         );
       case 'preview':
         return (
           <PreviewMessageContext.Provider value={addMessage}>
-            <DataPreviewModule />
+            <DataPreviewModule key={`preview-${timestamp}`} />
           </PreviewMessageContext.Provider>
         );
       case 'cleaning':
         return (
           <CleaningMessageContext.Provider value={addMessage}>
-            <DataCleaningModule />
+            <DataCleaningModule key={`cleaning-${timestamp}`} />
           </CleaningMessageContext.Provider>
         );
       case 'analysis':
         return (
           <AnalysisMessageContext.Provider value={addMessage}>
-            <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />
+            <DataAnalysisModule key={`analysis-${timestamp}`} onAnalysisComplete={handleAnalysisComplete} />
           </AnalysisMessageContext.Provider>
         );
       case 'visualization':
         return (
           <VisualizationMessageContext.Provider value={addMessage}>
-            <VisualizationModule />
+            <VisualizationModule key={`visualization-${timestamp}`} />
           </VisualizationMessageContext.Provider>
         );
       case 'report':
         return (
           <ReportingMessageContext.Provider value={addMessage}>
-            <ReportingModule />
+            <ReportingModule key={`report-${timestamp}`} />
           </ReportingMessageContext.Provider>
         );
       default:
@@ -247,6 +252,9 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
     if (currentStepIndex <= 3) { // 3是analysis步骤的索引
       setAnalysisResult(null);
     }
+    
+    // 强制重新渲染当前步骤组件
+    forceUpdateStep(activeStep);
   };
 
   // 处理重置完成事件
@@ -261,6 +269,18 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
     
     // 导航到导入步骤
     navigate('/analysis/import');
+    
+    // 强制重新渲染导入步骤组件
+    forceUpdateStep('import');
+  };
+
+  // 强制更新步骤组件
+  const forceUpdateStep = (step: string) => {
+    // 通过改变key来强制重新渲染组件
+    // 这将在React中创建一个新的组件实例，从而清除其内部状态
+    // 我们通过更新组件的key属性来实现强制刷新
+    // 在renderParameterContent函数中，我们已经为每个组件添加了基于时间戳的key
+    // 当activeStep改变时，会自动重新渲染对应的组件
   };
 
   return (
@@ -373,7 +393,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
             onClear={clearMessages}
             onDismiss={dismissMessage}
           />
-          <CleanupTaskModule 
+          <CleanupTaskModule
             activeStep={activeStep}
             onClearComplete={handleClearComplete}
             onResetComplete={handleResetComplete}

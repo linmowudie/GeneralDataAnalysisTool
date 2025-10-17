@@ -160,6 +160,10 @@ class DataProcessingEngine:
             # 清理临时存储中的数据
             if temp_storage_key:
                 self.temp_storage.clear_stage_data(temp_storage_key)
+                
+            # 对于导入步骤，还需要清理API输出目录中的文件
+            if step == 'import':
+                self.temp_storage.clear_api_output()
 
     def get_step_status(self) -> Dict[str, Any]:
         """

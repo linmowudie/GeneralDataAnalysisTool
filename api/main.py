@@ -12,14 +12,14 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 from api.document_reader import DocumentReader
 
 from api import data_import, data_analysis, data_visualization, data_preview, data_cleaning, model_extractor, step_lock
-from api.cleanup_task import cleanup_task
+from api.cleanup_task import cleanup_task, cleanup_task_router
 
 # 配置API日志
 from Src.DataAnalyzer.Configs.log_setting import get_component_logger
 api_logger = get_component_logger('api', 'api_main')
 
 # 在启动时清理临时数据
-cleanup_task.cleanup_temp_directories()
+cleanup_task.cleanup_all_temp_directories()
 
 doc_reader = DocumentReader(os.path.dirname(__file__))
 
@@ -28,10 +28,6 @@ app = FastAPI(
     description="为通用数据分析工具提供后端API服务",
     version="0.1.0"
 )
-
-# 启动定期清理任务
-cleanup_task.start()
-api_logger.info("定期清理任务已启动")
 
 # 配置CORS
 app.add_middleware(
@@ -50,6 +46,7 @@ app.include_router(data_visualization.router, prefix="/api/visualization", tags=
 app.include_router(data_cleaning.router, prefix="/api/cleaning", tags=["数据清洗"])
 app.include_router(model_extractor.router, prefix="/api/model", tags=["模型管理"])
 app.include_router(step_lock.router, tags=["步骤锁管理"])
+app.include_router(cleanup_task_router, prefix="/api/cleanup", tags=["清理任务"])
 
 @app.get("/api/health")
 async def health_check():
@@ -84,4 +81,3 @@ async def startup_event():
 async def shutdown_event():
     """应用关闭事件"""
     api_logger.info("API服务关闭")
-    cleanup_task.stop()

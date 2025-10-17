@@ -119,6 +119,29 @@ class SessionManager:
             api_logger.error(f"重置会话步骤失败: {e}")
             return False
     
+    def reset_all_session_data(self, session_id: str) -> bool:
+        """
+        重置会话中的所有数据
+        
+        Args:
+            session_id: 会话ID
+            
+        Returns:
+            bool: 重置成功返回True，否则返回False
+        """
+        try:
+            if session_id not in self.sessions:
+                api_logger.warning("会话ID不存在: %s", session_id)
+                return False
+            
+            engine = self.sessions[session_id]['engine']
+            # 清理所有数据
+            engine.cleanup()
+            return True
+        except Exception as e:
+            api_logger.error(f"重置会话所有数据失败: {e}")
+            return False
+    
     def get_session_step_status(self, session_id: str) -> Dict[str, Any]:
         """
         获取会话的步骤状态

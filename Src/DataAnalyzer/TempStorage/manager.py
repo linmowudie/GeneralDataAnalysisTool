@@ -143,6 +143,23 @@ class TempStorageManager:
             
         return data
         
+    def clear_api_output(self) -> None:
+        """
+        清理API输出目录中的文件
+        """
+        api_output_path = Path("APIOutput")
+        if api_output_path.exists():
+            for file_path in api_output_path.iterdir():
+                try:
+                    if file_path.is_file():
+                        file_path.unlink()
+                    elif file_path.is_dir():
+                        shutil.rmtree(file_path)
+                except Exception as e:
+                    logger.warning(f"删除API输出文件 {file_path} 失败: {e}")
+                    
+        logger.info("清理API输出目录完成")
+        
     def clear_stage_data(self, stage: str) -> None:
         """
         清理指定阶段的数据
