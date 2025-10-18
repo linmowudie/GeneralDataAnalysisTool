@@ -15,6 +15,9 @@ from fastapi import APIRouter, HTTPException
 from Src.DataAnalyzer.Configs.log_setting import get_component_logger
 api_logger = get_component_logger('api', 'cleanup_task')
 
+# 从TempStorageManager导入清理功能
+from Src.DataAnalyzer.TempStorage.manager import TempStorageManager, StepDataManager
+
 class CleanupTask:
     """
     清理任务
@@ -33,52 +36,19 @@ class CleanupTask:
             "sessions_closed": 0,
             "last_run": None
         }
+        # 初始化临时存储管理器
+        self.temp_storage_manager = TempStorageManager("Src/DataAnalyzer/TempStorage")
+        self.step_data_manager = StepDataManager(self.temp_storage_manager)
     
     def cleanup_all_temp_directories(self):
         """
         清理临时数据目录
         """
         try:
-            # 清理APIOutput目录
-            api_output_dir = Path("APIOutput")
-            if api_output_dir.exists():
-                for item in api_output_dir.iterdir():
-                    try:
-                        if item.is_file():
-                            size = item.stat().st_size
-                            item.unlink()
-                            self.stats["files_removed"] += 1
-                            self.stats["space_freed"] += size
-                        elif item.is_dir():
-                            size = sum(f.stat().st_size for f in item.rglob('*') if f.is_file())
-                            shutil.rmtree(item)
-                            self.stats["space_freed"] += size
-                    except Exception as e:
-                        api_logger.error(f"清理APIOutput目录中的项目失败 {item}: {e}")
-                api_logger.info("APIOutput目录清理完成")
-            
-            # 清理临时存储目录
-            temp_storage_dir = Path("Src/DataAnalyzer/TempStorage")
-            if temp_storage_dir.exists():
-                for stage in ['imported', 'cleaned', 'analyzed', 'visualized']:
-                    stage_path = temp_storage_dir / stage
-                    if stage_path.exists():
-                        for item in stage_path.iterdir():
-                            try:
-                                if item.is_file():
-                                    size = item.stat().st_size
-                                    item.unlink()
-                                    self.stats["files_removed"] += 1
-                                    self.stats["space_freed"] += size
-                                elif item.is_dir():
-                                    size = sum(f.stat().st_size for f in item.rglob('*') if f.is_file())
-                                    shutil.rmtree(item)
-                                    self.stats["space_freed"] += size
-                            except Exception as e:
-                                api_logger.error(f"清理临时存储目录中的项目失败 {item}: {e}")
-                api_logger.info("临时存储目录清理完成")
-                
-            # 更新上次运行时间
+            stats = self.temp_storage_manager.clear_all_temp_directories()
+            # 更新统计信息
+            self.stats["files_removed"] += stats["files_removed"]
+            self.stats["space_freed"] += stats["space_freed"]
             self.stats["last_run"] = time.time()
         except Exception as e:
             api_logger.error(f"清理临时目录时出错: {e}")
@@ -90,59 +60,11 @@ class CleanupTask:
         Args:
             step: 步骤名称 ('import', 'preview', 'cleaning', 'analysis', 'visualization', 'report')
         """
-        step_map = {
-            'import': 'imported',
-            'preview': 'imported',  # preview使用imported的数据
-            'cleaning': 'cleaned',
-            'analysis': 'analyzed',
-            'visualization': 'visualized',
-            'report': 'visualized'  # report使用visualized的数据
-        }
-        
         try:
-            if step not in step_map:
-                raise ValueError(f"不支持的步骤: {step}")
-                
-            stage = step_map[step]
-            
-            # 清理对应的临时存储目录
-            temp_storage_dir = Path("Src/DataAnalyzer/TempStorage") / stage
-            if temp_storage_dir.exists():
-                for item in temp_storage_dir.iterdir():
-                    try:
-                        if item.is_file():
-                            size = item.stat().st_size
-                            item.unlink()
-                            self.stats["files_removed"] += 1
-                            self.stats["space_freed"] += size
-                        elif item.is_dir():
-                            size = sum(f.stat().st_size for f in item.rglob('*') if f.is_file())
-                            shutil.rmtree(item)
-                            self.stats["space_freed"] += size
-                    except Exception as e:
-                        api_logger.error(f"清理临时存储目录中的项目失败 {item}: {e}")
-                api_logger.info(f"步骤 {step} 的临时文件清理完成")
-                
-            # 如果是导入步骤，还需要清理API输出目录
-            if step == 'import':
-                api_output_dir = Path("APIOutput")
-                if api_output_dir.exists():
-                    for item in api_output_dir.iterdir():
-                        try:
-                            if item.is_file():
-                                size = item.stat().st_size
-                                item.unlink()
-                                self.stats["files_removed"] += 1
-                                self.stats["space_freed"] += size
-                            elif item.is_dir():
-                                size = sum(f.stat().st_size for f in item.rglob('*') if f.is_file())
-                                shutil.rmtree(item)
-                                self.stats["space_freed"] += size
-                        except Exception as e:
-                            api_logger.error(f"清理API输出目录中的项目失败 {item}: {e}")
-                    api_logger.info("API输出目录清理完成")
-                
-            # 更新上次运行时间
+            stats = self.step_data_manager.cleanup_step_temp_files(step)
+            # 更新统计信息
+            self.stats["files_removed"] += stats["files_removed"]
+            self.stats["space_freed"] += stats["space_freed"]
             self.stats["last_run"] = time.time()
         except Exception as e:
             api_logger.error(f"清理步骤 {step} 的临时文件时出错: {e}")

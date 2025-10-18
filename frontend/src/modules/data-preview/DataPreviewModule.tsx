@@ -14,6 +14,7 @@ const DataPreviewModule: React.FC = () => {
   const [datasetInfo, setDatasetInfo] = useState<any>(null);
   const [loading, setLoading] = useState<boolean>(true);
   const [error, setError] = useState<string | null>(null);
+  const [visibleRows, setVisibleRows] = useState<number>(5); // 默认显示5行
   const addMessage = useContext(MessageContext);
 
   useEffect(() => {
@@ -45,6 +46,10 @@ const DataPreviewModule: React.FC = () => {
 
     fetchData();
   }, []);
+
+  const handleVisibleRowsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
+    setVisibleRows(Number(e.target.value));
+  };
 
   if (loading) {
     return (
@@ -92,7 +97,23 @@ const DataPreviewModule: React.FC = () => {
 
       {previewData && (
         <div className="data-preview">
-          <h4>数据预览 (前5行)</h4>
+          <div className="preview-header">
+            <h4>数据预览</h4>
+            <div className="row-selector">
+              <label htmlFor="visible-rows">显示行数: </label>
+              <select 
+                id="visible-rows" 
+                value={visibleRows} 
+                onChange={handleVisibleRowsChange}
+              >
+                <option value="5">5行</option>
+                <option value="10">10行</option>
+                <option value="20">20行</option>
+                <option value="50">50行</option>
+              </select>
+            </div>
+          </div>
+          
           <div className="table-container">
             <table className="data-table">
               <thead>
@@ -103,7 +124,7 @@ const DataPreviewModule: React.FC = () => {
                 </tr>
               </thead>
               <tbody>
-                {previewData.preview_data.map((row: any, rowIndex: number) => (
+                {previewData.preview_data.slice(0, visibleRows).map((row: any, rowIndex: number) => (
                   <tr key={rowIndex}>
                     {previewData.columns.map((col: string, colIndex: number) => (
                       <td key={colIndex}>{row[col]}</td>
@@ -112,6 +133,10 @@ const DataPreviewModule: React.FC = () => {
                 ))}
               </tbody>
             </table>
+          </div>
+          
+          <div className="preview-footer">
+            <p>显示 {Math.min(visibleRows, previewData.preview_data.length)} 行，共 {previewData.preview_data.length} 行</p>
           </div>
         </div>
       )}
