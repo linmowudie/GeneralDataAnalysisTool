@@ -11,7 +11,7 @@ export class SessionService {
    */
   async createSession(): Promise<string> {
     try {
-      const data: any = await apiService.post('/api/import/create-session');
+      const data: any = await apiService.post('/api/session/create');
       const sessionId = data.session_id;
       apiService.setSessionId(sessionId);
       return sessionId;
@@ -28,8 +28,10 @@ export class SessionService {
    */
   async deleteSession(sessionId: string): Promise<boolean> {
     try {
-      // 注意：后端API中没有直接的删除会话接口，但可以通过重置会话来模拟
-      // 这里只是一个示例实现，实际需要根据后端API调整
+      const formData = new FormData();
+      formData.append('session_id', sessionId);
+      await apiService.upload('/api/session/end', formData);
+      
       if (apiService.getSessionId() === sessionId) {
         apiService.setSessionId('');
       }
@@ -54,13 +56,47 @@ export class SessionService {
    * @param step 步骤名称
    * @returns Promise<boolean> 重置是否成功
    */
-  async resetSessionStep(_sessionId: string, step: string): Promise<boolean> {
+  async resetSessionStep(sessionId: string, step: string): Promise<boolean> {
     try {
-      // 注意：后端API中没有直接的重置会话步骤接口
-      // 这里只是一个示例实现，实际需要根据后端API调整
+      const formData = new FormData();
+      formData.append('session_id', sessionId);
+      formData.append('step', step);
+      await apiService.upload('/api/session/reset-step', formData);
       return true;
     } catch (error) {
       console.error(`重置会话步骤${step}失败:`, error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 重置会话中的所有数据
+   * @param sessionId 会话ID
+   * @returns Promise<boolean> 重置是否成功
+   */
+  async resetAllSessionData(sessionId: string): Promise<boolean> {
+    try {
+      const formData = new FormData();
+      formData.append('session_id', sessionId);
+      await apiService.upload('/api/session/reset-all', formData);
+      return true;
+    } catch (error) {
+      console.error('重置会话所有数据失败:', error);
+      throw error;
+    }
+  }
+  
+  /**
+   * 获取会话步骤状态
+   * @param sessionId 会话ID
+   * @returns Promise<any> 步骤状态信息
+   */
+  async getSessionStepStatus(sessionId: string): Promise<any> {
+    try {
+      const response = await apiService.get(`/api/session/step-status?session_id=${encodeURIComponent(sessionId)}`);
+      return response;
+    } catch (error) {
+      console.error('获取会话步骤状态失败:', error);
       throw error;
     }
   }

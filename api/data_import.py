@@ -1,9 +1,10 @@
-from fastapi import APIRouter, UploadFile, File, Form, HTTPException
-from typing import Optional, Dict, Any
+from fastapi import APIRouter, UploadFile, File, Form, HTTPException, BackgroundTasks
+from typing import Optional, Dict, Any, Iterator
 import os
 import sys
 import logging
 import shutil
+import pandas as pd
 from pathlib import Path
 
 # 将项目根目录添加到Python路径中
@@ -20,21 +21,6 @@ API_OUTPUT_DIR = Path("APIOutput")
 API_OUTPUT_DIR.mkdir(exist_ok=True)
 
 router = APIRouter()
-
-@router.post("/create-session")
-async def create_session():
-    """创建新的会话"""
-    try:
-        api_logger.info("创建新的会话")
-        session_id = session_manager.create_session()
-        api_logger.info(f"会话创建成功: {session_id}")
-        return {
-            "session_id": session_id,
-            "message": "会话创建成功"
-        }
-    except Exception as e:
-        api_logger.error(f"会话创建失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"会话创建失败: {str(e)}")
 
 @router.post("/upload-file")
 async def upload_file(
@@ -72,6 +58,60 @@ async def upload_file(
         raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
     except Exception as e:
         raise HTTPException(status_code=400, detail=f"文件上传失败: {str(e)}")
+
+@router.post("/streaming-upload-file")
+async def streaming_upload_file(
+    session_id: str = Form(...), 
+    file: UploadFile = File(...)
+    ):
+    """流式上传并导入文件，适用于大文件"""
+    try:
+        # 获取会话对应的引擎实例
+        engine = session_manager.get_engine(session_id)
+        
+        # 保存上传的文件
+        if file.filename:
+            file_path = API_OUTPUT_DIR / file.filename
+            file_extension = file.filename.split('.')[-1].lower() if file.filename else 'csv'
+            
+            # 记录导入的文件名
+            engine._last_imported_file = file.filename
+            
+            # 流式处理CSV文件（最常见的大文件格式）
+            if file_extension == 'csv':
+                # 先保存文件
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(file.file, buffer)
+                
+                # 然后使用流式导入（分块读取）
+                api_logger.info(f"开始流式导入CSV文件: {file.filename}")
+                engine.import_data(
+                    resource_path=str(file_path),
+                    resource_type=file_extension,
+                    chunksize=5000  # 使用5000行的块大小进行流式处理
+                )
+            else:
+                # 对于其他文件类型，使用常规导入
+                with open(file_path, "wb") as buffer:
+                    shutil.copyfileobj(file.file, buffer)
+                
+                engine.import_data(
+                    resource_path=str(file_path),
+                    resource_type=file_extension
+                )
+            
+            # 标记导入步骤为完成并锁定
+            engine.mark_step_completed('import')
+            engine.lock_step('import')
+            
+            return {"message": f"文件 {file.filename} 流式导入成功", "session_id": session_id}
+        else:
+            raise ValueError("文件名为空")
+    except ValueError as e:
+        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
+    except Exception as e:
+        api_logger.error(f"流式文件导入失败: {str(e)}", exc_info=True)
+        raise HTTPException(status_code=400, detail=f"流式文件导入失败: {str(e)}")
 
 @router.post("/import-from-database")
 async def import_from_database(
@@ -129,94 +169,3 @@ async def import_from_database(
     except Exception as e:
         api_logger.error(f"数据库导入失败: {str(e)}")
         raise HTTPException(status_code=400, detail=f"数据库导入失败: {str(e)}")
-
-@router.post("/reset-step")
-async def reset_step(
-    session_id: str = Form(...),
-    step: str = Form(...)
-):
-    """重置指定步骤及其后续步骤"""
-    try:
-        api_logger.info(f"重置步骤: {step}，会话ID: {session_id}")
-        success = session_manager.reset_session_step(session_id, step)
-        if success:
-            api_logger.info(f"步骤 {step} 重置成功")
-            return {
-                "session_id": session_id,
-                "step": step,
-                "message": f"步骤 {step} 重置成功"
-            }
-        else:
-            api_logger.warning(f"步骤 {step} 重置失败")
-            raise HTTPException(status_code=400, detail=f"步骤 {step} 重置失败")
-    except ValueError as e:
-        api_logger.error(f"会话错误: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
-    except Exception as e:
-        api_logger.error(f"重置步骤失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"重置步骤失败: {str(e)}")
-
-@router.post("/reset-all")
-async def reset_all(
-    session_id: str = Form(...)
-):
-    """重置会话中的所有数据"""
-    try:
-        api_logger.info(f"重置所有数据，会话ID: {session_id}")
-        success = session_manager.reset_all_session_data(session_id)
-        if success:
-            api_logger.info(f"会话 {session_id} 所有数据重置成功")
-            return {
-                "session_id": session_id,
-                "message": f"会话 {session_id} 所有数据重置成功"
-            }
-        else:
-            api_logger.warning(f"会话 {session_id} 所有数据重置失败")
-            raise HTTPException(status_code=400, detail=f"会话 {session_id} 所有数据重置失败")
-    except ValueError as e:
-        api_logger.error(f"会话错误: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
-    except Exception as e:
-        api_logger.error(f"重置所有数据失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"重置所有数据失败: {str(e)}")
-
-@router.get("/step-status")
-async def get_step_status(
-    session_id: str
-):
-    """获取步骤状态"""
-    try:
-        api_logger.info(f"获取步骤状态，会话ID: {session_id}")
-        status = session_manager.get_session_step_status(session_id)
-        api_logger.info(f"步骤状态获取成功: {status}")
-        return {
-            "session_id": session_id,
-            "status": status
-        }
-    except ValueError as e:
-        api_logger.error(f"会话错误: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
-    except Exception as e:
-        api_logger.error(f"获取步骤状态失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"获取步骤状态失败: {str(e)}")
-
-@router.post("/end-session")
-async def end_session(
-    session_id: str = Form(...)
-    ):
-    """结束会话并清理资源"""
-    try:
-        api_logger.info(f"结束会话: {session_id}")
-        success = session_manager.delete_session(session_id)
-        if success:
-            api_logger.info(f"会话结束成功: {session_id}")
-            return {
-                "session_id": session_id,
-                "message": "会话结束成功"
-            }
-        else:
-            api_logger.warning(f"会话ID不存在: {session_id}")
-            raise HTTPException(status_code=400, detail=f"会话ID {session_id} 不存在")
-    except Exception as e:
-        api_logger.error(f"会话结束失败: {str(e)}")
-        raise HTTPException(status_code=400, detail=f"会话结束失败: {str(e)}")

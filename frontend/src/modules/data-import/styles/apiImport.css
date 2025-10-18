@@ -17,6 +17,7 @@
   margin-bottom: 20px;
 }
 
+/* API导入预览区域 */
 .api-import-preview {
   display: flex;
   flex-direction: column;
@@ -29,10 +30,12 @@
   border: 1px solid #e9ecef;
 }
 
+/* API导入预览表单组 */
 .api-import-preview .form-group {
   margin-bottom: 0;
 }
 
+/* API导入预览输入框和选择框 */
 .api-import-preview input,
 .api-import-preview select {
   background: #f8f9fa;

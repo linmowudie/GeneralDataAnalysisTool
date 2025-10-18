@@ -11,7 +11,7 @@ sys.path.append(os.path.dirname(os.path.dirname(__file__)))
 
 from api.document_reader import DocumentReader
 
-from api import data_import, data_analysis, data_visualization, data_preview, data_cleaning, model_extractor, step_lock
+from api import data_import, data_analysis, data_visualization, data_preview, data_cleaning, model_extractor, step_lock, session
 from api.cleanup_task import cleanup_task, cleanup_task_router
 
 # 配置API日志
@@ -19,7 +19,7 @@ from Src.DataAnalyzer.Configs.log_setting import get_component_logger
 api_logger = get_component_logger('api', 'api_main')
 
 # 在启动时清理临时数据
-cleanup_task.cleanup_all_temp_directories()
+cleanup_task.temp_storage_manager.clear_all_temp_directories()
 
 doc_reader = DocumentReader(os.path.dirname(__file__))
 
@@ -47,6 +47,8 @@ app.include_router(data_cleaning.router, prefix="/api/cleaning", tags=["数据�
 app.include_router(model_extractor.router, prefix="/api/model", tags=["模型管理"])
 app.include_router(step_lock.router, tags=["步骤锁管理"])
 app.include_router(cleanup_task_router, prefix="/api/cleanup", tags=["清理任务"])
+app.include_router(session.router, prefix="/api/session", tags=["会话管理"])
+
 
 @app.get("/api/health")
 async def health_check():

@@ -12,6 +12,7 @@
   box-sizing: border-box;
 }
 
+/* 数据库类型选择器标题 */
 .database-type-selector h3 {
   font-size: 14px;
   font-weight: 600;
@@ -22,6 +23,7 @@
   text-align: center;
 }
 
+/* 数据库类型选项容器 */
 .db-type-options {
   display: flex;
   flex-direction: column;
@@ -29,6 +31,7 @@
   flex: 1;
 }
 
+/* 数据库类型选项 */
 .db-type-option {
   padding: 8px 12px;
   background: white;
@@ -45,6 +48,7 @@
   justify-content: center;
 }
 
+/* 数据库类型选项悬停状态 */
 .db-type-option:hover {
   background: #f8f9fa;
   border-color: var(--primary-color);
@@ -52,6 +56,7 @@
   box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
 }
 
+/* 数据库类型选项激活状态 */
 .db-type-option.active {
   background: var(--primary-color);
   color: white;

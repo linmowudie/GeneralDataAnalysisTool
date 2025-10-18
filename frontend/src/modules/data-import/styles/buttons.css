@@ -10,17 +10,20 @@
   align-self: center;
 }
 
+/* 主要按钮样式 */
 .import-btn.primary {
   background: var(--primary-color);
   color: white;
 }
 
+/* 主要按钮悬停状态 */
 .import-btn.primary:hover:not(:disabled) {
   background: var(--primary-hover-color);
   transform: translateY(-1px);
   box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* 主要按钮禁用状态 */
 .import-btn.primary:disabled {
   background: #ccc;
   cursor: not-allowed;
@@ -28,6 +31,7 @@
   box-shadow: none;
 }
 
+/* 禁用按钮样式 */
 .import-btn.disabled {
   background: #ccc !important;
   cursor: not-allowed;

@@ -20,56 +20,93 @@ from Src.DataAnalyzer.TempStorage.manager import TempStorageManager, StepDataMan
 
 class CleanupTask:
     """
-    清理任务
+    清理任务类
+    负责清理临时数据和重置会话状态
     """
-
-    step: List[str] = ["imported", "cleaned", "analyzed", "visualized"]
     
     def __init__(self):
         """
         初始化清理任务
         """
-        # 统计信息
-        self.stats = {
-            "files_removed": 0,
-            "space_freed": 0,  # 以字节为单位
-            "sessions_closed": 0,
-            "last_run": None
-        }
-        # 初始化临时存储管理器
+        # 使用相对路径指定临时存储管理器的存储路径
         self.temp_storage_manager = TempStorageManager("Src/DataAnalyzer/TempStorage")
         self.step_data_manager = StepDataManager(self.temp_storage_manager)
-    
-    def cleanup_all_temp_directories(self):
-        """
-        清理临时数据目录
-        """
-        try:
-            stats = self.temp_storage_manager.clear_all_temp_directories()
-            # 更新统计信息
-            self.stats["files_removed"] += stats["files_removed"]
-            self.stats["space_freed"] += stats["space_freed"]
-            self.stats["last_run"] = time.time()
-        except Exception as e:
-            api_logger.error(f"清理临时目录时出错: {e}")
+        
+        # 配置API日志
+        from Src.DataAnalyzer.Configs.log_setting import get_component_logger
+        self.logger = get_component_logger('api', 'cleanup_task')
 
-    def cleanup_step_temp_files(self, step: str):
+    async def reset_all_data(self, session_id: str) -> Dict[str, Any]:
         """
-        清理指定步骤的临时文件
+        重置会话中的所有数据
         
         Args:
-            step: 步骤名称 ('import', 'preview', 'cleaning', 'analysis', 'visualization', 'report')
+            session_id: 会话ID
+            
+        Returns:
+            重置结果
         """
         try:
-            stats = self.step_data_manager.cleanup_step_temp_files(step)
-            # 更新统计信息
-            self.stats["files_removed"] += stats["files_removed"]
-            self.stats["space_freed"] += stats["space_freed"]
-            self.stats["last_run"] = time.time()
+            self.logger.info(f"开始重置会话 {session_id} 的所有数据")
+            
+            # 获取会话对应的引擎实例
+            engine = session_manager.get_engine(session_id)
+            
+            # 重置引擎中的所有数据
+            engine.cleanup()
+            
+            # 清理所有临时目录
+            stats = self.temp_storage_manager.clear_all_temp_directories()
+            self.logger.info(f"临时目录清理完成: {stats}")
+            
+            return {
+                "session_id": session_id,
+                "message": "所有数据重置成功",
+                "stats": stats
+            }
+                
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
         except Exception as e:
-            api_logger.error(f"清理步骤 {step} 的临时文件时出错: {e}")
-            raise
+            self.logger.error(f"数据重置失败: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"数据重置失败: {str(e)}")
 
+    async def reset_step_data(self, session_id: str, step: str) -> Dict[str, Any]:
+        """
+        重置会话中的特定步骤数据
+        
+        Args:
+            session_id: 会话ID
+            step: 要重置的步骤名称
+            
+        Returns:
+            重置结果
+        """
+        try:
+            self.logger.info(f"开始重置会话 {session_id} 的 {step} 步骤数据")
+            
+            # 获取会话对应的引擎实例
+            engine = session_manager.get_engine(session_id)
+            
+            # 重置引擎中的特定步骤数据
+            engine.reset_step_and_following(step)
+            
+            # 清理对应步骤的临时文件
+            stats = self.step_data_manager.cleanup_step_temp_files(step)
+            self.logger.info(f"步骤 {step} 的临时文件清理完成: {stats}")
+            
+            return {
+                "session_id": session_id,
+                "step": step,
+                "message": f"步骤 {step} 数据重置成功",
+                "stats": stats
+            }
+                
+        except ValueError as e:
+            raise HTTPException(status_code=400, detail=f"会话错误: {str(e)}")
+        except Exception as e:
+            self.logger.error(f"步骤数据重置失败: {str(e)}", exc_info=True)
+            raise HTTPException(status_code=500, detail=f"步骤数据重置失败: {str(e)}")
 
 # 全局清理任务实例
 cleanup_task = CleanupTask()
@@ -88,8 +125,8 @@ async def run_cleanup():
     立即执行清理任务
     """
     try:
-        cleanup_task.cleanup_all_temp_directories()
-        return {"status": "success", "message": "清理任务执行完成"}
+        stats = cleanup_task.temp_storage_manager.clear_all_temp_directories()
+        return {"status": "success", "message": "清理任务执行完成", "stats": stats}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"清理任务执行失败: {str(e)}")
 
@@ -99,8 +136,8 @@ async def run_step_cleanup(step: str):
     立即执行指定步骤的清理任务
     """
     try:
-        cleanup_task.cleanup_step_temp_files(step)
-        return {"status": "success", "message": f"步骤 {step} 的清理任务执行完成"}
+        stats = cleanup_task.step_data_manager.cleanup_step_temp_files(step)
+        return {"status": "success", "message": f"步骤 {step} 的清理任务执行完成", "stats": stats}
     except Exception as e:
         raise HTTPException(status_code=500, detail=f"步骤 {step} 的清理任务执行失败: {str(e)}")
 
@@ -118,4 +155,5 @@ async def get_cleanup_stats():
     """
     获取清理统计信息
     """
-    return cleanup_task.stats
+    # 这里返回一个默认的空统计信息，因为清理任务是瞬时操作，不保存状态
+    return {"message": "清理任务是瞬时操作，没有持续的统计信息"}

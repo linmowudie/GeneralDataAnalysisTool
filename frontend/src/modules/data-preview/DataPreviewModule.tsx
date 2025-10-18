@@ -9,6 +9,16 @@ type AddMessageType = (message: string, type?: 'info' | 'success' | 'warning' | 
 // 创建 Context 用于传递 addMessage 函数
 export const MessageContext = React.createContext<AddMessageType | null>(null);
 
+/**
+ * 数据预览模块
+ * 展示导入数据的基本信息和预览内容
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <DataPreviewModule />
+ * ```
+ */
 const DataPreviewModule: React.FC = () => {
   const [previewData, setPreviewData] = useState<any>(null);
   const [datasetInfo, setDatasetInfo] = useState<any>(null);
@@ -24,42 +34,9 @@ const DataPreviewModule: React.FC = () => {
   // 拖动相关的引用
   const tableContainerRef = useRef<HTMLDivElement>(null);
   
-  // 模拟数据用于测试表格滚动
-  const mockData = {
-    columns: [
-      'id', 'name', 'age', 'gender', 'email', 'phone', 
-      'address', 'city', 'state', 'country', 'postal_code',
-      'occupation', 'income', 'education', 'marital_status',
-      'children', 'height', 'weight', 'blood_type', 'allergies'
-    ],
-    preview_data: Array(20).fill(0).map((_, index) => ({
-      'id': index + 1,
-      'name': `测试用户${index + 1}`,
-      'age': Math.floor(Math.random() * 50) + 20,
-      'gender': ['男', '女'][Math.floor(Math.random() * 2)],
-      'email': `test${index + 1}@example.com`,
-      'phone': `1380000000${index}`,
-      'address': `测试地址${index + 1}号`,
-      'city': '测试城市',
-      'state': '测试省份',
-      'country': '中国',
-      'postal_code': '100000',
-      'occupation': '工程师',
-      'income': Math.floor(Math.random() * 20000) + 5000,
-      'education': ['本科', '硕士', '博士'][Math.floor(Math.random() * 3)],
-      'marital_status': ['已婚', '未婚'][Math.floor(Math.random() * 2)],
-      'children': Math.floor(Math.random() * 3),
-      'height': Math.floor(Math.random() * 40) + 160,
-      'weight': Math.floor(Math.random() * 30) + 50,
-      'blood_type': ['A', 'B', 'O', 'AB'][Math.floor(Math.random() * 4)],
-      'allergies': ['无', '花粉', '海鲜', '药物'][Math.floor(Math.random() * 4)]
-    })),
-    file_name: 'test_dataset.csv',
-    total_rows: 1000,
-    total_columns: 20
-  };
-
-  // 处理鼠标滚轮事件，将垂直滚动转换为水平滚动
+  /**
+   * 处理鼠标滚轮事件，将垂直滚动转换为水平滚动
+   */
   useEffect(() => {
     const handleWheel = (event: WheelEvent) => {
       if (tableContainerRef.current && !event.ctrlKey) { // 不拦截Ctrl+滚轮（缩放操作）
@@ -83,7 +60,10 @@ const DataPreviewModule: React.FC = () => {
     };
   }, []);
   
-  // 处理鼠标按下事件，开始拖动
+  /**
+   * 处理鼠标按下事件，开始拖动
+   * @param e - 鼠标事件
+   */
   const handleMouseDown = (e: React.MouseEvent) => {
     if (e.target instanceof HTMLDivElement && e.target.className.includes('draggable-header')) {
       setIsDragging(true);
@@ -94,7 +74,10 @@ const DataPreviewModule: React.FC = () => {
     }
   };
   
-  // 处理鼠标移动事件，更新拖动位置
+  /**
+   * 处理鼠标移动事件，更新拖动位置
+   * @param e - 鼠标事件
+   */
   const handleMouseMove = (e: MouseEvent) => {
     if (isDragging) {
       setDragPosition({
@@ -104,12 +87,16 @@ const DataPreviewModule: React.FC = () => {
     }
   };
   
-  // 处理鼠标释放事件，结束拖动
+  /**
+   * 处理鼠标释放事件，结束拖动
+   */
   const handleMouseUp = () => {
     setIsDragging(false);
   };
   
-  // 添加全局鼠标事件监听器
+  /**
+   * 添加全局鼠标事件监听器
+   */
   useEffect(() => {
     if (isDragging) {
       document.addEventListener('mousemove', handleMouseMove);
@@ -121,15 +108,16 @@ const DataPreviewModule: React.FC = () => {
     }
   }, [isDragging, startDrag]);
   
+  /**
+   * 获取数据预览信息
+   */
   useEffect(() => {
     const fetchData = async () => {
       try {
         setLoading(true);
         setError(null);
         
-        // 使用模拟数据进行测试，避免依赖会话ID
-        // 实际使用时可以取消下面的注释，使用真实API
-        /*
+        // 使用真实的API获取数据，而不是模拟数据
         const sessionId = sessionService.getCurrentSessionId();
         if (!sessionId) {
           throw new Error('未找到有效的会话ID');
@@ -142,19 +130,8 @@ const DataPreviewModule: React.FC = () => {
         // 获取数据集信息
         const info = await dataPreviewService.getDatasetInfo(sessionId);
         setDatasetInfo(info);
-        */
         
-        // 使用模拟数据
-        setTimeout(() => {
-          setPreviewData(mockData);
-          setDatasetInfo({
-            dataset_name: 'test_dataset.csv',
-            total_records: 1000,
-            features_count: 19,
-            target_variable: 'income'
-          });
-          setLoading(false);
-        }, 500);
+        setLoading(false);
         
       } catch (err) {
         const errorMessage = err instanceof Error ? err.message : '获取数据失败';
@@ -167,10 +144,15 @@ const DataPreviewModule: React.FC = () => {
     fetchData();
   }, []);
 
+  /**
+   * 处理可见行数变化
+   * @param e - 选择框变化事件
+   */
   const handleVisibleRowsChange = (e: React.ChangeEvent<HTMLSelectElement>) => {
     setVisibleRows(Number(e.target.value));
   };
 
+  // 加载状态显示
   if (loading) {
     return (
       <div className="data-preview-module">
@@ -180,6 +162,7 @@ const DataPreviewModule: React.FC = () => {
     );
   }
 
+  // 错误状态显示
   if (error) {
     return (
       <div className="data-preview-module">
@@ -193,6 +176,7 @@ const DataPreviewModule: React.FC = () => {
     <div className="data-preview-module">
       <h3>数据预览</h3>
       
+      {/* 数据集信息展示 */}
       {datasetInfo && (
         <div className="dataset-info">
           <h4>数据集信息</h4>
@@ -215,6 +199,7 @@ const DataPreviewModule: React.FC = () => {
         </div>
       )}
 
+      {/* 数据预览展示 */}
       {previewData && (
         <div className="data-preview">
           {/* 列名显示区域 */}

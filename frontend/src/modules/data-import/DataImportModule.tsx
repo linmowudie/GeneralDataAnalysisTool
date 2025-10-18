@@ -20,6 +20,16 @@ type AddMessageType = (message: string, type?: 'info' | 'success' | 'warning' | 
 // 创建 Context 用于传递 addMessage 函数
 export const MessageContext = React.createContext<AddMessageType | null>(null);
 
+/**
+ * 数据导入模块
+ * 提供文件、数据库和API三种数据导入方式
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <DataImportModule />
+ * ```
+ */
 const DataImportModule: React.FC = () => {
   const { state, updateDataImportState } = useGlobalState();
   const addMessage = useContext(MessageContext);
@@ -32,6 +42,7 @@ const DataImportModule: React.FC = () => {
   const [uploadProgress, setUploadProgress] = useState<number>(state.dataImport.uploadProgress);
   const [uploadStatus, setUploadStatus] = useState<'idle' | 'uploading' | 'success' | 'error'>(state.dataImport.uploadStatus);
   const [uploadMessage, setUploadMessage] = useState(state.dataImport.uploadMessage);
+  const [importMode, setImportMode] = useState<'normal' | 'streaming'>('normal'); // 新增：导入模式切换
   
   // 数据库导入状态
   const [dbType, setDbType] = useState(state.dataImport.dbType);
@@ -44,12 +55,18 @@ const DataImportModule: React.FC = () => {
   const [dbImportStatus, setDbImportStatus] = useState<'idle' | 'importing' | 'success' | 'error'>(state.dataImport.dbImportStatus);
   const [dbImportMessage, setDbImportMessage] = useState(state.dataImport.dbImportMessage);
   
-  // 更新全局状态
+  /**
+   * 更新全局状态
+   * @param newState - 新的状态对象
+   */
   const updateGlobalState = (newState: any) => {
     updateDataImportState(newState);
   };
 
-  // 处理文件选择
+  /**
+   * 处理文件选择事件
+   * @param e - 文件输入框的change事件
+   */
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
     console.log('文件选择事件触发:', e.target.files);
     if (e.target.files && e.target.files[0]) {
@@ -68,7 +85,10 @@ const DataImportModule: React.FC = () => {
     }
   };
   
-  // 处理文件上传
+  /**
+   * 处理文件上传
+   * 支持普通上传和流式上传两种模式
+   */
   const handleFileUpload = async () => {
     console.log('开始处理文件上传，选中的文件:', selectedFile);
     if (!selectedFile) {
@@ -96,13 +116,13 @@ const DataImportModule: React.FC = () => {
       
       setUploadStatus('uploading');
       setUploadProgress(0);
-      setUploadMessage('正在上传文件...');
+      setUploadMessage(`正在${importMode === 'streaming' ? '流式导入' : '上传'}文件...`);
       updateGlobalState({
         uploadStatus: 'uploading',
         uploadProgress: 0,
-        uploadMessage: '正在上传文件...'
+        uploadMessage: `正在${importMode === 'streaming' ? '流式导入' : '上传'}文件...`
       });
-      addMessage && addMessage('正在上传文件...', 'info');
+      addMessage && addMessage(`正在${importMode === 'streaming' ? '流式导入' : '上传'}文件...`, 'info');
       
       // 模拟进度更新
       const progressInterval = setInterval(() => {
@@ -116,25 +136,33 @@ const DataImportModule: React.FC = () => {
       }, 300);
       
       // 上传文件
-      console.log('开始上传文件到服务器...');
-      const response = await dataImportService.uploadFile(selectedFile, sessionId);
+      console.log(`开始${importMode === 'streaming' ? '流式导入' : '上传'}文件到服务器...`);
+      const response = importMode === 'streaming' 
+        ? await dataImportService.streamingUploadFile(selectedFile, sessionId)
+        : await dataImportService.uploadFile(selectedFile, sessionId);
       
       clearInterval(progressInterval);
       setUploadProgress(100);
       setUploadStatus('success');
-      setUploadMessage('文件上传成功');
+      setUploadMessage(`${importMode === 'streaming' ? '流式导入' : '文件上传'}成功`);
       updateGlobalState({
         uploadProgress: 100,
         uploadStatus: 'success',
-        uploadMessage: '文件上传成功'
+        uploadMessage: `${importMode === 'streaming' ? '流式导入' : '文件上传'}成功`
       });
-      addMessage && addMessage('文件上传成功', 'success');
+      addMessage && addMessage(`${importMode === 'streaming' ? '流式导入' : '文件上传'}成功`, 'success');
       
       console.log('文件上传结果:', response);
       
       // 触发父组件的消息更新
       if (window && window.dispatchEvent) {
-        window.dispatchEvent(new CustomEvent('dataImportSuccess', { detail: { importType: 'file', fileName: selectedFile.name } }));
+        window.dispatchEvent(new CustomEvent('dataImportSuccess', { 
+          detail: { 
+            importType: 'file', 
+            fileName: selectedFile.name,
+            importMode: importMode
+          } 
+        }));
       }
       
     } catch (error) {
@@ -149,7 +177,11 @@ const DataImportModule: React.FC = () => {
     }
   };
   
-  // 处理数据库类型变更，更新默认端口和参数
+  /**
+   * 处理数据库类型变更
+   * 根据数据库类型自动设置默认端口
+   * @param newDbType - 新的数据库类型
+   */
   const handleDbTypeChange = (newDbType: string) => {
     setDbType(newDbType);
     
@@ -191,7 +223,9 @@ const DataImportModule: React.FC = () => {
     });
   };
   
-  // 处理数据库导入
+  /**
+   * 处理数据库导入
+   */
   const handleDatabaseImport = async () => {
     // 基本表单验证
     if (!host || !port || !database || !table) {
@@ -269,12 +303,16 @@ const DataImportModule: React.FC = () => {
     }
   };
   
-  // 处理API导入
+  /**
+   * 处理API导入
+   */
   const handleApiImport = async () => {
     addMessage && addMessage('API导入功能尚未实现', 'warning');
   };
   
-  // 重置表单
+  /**
+   * 重置表单
+   */
   const resetForm = () => {
     setSelectedFile(null);
     setUploadProgress(0);
@@ -359,9 +397,38 @@ const DataImportModule: React.FC = () => {
                 onClick={handleFileUpload}
                 disabled={uploadStatus === 'uploading'}
               >
-                {uploadStatus === 'uploading' ? '上传中...' : '上传'}
+                {uploadStatus === 'uploading' ? `${importMode === 'streaming' ? '流式导入中...' : '上传中...'}` : `${importMode === 'streaming' ? '流式导入' : '上传'}`}
               </button>
             </div>
+            
+            {/* 导入模式选择 */}
+            {selectedFile && (
+              <div className="import-mode-selector">
+                <label>导入模式：</label>
+                <label className="radio-label">
+                  <input 
+                    type="radio" 
+                    name="importMode" 
+                    value="normal" 
+                    checked={importMode === 'normal'}
+                    onChange={() => setImportMode('normal')}
+                    disabled={uploadStatus === 'uploading'}
+                  />
+                  普通导入
+                </label>
+                <label className="radio-label">
+                  <input 
+                    type="radio" 
+                    name="importMode" 
+                    value="streaming" 
+                    checked={importMode === 'streaming'}
+                    onChange={() => setImportMode('streaming')}
+                    disabled={uploadStatus === 'uploading'}
+                  />
+                  流式导入（大文件推荐）
+                </label>
+              </div>
+            )}
             
             {/* 显示选中的文件名 */}
             {selectedFile && (

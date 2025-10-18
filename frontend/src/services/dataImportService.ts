@@ -30,6 +30,31 @@ export class DataImportService {
       throw error;
     }
   }
+  
+  /**
+   * 流式上传文件
+   * @param file 要上传的文件
+   * @param sessionId 会话ID（可选，如果不提供则使用当前会话ID）
+   * @returns Promise<any> 上传结果
+   */
+  async streamingUploadFile(file: File, sessionId?: string): Promise<any> {
+    try {
+      const targetSessionId = sessionId || sessionService.getCurrentSessionId();
+      if (!targetSessionId) {
+        throw new Error('没有可用的会话ID，请先创建会话');
+      }
+
+      const formData = new FormData();
+      formData.append('session_id', targetSessionId);
+      formData.append('file', file);
+
+      const response = await apiService.upload('/api/import/streaming-upload-file', formData);
+      return response;
+    } catch (error) {
+      console.error('流式文件上传失败:', error);
+      throw error;
+    }
+  }
 
   /**
    * 从数据库导入数据

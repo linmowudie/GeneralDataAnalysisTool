@@ -81,8 +81,8 @@ class DataProcessingEngine:
         self.completed_steps: List[str] = []  # 已完成的步骤
         self.locked_steps: List[str] = []     # 已锁定的步骤
         
-        # 初始化临时存储管理器
-        self.temp_storage = TempStorageManager(auto_cleanup=auto_cleanup)
+        # 初始化临时存储管理器，指定存储路径为Src/DataAnalyzer/TempStorage
+        self.temp_storage = TempStorageManager("Src/DataAnalyzer/TempStorage", auto_cleanup=auto_cleanup)
         
         # 初始化自动提取模型标志
         self.auto_extract_model = False
@@ -183,7 +183,8 @@ class DataProcessingEngine:
         resource_type: str,
         db_connection_string: Optional[str] = None,
         query: Optional[str] = None,
-        is_database: bool = False
+        is_database: bool = False,
+        chunksize: Optional[int] = None
     ) -> None:
         """
         导入数据，支持文件或数据库表
@@ -194,6 +195,7 @@ class DataProcessingEngine:
             db_connection_string: 数据库连接字符串（仅用于数据库）
             query: SQL 查询语句（仅用于数据库）
             is_database: 是否为数据库源
+            chunksize: 分块读取大小，用于大文件的流式处理
         """
         self.logger.info("core: 开始导入数据")
         try:
@@ -208,7 +210,7 @@ class DataProcessingEngine:
                 db_connection_string=db_connection_string,
                 is_database=is_database
             )
-            self.imported_data = importer.import_data(query=query)
+            self.imported_data = importer.import_data(query=query, chunksize=chunksize)
 
             if self.imported_data is not None:
                 # 保存导入的数据到临时存储

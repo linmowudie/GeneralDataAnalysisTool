@@ -6,36 +6,90 @@
 }
 
 /* 文件导入样式 */
-
 .file-import-container {
+  background-color: #ffffff;
+  border-radius: 8px;
   padding: 20px;
+  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
+  margin-top: 10px;
+  width: 100%;
 }
 
+/* 导入模式选择器样式 */
+.import-mode-selector {
+  margin: 15px 0;
+  padding: 10px;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  display: flex;
+  align-items: center;
+  gap: 15px;
+}
+
+/* 导入模式选择器标签 */
+.import-mode-selector label {
+  font-weight: 500;
+  color: #333;
+}
+
+/* 单选框标签 */
+.radio-label {
+  display: flex;
+  align-items: center;
+  gap: 5px;
+  cursor: pointer;
+  font-weight: normal;
+  transition: color 0.2s;
+}
+
+/* 单选框标签悬停状态 */
+.radio-label:hover {
+  color: #007bff;
+}
+
+/* 单选框 */
+.radio-label input[type="radio"] {
+  cursor: pointer;
+}
+
+/* 单选框禁用状态 */
+.radio-label input[type="radio"]:disabled + span {
+  cursor: not-allowed;
+  opacity: 0.6;
+}
+
+/* 文件导入容器标题 */
 .file-import-container h4 {
   margin-bottom: 15px;
   color: #333;
 }
 
+/* 文件输入容器 */
 .file-input-container {
   display: flex;
-  gap: 10px;
+  gap: 20px;
   align-items: center;
   margin-bottom: 20px;
+  width: 100%;
 }
 
+/* 文件输入框 */
 .file-input {
   flex: 1;
-  padding: 8px;
+  padding: 20px;
   border: 1px solid #ddd;
   border-radius: 4px;
+  box-sizing: border-box;
 }
 
+/* 文件输入框聚焦状态 */
 .file-input:focus {
   outline: none;
   border-color: #40a9ff;
   box-shadow: 0 0 0 2px rgba(24, 144, 255, 0.2);
 }
 
+/* 选中文件信息 */
 .selected-file-info {
   background-color: #f0f8ff;
   border: 1px solid #40a9ff;
@@ -44,12 +98,14 @@
   margin-bottom: 15px;
 }
 
+/* 选中文件信息段落 */
 .selected-file-info p {
   margin: 5px 0;
   font-size: 14px;
   color: #333;
 }
 
+/* 导入按钮 */
 .import-btn {
   padding: 8px 16px;
   border: none;
@@ -59,24 +115,29 @@
   transition: all 0.3s;
 }
 
+/* 主要导入按钮 */
 .import-btn.primary {
   background-color: #1890ff;
   color: white;
 }
 
+/* 主要导入按钮悬停状态 */
 .import-btn.primary:hover:not(:disabled) {
   background-color: #40a9ff;
 }
 
+/* 主要导入按钮禁用状态 */
 .import-btn.primary:disabled {
   background-color: #bfbfbf;
   cursor: not-allowed;
 }
 
+/* 进度容器 */
 .progress-container {
   margin-top: 20px;
 }
 
+/* 进度条 */
 .progress-bar {
   width: 100%;
   height: 20px;
@@ -86,23 +147,27 @@
   margin-bottom: 10px;
 }
 
+/* 进度条填充 */
 .progress-fill {
   height: 100%;
   background-color: #1890ff;
   transition: width 0.3s ease;
 }
 
+/* 进度信息 */
 .progress-info {
   display: flex;
   justify-content: space-between;
   align-items: center;
 }
 
+/* 进度文本 */
 .progress-text {
   font-size: 14px;
   color: #666;
 }
 
+/* 进度百分比 */
 .progress-percent {
   font-size: 14px;
   font-weight: bold;
@@ -111,7 +176,7 @@
 
 /* 文件导入容器 */
 .file-import-container {
-  width: 60%;
+  width: 100%;
   margin: 0 auto;
   display: flex;
   justify-content: center;
@@ -119,6 +184,7 @@
   flex-direction: column;
 }
 
+/* 导入部分 */
 .file-import-container .import-section {
   width: 100%;
   display: flex;
@@ -126,12 +192,14 @@
   align-items: center;
 }
 
+/* 媒体查询 - 移动端 */
 @media (max-width: 768px) {
   .file-import-container {
     width: 100%;
   }
 }
 
+/* 选中文件 */
 .selected-file {
   display: flex;
   justify-content: space-between;
@@ -144,6 +212,7 @@
   font-size: 14px;
 }
 
+/* 移除文件按钮 */
 .remove-file-btn {
   padding: 4px 12px;
   background: #dc3545;
@@ -155,6 +224,7 @@
   transition: background 0.3s ease;
 }
 
+/* 移除文件按钮悬停状态 */
 .remove-file-btn:hover {
   background: #c82333;
 }
@@ -177,7 +247,7 @@
   margin: 0 auto;
 }
 
-/* 原来是 .upload-button，现在改为 .import-btn.primary */
+/* 主要导入按钮 */
 .import-btn.primary {
   padding: 8px 16px;
   border: none;
@@ -190,14 +260,14 @@
   transition: all 0.3s ease;
 }
 
-/* 悬停状态：这才是关键！ */
+/* 主要导入按钮悬停状态 */
 .import-btn.primary:hover:not(:disabled) {
   background: var(--primary-hover-color);
   transform: translateY(-1px);
   color: black !important; /* 悬停时文字变黑 */
 }
 
-/* 禁用状态 */
+/* 主要导入按钮禁用状态 */
 .import-btn.primary:disabled {
   background: #ccc;
   cursor: not-allowed;
@@ -215,12 +285,14 @@
   margin-top: 10px;
 }
 
+/* 进度条 */
 .progress-bar {
   width: 100%;
   height: 100%;
   position: relative;
 }
 
+/* 进度条填充 */
 .progress-fill {
   height: 100%;
   background: var(--primary-color);
@@ -237,10 +309,12 @@
   color: #666;
 }
 
+/* 进度文本 */
 .progress-text {
   font-weight: 500;
 }
 
+/* 进度百分比 */
 .progress-percent {
   font-weight: 500;
 }

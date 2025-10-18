@@ -1,10 +1,191 @@
+/* 数据清洗模块主容器 */
 .data-cleaning-module {
   padding: 15px;
 }
 
+/* 数据清洗模块标题 */
 .data-cleaning-module h3 {
   margin-top: 0;
   color: var(--warning-color);
   border-bottom: 1px solid var(--border-color);
   padding-bottom: 8px;
+}
+
+/* 清洗模式选择器 */
+.clean-mode-selector {
+  margin-bottom: 20px;
+}
+
+/* 清洗模式选择器标题 */
+.clean-mode-selector h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #333;
+}
+
+/* 模式选项容器 */
+.mode-options {
+  display: flex;
+  gap: 10px;
+  flex-wrap: wrap;
+}
+
+/* 模式按钮 */
+.mode-btn {
+  padding: 8px 16px;
+  border: 1px solid #ddd;
+  background-color: #f8f9fa;
+  border-radius: 4px;
+  cursor: pointer;
+  font-size: 14px;
+  transition: all 0.3s ease;
+}
+
+/* 模式按钮悬停状态 */
+.mode-btn:hover {
+  background-color: #e9ecef;
+  border-color: #adb5bd;
+}
+
+/* 激活的模式按钮 */
+.mode-btn.active {
+  background-color: var(--primary-color);
+  color: white;
+  border-color: var(--primary-color);
+}
+
+/* 自定义参数区域 */
+.custom-params {
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+  padding: 15px;
+  margin-bottom: 20px;
+}
+
+/* 自定义参数标题 */
+.custom-params h4 {
+  margin-top: 0;
+  margin-bottom: 15px;
+  color: #333;
+}
+
+/* 参数表单 */
+.params-form {
+  display: flex;
+  flex-direction: column;
+  gap: 15px;
+}
+
+/* 表单组 */
+.form-group {
+  display: flex;
+  flex-direction: column;
+  gap: 5px;
+}
+
+/* 表单组标签 */
+.form-group label {
+  font-weight: 500;
+  color: #333;
+  font-size: 14px;
+}
+
+/* 表单组输入框 */
+.form-group input,
+.form-group select {
+  padding: 8px 12px;
+  border: 1px solid #ddd;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* 表单组输入框聚焦状态 */
+.form-group input:focus,
+.form-group select:focus {
+  outline: none;
+  border-color: var(--primary-color);
+  box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
+}
+
+/* 复选框组 */
+.form-group.checkbox-group {
+  flex-direction: row;
+  align-items: center;
+}
+
+/* 复选框组标签 */
+.form-group.checkbox-group label {
+  display: flex;
+  align-items: center;
+  gap: 8px;
+  font-weight: normal;
+}
+
+/* 操作按钮容器 */
+.action-buttons {
+  margin-bottom: 20px;
+}
+
+/* 清洗按钮 */
+.clean-btn {
+  padding: 10px 20px;
+  border: none;
+  border-radius: 4px;
+  font-size: 14px;
+  font-weight: 500;
+  cursor: pointer;
+  transition: all 0.3s ease;
+}
+
+/* 主要清洗按钮 */
+.clean-btn.primary {
+  background-color: var(--primary-color);
+  color: white;
+}
+
+/* 主要清洗按钮悬停状态 */
+.clean-btn.primary:hover:not(:disabled) {
+  background-color: var(--primary-hover-color);
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
+}
+
+/* 主要清洗按钮禁用状态 */
+.clean-btn.primary:disabled {
+  background-color: #ccc;
+  cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
+}
+
+/* 错误消息 */
+.error-message {
+  color: #dc3545;
+  background-color: #f8d7da;
+  border: 1px solid #f5c6cb;
+  border-radius: 4px;
+  padding: 10px;
+  margin-top: 10px;
+}
+
+/* 清洗结果 */
+.clean-result {
+  background-color: #d4edda;
+  border: 1px solid #c3e6cb;
+  border-radius: 4px;
+  padding: 15px;
+}
+
+/* 清洗结果标题 */
+.clean-result h4 {
+  margin-top: 0;
+  margin-bottom: 10px;
+  color: #155724;
+}
+
+/* 结果信息 */
+.result-info p {
+  margin: 5px 0;
+  color: #155724;
 }

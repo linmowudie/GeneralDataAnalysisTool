@@ -12,6 +12,7 @@
   box-sizing: border-box;
 }
 
+/* 数据库参数表单标题 */
 .database-params-form h3 {
   font-size: 14px;
   font-weight: 600;
@@ -22,6 +23,7 @@
   text-align: center;
 }
 
+/* 表单内容容器 */
 .form-content {
   flex: 1;
   display: flex;

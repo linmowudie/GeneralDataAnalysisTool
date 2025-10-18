@@ -36,6 +36,7 @@ class FileImport:
         """
         根据文件类型选择相应的读取方法，并读取文件。
         对于大文件，支持分块读取以避免内存溢出。
+        对于CSV文件，支持流式处理模式。
         
         :param chunksize: 分块大小，None表示一次性读取整个文件
         :return: Pandas DataFrame 或 None
@@ -56,17 +57,42 @@ class FileImport:
         read_method = getattr(pd, read_method_name)
         
         try:
-            # 如果指定了chunksize且是CSV文件，则分块读取
-            if chunksize is not None and self.file_type == 'csv':
+            # 如果是CSV文件且指定了chunksize，则使用流式处理
+            if self.file_type == 'csv' and chunksize is not None:
+                logger.info(f"开始以流式方式读取CSV文件，块大小: {chunksize}")
+                
+                # 先获取CSV的列名
+                header_chunk = pd.read_csv(self.path, nrows=0)
+                columns = header_chunk.columns
+                
+                # 使用生成器模式逐块读取和处理
                 chunks = []
-                for chunk in read_method(self.path, chunksize=chunksize):
+                total_rows = 0
+                
+                for i, chunk in enumerate(read_method(self.path, chunksize=chunksize)):
                     chunks.append(chunk)
-                df = pd.concat(chunks, ignore_index=True)
-                logger.info(f"分块读取完成，共 {len(chunks)} 块，合并后 {len(df)} 行")
+                    total_rows += len(chunk)
+                    logger.info(f"已读取CSV块 {i+1}，包含 {len(chunk)} 行，累计 {total_rows} 行")
+                    
+                    # 每处理完10个块合并一次，减少内存占用
+                    if len(chunks) >= 10:
+                        temp_df = pd.concat(chunks, ignore_index=True)
+                        chunks = [temp_df]
+                
+                # 合并剩余的块
+                if chunks:
+                    df = pd.concat(chunks, ignore_index=True)
+                else:
+                    df = pd.DataFrame(columns=columns)
+                
+                logger.info(f"CSV文件流式读取完成，共读取 {total_rows} 行数据")
+                return df
+            # 对于其他情况，使用普通读取方式
             else:
                 df = read_method(self.path)
-            return df
+                logger.info(f"文件读取完成，共 {len(df)} 行数据")
+                return df
         except Exception as e:
-            logger.error(f"文件读取错误：{e}")
+            logger.error(f"文件读取错误：{e}", exc_info=True)
             print(f"文件读取错误：{e}")
             return None

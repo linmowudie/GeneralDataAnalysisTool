@@ -22,7 +22,7 @@ class StoragePathManager:
     负责管理不同处理阶段的存储路径
     """
     
-    def __init__(self, base_path: str = "temp_storage"):
+    def __init__(self, base_path: str = "Src/DataAnalyzer/TempStorage"):
         """
         初始化存储路径管理器
         
@@ -82,11 +82,17 @@ class DataSerializer:
         # 根据数据类型选择保存方式
         if isinstance(data, pd.DataFrame):
             # 对于DataFrame，使用更节省内存的格式
-            if len(data) > 10000:  # 大于10000行的DataFrame使用parquet格式
-                parquet_path = file_path.with_suffix('.parquet')
-                data.to_parquet(parquet_path, index=False)
-                logger.info(f"保存大数据DataFrame到 {parquet_path}")
-                return parquet_path
+            if len(data) > 10000:  # 大于10000行的DataFrame尝试使用parquet格式
+                try:
+                    parquet_path = file_path.with_suffix('.parquet')
+                    data.to_parquet(parquet_path, index=False)
+                    logger.info(f"保存大数据DataFrame到 {parquet_path}")
+                    return parquet_path
+                except ImportError as e:
+                    logger.warning(f"无法使用parquet格式保存数据: {e}，回退到pickle格式")
+                    # 回退到pickle格式
+                    with open(file_path, 'wb') as f:
+                        pickle.dump(data, f)
             else:
                 # 小数据集使用pickle
                 with open(file_path, 'wb') as f:
@@ -197,7 +203,7 @@ class TempStorageManager:
     用于在磁盘上临时存储处理过程中的大数据，避免内存溢出
     """
     
-    def __init__(self, base_path: str = "temp_storage", auto_cleanup: bool = True):
+    def __init__(self, base_path: str = "Src/DataAnalyzer/TempStorage", auto_cleanup: bool = True):
         """
         初始化中间数据存储管理器
         

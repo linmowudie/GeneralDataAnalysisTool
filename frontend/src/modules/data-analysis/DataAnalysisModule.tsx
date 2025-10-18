@@ -14,21 +14,36 @@ interface DataAnalysisModuleProps {
   onAnalysisComplete: (result: any) => void;
 }
 
+/**
+ * 数据分析模块
+ * 提供模型选择和参数配置功能
+ * 
+ * @component
+ * @example
+ * ```tsx
+ * <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />
+ * ```
+ */
 const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisComplete }) => {
   const [availableModels, setAvailableModels] = useState<string[]>([]);
   const [selectedModel, setSelectedModel] = useState<string>('');
   const [parameters, setParameters] = useState<Record<string, any>>({});
   const [isAnalyzing, setIsAnalyzing] = useState(false);
   const [error, setError] = useState<string | null>(null);
+  const [modelDescriptions, setModelDescriptions] = useState<Record<string, string>>({});
   const addMessage = useContext(MessageContext);
 
-  // 初始化时获取可用模型
+  /**
+   * 初始化时获取可用模型
+   */
   useEffect(() => {
     const fetchAvailableModels = async () => {
       try {
         addMessage && addMessage('正在获取模型列表...', 'info');
         const models = await dataAnalysisService.getAvailableModels();
+        const descriptions = dataAnalysisService.getModelTypeDescriptions();
         setAvailableModels(models);
+        setModelDescriptions(descriptions);
         if (models.length > 0) {
           setSelectedModel(models[0]);
           setParameters(dataAnalysisService.getDefaultParameters(models[0]));
@@ -45,14 +60,21 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
     fetchAvailableModels();
   }, []);
 
-  // 处理模型选择变化
+  /**
+   * 处理模型选择变化
+   * @param model - 选中的模型
+   */
   const handleModelChange = (model: string) => {
     setSelectedModel(model);
     setParameters(dataAnalysisService.getDefaultParameters(model));
     addMessage && addMessage(`已选择模型: ${model}`, 'info');
   };
 
-  // 处理参数变化
+  /**
+   * 处理参数变化
+   * @param key - 参数名
+   * @param value - 参数值
+   */
   const handleParameterChange = (key: string, value: any) => {
     setParameters(prev => ({
       ...prev,
@@ -60,7 +82,9 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
     }));
   };
 
-  // 运行数据分析
+  /**
+   * 运行数据分析
+   */
   const handleRunAnalysis = async () => {
     if (!selectedModel) {
       const errorMessage = '请选择一个模型';
@@ -105,6 +129,7 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
       <h3>数据分析</h3>
       {error && <div className="error-message">{error}</div>}
       
+      {/* 模型选择 */}
       <div className="parameter-group">
         <label>选择模型:</label>
         <select 
@@ -116,8 +141,14 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
             <option key={model} value={model}>{model}</option>
           ))}
         </select>
+        {selectedModel && modelDescriptions[selectedModel] && (
+          <div className="model-description">
+            {modelDescriptions[selectedModel]}
+          </div>
+        )}
       </div>
       
+      {/* 随机种子参数 */}
       <div className="parameter-group">
         <label>随机种子:</label>
         <input 
@@ -128,6 +159,7 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
         />
       </div>
       
+      {/* 数据集分割选项 */}
       <div className="parameter-group">
         <label>
           <input 
@@ -140,6 +172,7 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
         </label>
       </div>
       
+      {/* 分割比例参数 */}
       {parameters.is_split !== false && (
         <div className="parameter-group">
           <label>分割比例:</label>
@@ -155,6 +188,58 @@ const DataAnalysisModule: React.FC<DataAnalysisModuleProps> = ({ onAnalysisCompl
         </div>
       )}
       
+      {/* 特殊模型参数 */}
+      {selectedModel === 'rf' && parameters.model_params && (
+        <div className="parameter-group">
+          <label>决策树数量 (n_estimators):</label>
+          <input 
+            type="number" 
+            min="1" 
+            value={parameters.model_params.n_estimators || 100}
+            onChange={(e) => handleParameterChange('model_params', {
+              ...parameters.model_params,
+              n_estimators: parseInt(e.target.value)
+            })}
+            disabled={isAnalyzing}
+          />
+        </div>
+      )}
+      
+      {selectedModel === 'xgb' && parameters.model_params && (
+        <div className="parameter-group">
+          <label>决策树数量 (n_estimators):</label>
+          <input 
+            type="number" 
+            min="1" 
+            value={parameters.model_params.n_estimators || 100}
+            onChange={(e) => handleParameterChange('model_params', {
+              ...parameters.model_params,
+              n_estimators: parseInt(e.target.value)
+            })}
+            disabled={isAnalyzing}
+          />
+        </div>
+      )}
+      
+      {selectedModel === 'xgb' && parameters.model_params && (
+        <div className="parameter-group">
+          <label>学习率 (learning_rate):</label>
+          <input 
+            type="number" 
+            min="0.01" 
+            max="1" 
+            step="0.01"
+            value={parameters.model_params.learning_rate || 0.1}
+            onChange={(e) => handleParameterChange('model_params', {
+              ...parameters.model_params,
+              learning_rate: parseFloat(e.target.value)
+            })}
+            disabled={isAnalyzing}
+          />
+        </div>
+      )}
+      
+      {/* 运行分析按钮 */}
       <button 
         className="run-analysis-btn"
         onClick={handleRunAnalysis}

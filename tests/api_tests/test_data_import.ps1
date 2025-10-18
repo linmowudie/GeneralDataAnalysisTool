@@ -3,12 +3,13 @@
 
 # 设置基本URL
 $baseUrl = "http://127.0.0.1:8000/api/import"
+$sessionBaseUrl = "http://127.0.0.1:8000/api/session"
 $session_id = ""
 
 # 创建会话
 Write-Host "Creating session..." -ForegroundColor Green
 try {
-    $response = Invoke-WebRequest -Uri "$baseUrl/create-session" -Method POST
+    $response = Invoke-WebRequest -Uri "$sessionBaseUrl/create" -Method POST
     $content = $response.Content | ConvertFrom-Json
     $session_id = $content.session_id
     Write-Host "Session created: $session_id" -ForegroundColor Yellow
@@ -20,7 +21,7 @@ try {
 # 测试步骤状态
 Write-Host "Checking step status..." -ForegroundColor Green
 try {
-    $response = Invoke-WebRequest -Uri "$baseUrl/step-status?session_id=$session_id" -Method GET
+    $response = Invoke-WebRequest -Uri "$sessionBaseUrl/step-status?session_id=$session_id" -Method GET
     $content = $response.Content | ConvertFrom-Json
     Write-Host "Step status: $($content.status | ConvertTo-Json -Depth 10)" -ForegroundColor Yellow
 } catch {
@@ -34,7 +35,7 @@ try {
         session_id = $session_id
         step = "import"
     }
-    $response = Invoke-WebRequest -Uri "$baseUrl/reset-step" -Method POST -Body $body
+    $response = Invoke-WebRequest -Uri "$sessionBaseUrl/reset-step" -Method POST -Body $body
     $content = $response.Content | ConvertFrom-Json
     Write-Host "Reset step result: $($content.message)" -ForegroundColor Yellow
 } catch {
@@ -47,7 +48,7 @@ try {
     $body = @{
         session_id = $session_id
     }
-    $response = Invoke-WebRequest -Uri "$baseUrl/end-session" -Method POST -Body $body
+    $response = Invoke-WebRequest -Uri "$sessionBaseUrl/end" -Method POST -Body $body
     $content = $response.Content | ConvertFrom-Json
     Write-Host "Session ended: $($content.message)" -ForegroundColor Yellow
 } catch {

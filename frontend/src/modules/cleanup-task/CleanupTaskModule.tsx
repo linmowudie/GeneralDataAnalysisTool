@@ -42,10 +42,10 @@ const CleanupTaskModule: React.FC<CleanupTaskModuleProps> = ({
       // 重置当前及后续步骤
       for (let i = currentStepIndex; i < steps.length; i++) {
         try {
-          await apiService.post('/api/import/reset-step', {
-            session_id: sessionId,
-            step: steps[i]
-          });
+          const formData = new FormData();
+          formData.append('session_id', sessionId);
+          formData.append('step', steps[i]);
+          await apiService.upload('/api/session/reset-step', formData);
         } catch (error) {
           console.error(`重置步骤 ${steps[i]} 失败:`, error);
           // 继续处理其他步骤，不中断整个过程
@@ -88,9 +88,9 @@ const CleanupTaskModule: React.FC<CleanupTaskModuleProps> = ({
 
       // 重置所有步骤
       try {
-        await apiService.post('/api/import/reset-all', {
-          session_id: sessionId
-        });
+        const formData = new FormData();
+        formData.append('session_id', sessionId);
+        await apiService.upload('/api/session/reset-all', formData);
       } catch (error) {
         console.error('重置所有数据失败:', error);
         addMessage?.('重置所有数据失败: ' + (error instanceof Error ? error.message : '未知错误'), 'error');

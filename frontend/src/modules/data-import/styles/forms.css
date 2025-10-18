@@ -7,12 +7,14 @@
   max-width: 400px;
 }
 
+/* 表单标签 */
 .form-group label {
   font-weight: 500;
   color: #333;
   font-size: 13px;
 }
 
+/* 表单输入框和选择框 */
 .form-group input,
 .form-group select {
   padding: 8px 10px;
@@ -22,6 +24,7 @@
   transition: border-color 0.3s ease;
 }
 
+/* 表单输入框和选择框聚焦状态 */
 .form-group input:focus,
 .form-group select:focus {
   outline: none;
@@ -29,7 +32,7 @@
   box-shadow: 0 0 0 2px rgba(66, 153, 225, 0.1);
 }
 
-/* 网格布局 */
+/* 表单网格布局 */
 .form-grid {
   display: grid;
   grid-template-columns: repeat(auto-fill, minmax(250px, 1fr));

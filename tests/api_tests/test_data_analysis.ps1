@@ -7,7 +7,7 @@ $baseUrl = "http://127.0.0.1:8000/api/analysis"
 # 先创建一个会话用于测试
 Write-Host "Creating session for analysis tests..." -ForegroundColor Green
 try {
-    $response = Invoke-WebRequest -Uri "http://localhost:8000/api/import/create-session" -Method POST
+    $response = Invoke-WebRequest -Uri "http://localhost:8000/api/session/create" -Method POST
     $content = $response.Content | ConvertFrom-Json
     $session_id = $content.session_id
     Write-Host "Session created: $session_id" -ForegroundColor Yellow
@@ -47,7 +47,7 @@ try {
     $body = @{
         session_id = $session_id
     }
-    $response = Invoke-WebRequest -Uri "http://localhost:8000/api/import/end-session" -Method POST -Body $body
+    $response = Invoke-WebRequest -Uri "http://localhost:8000/api/session/end" -Method POST -Body $body
     $content = $response.Content | ConvertFrom-Json
     Write-Host "Session ended: $($content.message)" -ForegroundColor Yellow
 } catch {

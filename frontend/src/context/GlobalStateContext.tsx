@@ -67,11 +67,19 @@ export const GlobalStateProvider: React.FC<{ children: ReactNode }> = ({ childre
     }
   }, []);
 
-  // 页面即将卸载时设置标记
+  // 页面即将卸载时设置标记并结束会话
   useEffect(() => {
     const handleBeforeUnload = () => {
       // 设置标记，表示下次加载时需要清除痕迹
       sessionStorage.setItem('shouldClearTraces', 'true');
+      
+      // 结束当前会话
+      const sessionId = sessionService.getCurrentSessionId();
+      if (sessionId) {
+        sessionService.deleteSession(sessionId).catch(error => {
+          console.error('结束会话失败:', error);
+        });
+      }
     };
 
     window.addEventListener('beforeunload', handleBeforeUnload);
@@ -98,7 +106,9 @@ export const GlobalStateProvider: React.FC<{ children: ReactNode }> = ({ childre
     // 同时清除会话
     const sessionId = sessionService.getCurrentSessionId();
     if (sessionId) {
-      sessionService.deleteSession(sessionId);
+      sessionService.deleteSession(sessionId).catch(error => {
+        console.error('结束会话失败:', error);
+      });
     }
   };
 

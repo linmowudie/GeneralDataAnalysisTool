@@ -1,7 +1,9 @@
+/* 数据分析模块主容器 */
 .data-analysis-module {
   padding: 15px;
 }
 
+/* 数据分析模块标题 */
 .data-analysis-module h3 {
   margin-top: 0;
   color: var(--error-color);
@@ -9,16 +11,19 @@
   padding-bottom: 8px;
 }
 
+/* 参数组 */
 .data-analysis-module .parameter-group {
   margin-bottom: 15px;
 }
 
+/* 标签 */
 .data-analysis-module label {
   display: block;
   margin-bottom: 5px;
   font-weight: 500;
 }
 
+/* 输入框和选择框 */
 .data-analysis-module input,
 .data-analysis-module select {
   width: 100%;
@@ -28,11 +33,21 @@
   box-sizing: border-box;
 }
 
+/* 复选框 */
 .data-analysis-module input[type="checkbox"] {
   width: auto;
   margin-right: 8px;
 }
 
+/* 模型描述 */
+.model-description {
+  margin-top: 5px;
+  font-size: 12px;
+  color: #666;
+  font-style: italic;
+}
+
+/* 运行分析按钮 */
 .run-analysis-btn {
   padding: 10px 20px;
   background-color: var(--error-color);
@@ -42,17 +57,25 @@
   cursor: pointer;
   font-weight: 500;
   width: 100%;
+  transition: background-color 0.3s ease;
 }
 
+/* 运行分析按钮悬停状态 */
 .run-analysis-btn:hover:not(:disabled) {
   background-color: #ff4d4f;
+  transform: translateY(-1px);
+  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.15);
 }
 
+/* 运行分析按钮禁用状态 */
 .run-analysis-btn:disabled {
   background-color: #bfbfbf;
   cursor: not-allowed;
+  transform: none;
+  box-shadow: none;
 }
 
+/* 错误消息 */
 .error-message {
   color: var(--error-color);
   background-color: #fff2f0;
