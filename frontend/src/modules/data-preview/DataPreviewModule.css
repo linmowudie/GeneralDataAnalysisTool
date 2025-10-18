@@ -3,6 +3,8 @@
   height: 100%;
   display: flex;
   flex-direction: column;
+  overflow: hidden; /* 防止整个模块溢出 */
+  width: 100%;
 }
 
 .data-preview-module h3 {
@@ -22,8 +24,9 @@
 
 .dataset-info h4 {
   margin-top: 0;
-  margin-bottom: 12px;
-  color: #495057;
+  margin-bottom: 10px;
+  color: #343a40;
+  font-size: 16px;
 }
 
 .info-item {
@@ -32,59 +35,161 @@
 }
 
 .info-label {
-  font-weight: 500;
+  font-weight: bold;
   width: 100px;
-  color: #6c757d;
+  color: #495057;
 }
 
 .info-value {
+  color: #212529;
+}
+
+.data-preview {
   flex: 1;
-  color: #495057;
+  display: flex;
+  flex-direction: column;
+  overflow-y: auto;
 }
 
-.data-preview h4 {
+/* 列名显示区域 */
+.columns-display {
+  margin-bottom: 20px;
+  padding: 15px;
+  background-color: #f8f9fa;
+  border: 1px solid #e9ecef;
+  border-radius: 4px;
+}
+
+.columns-display h4 {
   margin-top: 0;
-  margin-bottom: 12px;
-  color: #495057;
+  margin-bottom: 10px;
+  color: #343a40;
+  font-size: 16px;
 }
 
-.preview-header {
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  margin-bottom: 12px;
-}
-
-.row-selector {
-  display: flex;
-  align-items: center;
-  gap: 8px;
-}
-
-.row-selector label {
-  font-weight: 500;
-  color: #495057;
-}
-
-.row-selector select {
-  padding: 4px 8px;
+.columns-textbox {
+  background-color: #ffffff;
   border: 1px solid #ced4da;
   border-radius: 4px;
-  background-color: white;
+  padding: 10px;
+  min-height: 60px;
+  white-space: normal; /* 允许文本换行 */
+  word-wrap: break-word; /* 允许在单词内换行 */
+  line-height: 1.5;
+}
+
+.column-name {
+  display: inline; /* 保持在同一行显示 */
+  color: #495057;
   font-size: 14px;
 }
 
-.table-container {
-  overflow-x: auto;
-  border: 1px solid #dee2e6;
+/* 预览按钮 */
+.preview-button {
+  background-color: #007bff;
+  color: white;
+  border: none;
   border-radius: 4px;
-  max-width: 100%;
+  padding: 10px 15px;
+  cursor: pointer;
+  font-size: 14px;
+  align-self: flex-start;
+  margin-bottom: 20px;
+  transition: background-color 0.2s;
 }
 
+.preview-button:hover {
+  background-color: #0056b3;
+}
+
+/* 悬浮表格容器 */
+.floating-table-container {
+  position: fixed;
+  width: 800px;
+  height: 500px;
+  background-color: white;
+  border: 1px solid #ccc;
+  border-radius: 8px;
+  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
+  z-index: 1000;
+  display: flex;
+  flex-direction: column;
+}
+
+/* 可拖动的标题栏 */
+.draggable-header {
+  background-color: #343a40;
+  color: white;
+  padding: 10px 15px;
+  border-top-left-radius: 8px;
+  border-top-right-radius: 8px;
+  cursor: move;
+  display: flex;
+  justify-content: space-between;
+  align-items: center;
+}
+
+.draggable-header span {
+  font-weight: bold;
+  font-size: 14px;
+}
+
+.close-button {
+  background: none;
+  color: white;
+  border: none;
+  font-size: 20px;
+  cursor: pointer;
+  padding: 0;
+  width: 24px;
+  height: 24px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  border-radius: 4px;
+  transition: background-color 0.2s;
+}
+
+.close-button:hover {
+  background-color: rgba(255, 255, 255, 0.2);
+}
+
+/* 表格控制区域 */
+.table-controls {
+  background-color: #f8f9fa;
+  padding: 10px 15px;
+  border-bottom: 1px solid #e9ecef;
+  display: flex;
+  align-items: center;
+  gap: 10px;
+}
+
+.table-controls label {
+  font-size: 14px;
+  color: #495057;
+}
+
+.table-controls select {
+  padding: 5px;
+  border: 1px solid #ced4da;
+  border-radius: 4px;
+  font-size: 14px;
+}
+
+/* 表格容器 */
+.table-container {
+  flex: 1;
+  overflow-x: auto;
+  overflow-y: auto;
+  border: 1px solid #dee2e6;
+  border-left: none;
+  border-right: none;
+}
+
+/* 表格样式 */
 .data-table {
-  width: auto;
+  width: auto; /* 让表格宽度根据内容自动调整 */
   border-collapse: collapse;
-  min-width: 100%;
   white-space: nowrap;
 }
 
@@ -93,34 +198,46 @@
   padding: 8px 12px;
   text-align: left;
   border-bottom: 1px solid #dee2e6;
+  border-right: 1px solid #f0f0f0;
   white-space: nowrap;
+  min-width: 100px;
+  user-select: text;
 }
 
 .data-table th {
   background-color: #f8f9fa;
   font-weight: 600;
-  color: #495057;
+  color: #343a40;
   position: sticky;
   top: 0;
+  z-index: 10;
 }
 
-.data-table tbody tr:hover {
+.data-table tr:nth-child(even) {
+  background-color: #f9f9f9;
+}
+
+.data-table tr:hover {
+  background-color: #f1f3f4;
+}
+
+/* 表格页脚 */
+.table-footer {
   background-color: #f8f9fa;
-}
-
-.preview-footer {
-  margin-top: 10px;
-  text-align: right;
-  color: #6c757d;
+  padding: 10px 15px;
+  border-top: 1px solid #e9ecef;
   font-size: 14px;
+  color: #6c757d;
+  text-align: center;
 }
 
+/* 错误消息 */
 .error-message {
   color: #dc3545;
   background-color: #f8d7da;
   border: 1px solid #f5c6cb;
-  padding: 10px;
   border-radius: 4px;
+  padding: 10px;
   margin-top: 10px;
 }
 

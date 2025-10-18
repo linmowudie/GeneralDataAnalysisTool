@@ -28,7 +28,8 @@ dependencies = [
     "pydantic>=1.8.0",
     "requests>=2.25.0",
     "jinja2>=3.0.0",
-    "python-multipart>=0.0.5"
+    "python-multipart>=0.0.5",
+    "pyarrow>=17.0.0",
 ]
 
 [project.optional-dependencies]

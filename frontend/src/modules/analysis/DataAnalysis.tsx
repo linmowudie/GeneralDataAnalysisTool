@@ -48,6 +48,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   const [panelHeights, setPanelHeights] = useState<{ top: string; bottom: string }>({ top: '70%', bottom: '30%' });
   const [isDragging, setIsDragging] = useState(false);
   const [activeStep, setActiveStep] = useState<'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report'>('import');
+  const [completedSteps, setCompletedSteps] = useState<Set<string>>(new Set(['import'])); // 导入步骤默认为已完成
   const [messages, setMessages] = useState<Message[]>([]);
   const [analysisResult, setAnalysisResult] = useState<any>(null);
   const messagesEndRef = useRef<HTMLDivElement>(null);
@@ -145,6 +146,17 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
 
   const handleStepChange = (step: 'import' | 'preview' | 'cleaning' | 'analysis' | 'visualization' | 'report') => {
     setActiveStep(step);
+    // 更新已完成步骤：当前步骤之前的所有步骤都标记为已完成
+    const steps = ['import', 'preview', 'cleaning', 'analysis', 'visualization', 'report'];
+    const currentIndex = steps.indexOf(step);
+    const newCompletedSteps = new Set<string>();
+    
+    for (let i = 0; i <= currentIndex; i++) {
+      newCompletedSteps.add(steps[i]);
+    }
+    
+    setCompletedSteps(newCompletedSteps);
+    
     // 更新URL但不刷新页面
     navigate(`/analysis/${step}`);
   };
@@ -162,7 +174,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       case 'import':
         return (
           <ImportMessageContext.Provider value={addMessage}>
-            <DataImportModule key={`import-${timestamp}`} />
+            <DataImportModule key="data-import" />
           </ImportMessageContext.Provider>
         );
       case 'preview':
@@ -264,6 +276,7 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
     
     // 重置本地状态
     setActiveStep('import');
+    setCompletedSteps(new Set(['import'])); // 重置已完成步骤，只保留导入
     setMessages([]);
     setAnalysisResult(null);
     
@@ -298,57 +311,57 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
         <div className="left-panel">
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'import' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'import' ? 'active' : ''} ${completedSteps.has('import') ? 'completed' : ''}`}
               onClick={() => handleStepChange('import')}
             >
               导入
             </button>
-            <div className={`step-indicator ${activeStep === 'import' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'import' ? 'active' : ''} ${completedSteps.has('import') ? 'completed' : ''}`}></div>
           </div>
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'preview' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'preview' ? 'active' : ''} ${completedSteps.has('preview') ? 'completed' : ''}`}
               onClick={() => handleStepChange('preview')}
             >
               预览
             </button>
-            <div className={`step-indicator ${activeStep === 'preview' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'preview' ? 'active' : ''} ${completedSteps.has('preview') ? 'completed' : ''}`}></div>
           </div>
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'cleaning' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'cleaning' ? 'active' : ''} ${completedSteps.has('cleaning') ? 'completed' : ''}`}
               onClick={() => handleStepChange('cleaning')}
             >
               清洗
             </button>
-            <div className={`step-indicator ${activeStep === 'cleaning' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'cleaning' ? 'active' : ''} ${completedSteps.has('cleaning') ? 'completed' : ''}`}></div>
           </div>
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'analysis' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'analysis' ? 'active' : ''} ${completedSteps.has('analysis') ? 'completed' : ''}`}
               onClick={() => handleStepChange('analysis')}
             >
               分析
             </button>
-            <div className={`step-indicator ${activeStep === 'analysis' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'analysis' ? 'active' : ''} ${completedSteps.has('analysis') ? 'completed' : ''}`}></div>
           </div>
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'visualization' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'visualization' ? 'active' : ''} ${completedSteps.has('visualization') ? 'completed' : ''}`}
               onClick={() => handleStepChange('visualization')}
             >
               可视化
             </button>
-            <div className={`step-indicator ${activeStep === 'visualization' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'visualization' ? 'active' : ''} ${completedSteps.has('visualization') ? 'completed' : ''}`}></div>
           </div>
           <div className="process-step">
             <button 
-              className={`step-button ${activeStep === 'report' ? 'active' : ''}`}
+              className={`step-button ${activeStep === 'report' ? 'active' : ''} ${completedSteps.has('report') ? 'completed' : ''}`}
               onClick={() => handleStepChange('report')}
             >
               报表
             </button>
-            <div className={`step-indicator ${activeStep === 'report' ? 'active' : ''}`}></div>
+            <div className={`step-indicator ${activeStep === 'report' ? 'active' : ''} ${completedSteps.has('report') ? 'completed' : ''}`}></div>
           </div>
         </div>
         

@@ -51,7 +51,9 @@ const DataImportModule: React.FC = () => {
 
   // 处理文件选择
   const handleFileChange = (e: React.ChangeEvent<HTMLInputElement>) => {
+    console.log('文件选择事件触发:', e.target.files);
     if (e.target.files && e.target.files[0]) {
+      console.log('选中的文件:', e.target.files[0]);
       setSelectedFile(e.target.files[0]);
       setUploadStatus('idle');
       setUploadMessage('');
@@ -59,11 +61,16 @@ const DataImportModule: React.FC = () => {
         uploadStatus: 'idle',
         uploadMessage: ''
       });
+      addMessage && addMessage(`已选择文件: ${e.target.files[0].name}`, 'info');
+    } else {
+      console.log('未选择文件或取消选择');
+      addMessage && addMessage('未选择文件', 'warning');
     }
   };
   
   // 处理文件上传
   const handleFileUpload = async () => {
+    console.log('开始处理文件上传，选中的文件:', selectedFile);
     if (!selectedFile) {
       setUploadMessage('请选择一个文件');
       updateGlobalState({
@@ -76,9 +83,12 @@ const DataImportModule: React.FC = () => {
     try {
       // 确保有会话ID
       let sessionId = sessionService.getCurrentSessionId();
+      console.log('当前会话ID:', sessionId);
       if (!sessionId) {
+        console.log('创建新会话...');
         await sessionService.createSession();
         sessionId = sessionService.getCurrentSessionId();
+        console.log('新会话ID:', sessionId);
         if (!sessionId) {
           throw new Error('创建会话失败');
         }
@@ -106,6 +116,7 @@ const DataImportModule: React.FC = () => {
       }, 300);
       
       // 上传文件
+      console.log('开始上传文件到服务器...');
       const response = await dataImportService.uploadFile(selectedFile, sessionId);
       
       clearInterval(progressInterval);
@@ -351,6 +362,15 @@ const DataImportModule: React.FC = () => {
                 {uploadStatus === 'uploading' ? '上传中...' : '上传'}
               </button>
             </div>
+            
+            {/* 显示选中的文件名 */}
+            {selectedFile && (
+              <div className="selected-file-info">
+                <p>已选择文件: {selectedFile.name}</p>
+                <p>文件大小: {selectedFile.size} 字节</p>
+                <p>文件类型: {selectedFile.type}</p>
+              </div>
+            )}
             
             {/* 上传进度条 */}
             {(uploadStatus === 'uploading' || uploadStatus === 'success' || uploadStatus === 'error') && (

@@ -4,6 +4,8 @@
   border-bottom: 1px solid var(--border-color);
   display: flex;
   flex-direction: column;
+  height: 100%;
+  min-height: 0; /* 确保flex子元素可以正确收缩 */
 }
 
 .message-panel-header {
@@ -40,14 +42,59 @@
   flex: 1;
   overflow-y: auto;
   font-size: 12px;
+  min-height: 0; /* 确保在没有内容时也能正确显示 */
+  /* 自定义滚动条样式 */
+  scrollbar-width: thin;
+  scrollbar-color: #888 #f1f1f1;
+}
+
+/* Chrome, Edge and Safari 滚动条样式 */
+.messages-content::-webkit-scrollbar {
+  width: 8px;
+}
+
+.messages-content::-webkit-scrollbar-track {
+  background: #f1f1f1;
+  border-radius: 4px;
+}
+
+.messages-content::-webkit-scrollbar-thumb {
+  background: #888;
+  border-radius: 4px;
+}
+
+.messages-content::-webkit-scrollbar-thumb:hover {
+  background: #555;
 }
 
 .message-item {
-  padding: 4px 0;
+  padding: 8px 0;
   border-bottom: 1px solid #f0f0f0;
   display: flex;
   flex-direction: column;
   position: relative;
+  transition: background-color 0.2s ease;
+}
+
+.message-item:hover {
+  background-color: #f8f9fa;
+}
+
+/* 为不同类型的消息添加颜色区分 */
+.message-item.message-success {
+  border-left: 3px solid var(--success-color);
+}
+
+.message-item.message-warning {
+  border-left: 3px solid var(--warning-color);
+}
+
+.message-item.message-error {
+  border-left: 3px solid var(--error-color);
+}
+
+.message-item.message-info {
+  border-left: 3px solid var(--info-color);
 }
 
 .message-body {
