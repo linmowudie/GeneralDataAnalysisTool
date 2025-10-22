@@ -11,7 +11,8 @@ export class ApiService {
 
   constructor(baseURL: string = '') {
     this.axiosInstance = axios.create({
-      baseURL: baseURL || import.meta.env.VITE_API_BASE_URL || 'http://localhost:8000',
+      // 使用Vite的环境变量方式，并添加默认值
+      baseURL: baseURL || import.meta.env?.VITE_API_BASE_URL || 'http://localhost:8000',
       timeout: 30000,
       headers: {
         'Content-Type': 'application/json'

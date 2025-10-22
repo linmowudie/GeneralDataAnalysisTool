@@ -1,6 +1,6 @@
 from fastapi import FastAPI
 from fastapi.middleware.cors import CORSMiddleware
-from fastapi.responses import HTMLResponse
+from fastapi.responses import HTMLResponse, RedirectResponse
 from typing import Optional
 import os
 import sys
@@ -26,7 +26,9 @@ doc_reader = DocumentReader(os.path.dirname(__file__))
 app = FastAPI(
     title="通用数据分析工具 API",
     description="为通用数据分析工具提供后端API服务",
-    version="0.1.0"
+    version="0.1.0",
+    docs_url="/api/documentation",      # 修改默认文档地址
+    redoc_url="/api/documentation/redoc"  # 修改默认ReDoc地址
 )
 
 # 配置CORS
@@ -73,6 +75,16 @@ async def technical_docs(file: Optional[str] = None):
     """技术文档"""
     api_logger.info(f"访问技术文档: {file}")
     return doc_reader.read_technical_docs(file)
+
+@app.get("/", response_class=RedirectResponse, tags=["根路径"])
+async def root_redirect():
+    """根路径重定向到技术文档"""
+    return "/api/docs/technical"
+
+@app.get("/api/documentation", response_class=RedirectResponse, tags=["文档"])
+async def documentation_redirect():
+    """API文档重定向到技术文档"""
+    return "/api/docs/technical"
 
 @app.on_event("startup")
 async def startup_event():

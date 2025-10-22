@@ -105,13 +105,15 @@ class Classification(BaseAnalyzer):
             self.X_train, self.y_train = self.X, self.y
             self.X_test, self.y_test = self.X, self.y
 
+    @run_timer
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
         logger.info(f"初始化分类模型: {self.model_name}")
-        from .analyzer import MODEL_CONFIG
+        from .analyzer import MODEL_CONFIG, _get_model_class
         
         config = MODEL_CONFIG[self.model_name]
-        model_class = config['class']
+        # 使用_get_model_class函数获取实际的类对象，而不是使用配置中的字符串
+        model_class = _get_model_class(self.model_name)
         params = config['default_params'].copy()
 
         # 允许传入的额外参数覆盖默认参数
@@ -120,7 +122,9 @@ class Classification(BaseAnalyzer):
 
         # 若模型支持 random_state，则强制注入，保证可复现
         try:
-            if 'random_state' in model_class().get_params().keys():
+            # 先创建一个临时实例来检查参数
+            temp_instance = model_class(**{k: v for k, v in params.items() if k != 'random_state'})
+            if 'random_state' in temp_instance.get_params().keys():
                 params['random_state'] = self.random_state
         except:
             pass  # 某些模型可能不支持 get_params()
@@ -191,6 +195,26 @@ class Classification(BaseAnalyzer):
             except:
                 self.model_params = {}
 
+    @run_timer
+    def _setup_result(self) -> Dict[str, Any]:
+        """
+        组装返回结果
+        覆盖父类方法，添加分类特有的信息
+        """
+        # 获取基础结果
+        result = super()._setup_result()
+        
+        # 确保使用正确的键名
+        if 'scores' in result and 'model_score' not in result:
+            result['model_score'] = result.pop('scores')
+        
+        # 添加分类特有信息
+        if hasattr(self.trained_model, 'feature_importances_'):
+            result['feature_importances'] = self.trained_model.feature_importances_.tolist()  # 转换为可序列化的列表
+        
+        return result
+
+    @run_timer
     def run(self) -> Dict[str, Any]:
         """
         执行分类分析
@@ -209,7 +233,6 @@ class Classification(BaseAnalyzer):
 
             # 组装返回结果
             result = self._setup_result()
-
             logger.info("分类分析执行完成。")
             return result
 

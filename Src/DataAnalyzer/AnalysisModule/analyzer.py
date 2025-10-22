@@ -202,6 +202,7 @@ def analyze_data(
 ) -> Dict[str, Any]:
     """
     通用数据分析接口函数
+    根据任务类型选择合适的分析器类
     
     Args:
         df: 训练数据集 DataFrame
@@ -239,80 +240,77 @@ def analyze_data(
     model_config = MODEL_CONFIG[model]
     task_type = model_config['type']
     
-    # 确定特征列和目标列
-    if feature_cols is None:
-        if target_col is None:
-            feature_cols = list(df.columns)
-        else:
-            feature_cols = [col for col in df.columns if col != target_col]
-    
-    # 准备数据
-    X = df[feature_cols]
-    y = df[target_col] if target_col else None
-    
-    # 数据划分
-    X_train, X_test, y_train, y_test = None, None, None, None
-    if is_split and y is not None:
-        X_train, X_test, y_train, y_test = train_test_split(
-            X, y, test_size=1-split_ratio, random_state=random_state
+    # 根据任务类型选择合适的分析器类
+    if task_type == 'classification':
+        from .classification import Classification
+        analyzer = Classification(
+            df=df,
+            model=model,
+            random_state=random_state,
+            is_split=is_split,
+            split_ratio=split_ratio,
+            feature_cols=feature_cols,
+            target_col=target_col,
+            is_return_model_param=is_return_model_param,
+            metrics_list=metrics_list,
+            is_return_model_score=is_return_model_score,
+            is_return_training_set=is_return_training_set,
+            is_return_model_predicting_set=is_return_model_predicting_set,
+            feature_cols_encoding=feature_cols_encoding,
+            target_col_encoding=target_col_encoding,
+            test_set=test_set,
+            model_params=model_params
+        )
+    elif task_type == 'regression':
+        from .regression import Regression
+        analyzer = Regression(
+            df=df,
+            model=model,
+            random_state=random_state,
+            is_split=is_split,
+            split_ratio=split_ratio,
+            feature_cols=feature_cols,
+            target_col=target_col,
+            is_return_model_param=is_return_model_param,
+            metrics_list=metrics_list,
+            is_return_model_score=is_return_model_score,
+            is_return_training_set=is_return_training_set,
+            is_return_model_predicting_set=is_return_model_predicting_set,
+            feature_cols_encoding=feature_cols_encoding,
+            target_col_encoding=target_col_encoding,
+            test_set=test_set,
+            model_params=model_params
+        )
+    elif task_type == 'clustering':
+        from .clustering import Clustering
+        analyzer = Clustering(
+            df=df,
+            model=model,
+            random_state=random_state,
+            is_split=is_split,
+            split_ratio=split_ratio,
+            feature_cols=feature_cols,
+            target_col=target_col,
+            is_return_model_param=is_return_model_param,
+            metrics_list=metrics_list,
+            is_return_model_score=is_return_model_score,
+            is_return_training_set=is_return_training_set,
+            is_return_model_predicting_set=is_return_model_predicting_set,
+            feature_cols_encoding=feature_cols_encoding,
+            target_col_encoding=target_col_encoding,
+            test_set=test_set,
+            model_params=model_params
         )
     else:
-        X_train, y_train = X, y
+        raise ValueError(f"未知的任务类型: {task_type}")
     
-    # 获取模型类并创建实例
-    ModelClass = _get_model_class(model)
+    # 执行分析并返回结果
+    # 每个特定类型的分析器负责自己的结果组装
+    result = analyzer.run()
     
-    # 处理模型参数
-    params = model_config.get('default_params', {}).copy()
-    if model_params:
-        params.update(model_params)
-    
-    # 特殊处理某些参数
-    if 'random_state' in model_config.get('init_params', []) and 'random_state' not in params:
-        params['random_state'] = random_state
-    
-    # 创建模型实例
-    model_instance = ModelClass(**params)
-    
-    # 训练模型
-    if y_train is not None:
-        model_instance.fit(X_train, y_train)
-    else:
-        model_instance.fit(X_train)
-    
-    # 预测
-    predictions = None
-    if is_return_model_predicting_set and X_test is not None:
-        predictions = model_instance.predict(X_test)
-    
-    # 评估模型
-    model_score = {}
-    if is_return_model_score and y_test is not None and predictions is not None:
-        # 根据任务类型选择合适的评估指标
-        if task_type in METRICS_MAP:
-            for metric_name, metric_func in METRICS_MAP[task_type].items():
-                try:
-                    if metric_name in ['r2', 'mse', 'mae']:  # 回归指标
-                        model_score[metric_name] = float(metric_func(y_test, predictions))
-                    elif metric_name in ['accuracy']:  # 分类指标
-                        model_score[metric_name] = float(metric_func(y_test, predictions))
-                    elif metric_name in ['ari', 'silhouette']:  # 聚类指标
-                        model_score[metric_name] = float(metric_func(y_test, predictions))
-                except Exception as e:
-                    logger.warning(f"计算指标 {metric_name} 时出错: {e}")
-    
-    # 构建返回结果
-    result = {
-        'trained_model': model_instance,
-        'task_type': task_type,
-        'model_params': params if is_return_model_param else None,
-        'model_score': model_score if is_return_model_score else None,
-        'X_train': X_train if is_return_training_set else None,
-        'X_test': X_test if is_return_training_set else None,
-        'y_train': y_train if is_return_training_set else None,
-        'y_test': y_test if is_return_training_set else None,
-        'predictions': predictions if is_return_model_predicting_set else None,
-    }
+    # 确保所有结果都使用一致的键名
+    if 'scores' in result and 'model_score' not in result:
+        result['model_score'] = result.pop('scores')
     
     return result
 

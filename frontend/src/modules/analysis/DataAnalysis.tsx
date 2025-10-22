@@ -27,6 +27,14 @@ interface DataAnalysisProps {
 }
 
 const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
+  // 添加组件实例ID，用于标识不同的组件实例
+  const componentId = React.useRef(Math.random().toString(36).substr(2, 9));
+  
+  // 调试组件渲染
+  React.useEffect(() => {
+    console.log(`[父组件渲染] DataAnalysis (ID: ${componentId.current}) 渲染`);
+  });
+  
   const navigate = useNavigate();
   const location = useLocation();
   const { resetState } = useGlobalState();
@@ -57,7 +65,8 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   const containerRef = useRef<HTMLDivElement>(null);
 
   // 添加消息到消息面板
-  const addMessage = (message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+  const addMessage = React.useCallback((message: string, type: 'info' | 'success' | 'warning' | 'error' = 'info') => {
+    console.log(`[消息添加] DataAnalysis (ID: ${componentId.current}) 添加消息: ${message}`);
     const newMessage: Message = {
       id: Date.now().toString() + Math.random().toString(36).substr(2, 9), // 添加随机字符串确保唯一性
       type,
@@ -65,7 +74,12 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
       timestamp: new Date()
     };
     setMessages(prev => [...prev, newMessage]);
-  };
+  }, []); // 空依赖数组确保函数引用稳定
+  
+  // 调试addMessage函数引用
+  React.useEffect(() => {
+    console.log(`[函数引用] DataAnalysis (ID: ${componentId.current}) addMessage函数引用:`, addMessage);
+  }, [addMessage]);
 
   // 滚动到最新消息
   const scrollToBottom = () => {
@@ -167,44 +181,42 @@ const DataAnalysis: React.FC<DataAnalysisProps> = ({ onTabChange }) => {
   };
 
   const renderParameterContent = () => {
-    // 使用时间戳作为key的一部分，确保组件在需要时能被重新创建
-    const timestamp = Date.now();
-    
+    console.log(`[渲染子组件] DataAnalysis (ID: ${componentId.current}) 渲染${activeStep}步骤组件`);
     switch (activeStep) {
       case 'import':
         return (
           <ImportMessageContext.Provider value={addMessage}>
-            <DataImportModule key="data-import" />
+            <DataImportModule />
           </ImportMessageContext.Provider>
         );
       case 'preview':
         return (
           <PreviewMessageContext.Provider value={addMessage}>
-            <DataPreviewModule key={`preview-${timestamp}`} />
+            <DataPreviewModule />
           </PreviewMessageContext.Provider>
         );
       case 'cleaning':
         return (
           <CleaningMessageContext.Provider value={addMessage}>
-            <DataCleaningModule key={`cleaning-${timestamp}`} />
+            <DataCleaningModule />
           </CleaningMessageContext.Provider>
         );
       case 'analysis':
         return (
           <AnalysisMessageContext.Provider value={addMessage}>
-            <DataAnalysisModule key={`analysis-${timestamp}`} onAnalysisComplete={handleAnalysisComplete} />
+            <DataAnalysisModule onAnalysisComplete={handleAnalysisComplete} />
           </AnalysisMessageContext.Provider>
         );
       case 'visualization':
         return (
           <VisualizationMessageContext.Provider value={addMessage}>
-            <VisualizationModule key={`visualization-${timestamp}`} />
+            <VisualizationModule />
           </VisualizationMessageContext.Provider>
         );
       case 'report':
         return (
           <ReportingMessageContext.Provider value={addMessage}>
-            <ReportingModule key={`report-${timestamp}`} />
+            <ReportingModule />
           </ReportingMessageContext.Provider>
         );
       default:

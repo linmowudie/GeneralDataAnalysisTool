@@ -181,20 +181,32 @@ class BaseAnalyzer:
     def _setup_result(self) -> Dict[str, Any]:
         """
         组装返回结果
+        子类可以重写此方法以添加特定任务类型的字段
         """
-        result = {}
-        if self.is_return_model_score:
-            result['scores'] = self.scores
-        if self.is_return_model_param:
-            result['model_params'] = self.model_params
+        result = {
+            'task_type': self.task_type,
+            'trained_model': self.trained_model,
+            'model_params': self.model_params if self.is_return_model_param else {},
+            'model_score': self.scores if self.is_return_model_score else {},
+        }
+        
+        # 只在需要时添加训练集和测试集信息
         if self.is_return_model_training_set:
-            result['X_train'] = self.X_train
-            result['y_train'] = self.y_train
-            result['X_test'] = self.X_test
-            result['y_test'] = self.y_test
-        if self.is_return_model_predicting_set:
-            result['predictions'] = self.predictions
-        result['trained_model'] = self.trained_model
-        result['task_type'] = self.task_type
-
+            result.update({
+                'X_train': self.X_train,
+                'y_train': self.y_train,
+                'X_test': self.X_test,
+                'y_test': self.y_test
+            })
+        else:
+            result.update({
+                'X_train': None,
+                'y_train': None,
+                'X_test': None,
+                'y_test': None
+            })
+        
+        # 只在需要时添加预测结果
+        result['predictions'] = self.predictions if self.is_return_model_predicting_set else None
+        
         return result

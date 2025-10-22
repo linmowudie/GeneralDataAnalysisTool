@@ -104,28 +104,27 @@ class DataAnalyzer:
                 logger.error(msg)
                 raise ValueError(msg)
     
-    def analyze(self) -> dict:
+    def analyze(self) -> Dict[str, Any]:
         """执行数据分析并返回结果"""
-        result: dict = {}
-
-        analyzer = AnalyzeData(
-            self.df, 
-            self.model_name, 
-            self.random_state, 
-            self.is_split, 
-            self.split_ratio,
-            self.feature_cols,
-            self.target_col, 
-            self.is_return_model_param, 
-            self.metrics_list,
-            self.is_return_model_score, 
-            self.is_return_model_training_set,
-            self.is_return_model_predicting_set,
-            self.feature_cols_encoding,
-            self.target_col_encoding,
-            self.test_set,
-            self.model_params
+        # 直接调用analyze_data函数，确保使用最新的实现
+        from ..AnalysisModule.analyzer import analyze_data
+        
+        result = analyze_data(
+            df=self.df,
+            model=self.model_name,
+            random_state=self.random_state,
+            is_split=self.is_split,
+            split_ratio=self.split_ratio,
+            feature_cols=self.feature_cols,
+            target_col=self.target_col,
+            is_return_model_param=self.is_return_model_param,
+            metrics_list=self.metrics_list,
+            is_return_model_score=self.is_return_model_score,
+            is_return_training_set=self.is_return_model_training_set,
+            is_return_model_predicting_set=self.is_return_model_predicting_set,
+            feature_cols_encoding=self.feature_cols_encoding,
+            target_col_encoding=self.target_col_encoding,
+            test_set=self.test_set,
+            model_params=self.model_params
         )
-        result = analyzer.run()
-
         return result

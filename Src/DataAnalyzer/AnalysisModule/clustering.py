@@ -105,10 +105,11 @@ class Clustering(BaseAnalyzer):
     def _initialize_model(self) -> None:
         """步骤4：用默认或用户传入参数初始化模型"""
         logger.info(f"初始化聚类模型: {self.model_name}")
-        from .analyzer import MODEL_CONFIG
+        from .analyzer import MODEL_CONFIG, _get_model_class
         
         config = MODEL_CONFIG[self.model_name]
-        model_class = config['class']
+        # 使用_get_model_class函数获取实际的类对象，而不是使用配置中的字符串
+        model_class = _get_model_class(self.model_name)
         params = config['default_params'].copy()
 
         # 允许传入的额外参数覆盖默认参数
@@ -117,7 +118,9 @@ class Clustering(BaseAnalyzer):
 
         # 若模型支持 random_state，则强制注入，保证可复现
         try:
-            if 'random_state' in model_class().get_params().keys():
+            # 先创建一个临时实例来检查参数
+            temp_instance = model_class(**{k: v for k, v in params.items() if k != 'random_state'})
+            if 'random_state' in temp_instance.get_params().keys():
                 params['random_state'] = self.random_state
         except:
             pass  # 某些模型可能不支持 get_params()
@@ -185,6 +188,34 @@ class Clustering(BaseAnalyzer):
                     self.scores['silhouette'] = silhouette_score(self.X_train, self.trained_model.labels_)
             except Exception:
                 self.scores['silhouette'] = None
+
+    @run_timer
+    def _setup_result(self) -> Dict[str, Any]:
+        """
+        组装返回结果
+        覆盖父类方法，添加聚类特有的信息
+        """
+        # 获取基础结果
+        result = super()._setup_result()
+        
+        # 确保使用正确的键名
+        if 'scores' in result and 'model_score' not in result:
+            result['model_score'] = result.pop('scores')
+        
+        # 添加聚类特有信息
+        if hasattr(self.trained_model, 'cluster_centers_'):
+            result['cluster_centers'] = self.trained_model.cluster_centers_.tolist()  # 转换为可序列化的列表
+            result['n_clusters'] = len(self.trained_model.cluster_centers_)
+        
+        if hasattr(self.trained_model, 'labels_'):
+            result['cluster_labels'] = self.trained_model.labels_.tolist()  # 转换为可序列化的列表
+        
+        # 确保聚类任务总是有预测结果
+        if result['predictions'] is None and hasattr(self.trained_model, 'labels_'):
+            # 使用训练集的标签作为预测结果
+            result['predictions'] = pd.Series(self.trained_model.labels_, index=self.X_train.index, name='cluster')
+        
+        return result
 
     @run_timer
     def run(self) -> Dict[str, Any]:
