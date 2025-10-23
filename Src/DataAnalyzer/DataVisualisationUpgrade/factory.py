@@ -289,6 +289,18 @@ class VisualizationFactory:
                 return LinearRegressionStrategy(params)
             except ImportError:
                 pass
+        elif model_name.lower() == "decisiontreeregressor":
+            try:
+                from .regression.decisiontreeregressor import DecisionTreeRegressorStrategy
+                return DecisionTreeRegressorStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "randomforestregressor":
+            try:
+                from .regression.randomforestregressor import RandomForestRegressorStrategy
+                return RandomForestRegressorStrategy(params)
+            except ImportError:
+                pass
         
         # 如果没有找到特定的策略类，则使用基础策略
         from .base_visualization import VisualizationStrategy
@@ -316,6 +328,18 @@ class VisualizationFactory:
                 return KMeansStrategy(params)
             except ImportError:
                 pass
+        elif model_name.lower() == "meanshift":
+            try:
+                from .clustering.meanshift import MeanShiftStrategy
+                return MeanShiftStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() in ["agglomerativeclustering", "hierarchical"]:
+            try:
+                from .clustering.agglomerativeclustering import AgglomerativeClusteringStrategy
+                return AgglomerativeClusteringStrategy(params)
+            except ImportError:
+                pass
         
         # 如果没有找到特定的策略类，则使用基础策略
         from .base_visualization import VisualizationStrategy
@@ -341,6 +365,36 @@ class VisualizationFactory:
             try:
                 from .transformer.pca import PCAStrategy
                 return PCAStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "standardscaler":
+            try:
+                from .transformer.standardscaler import StandardScalerStrategy
+                return StandardScalerStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "tsne":
+            try:
+                from .transformer.tsne import TSNEStrategy
+                return TSNEStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "umap":
+            try:
+                from .transformer.umap import UMAPStrategy
+                return UMAPStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "three_d":
+            try:
+                from .transformer.three_d import ThreeDStrategy
+                return ThreeDStrategy(params)
+            except ImportError:
+                pass
+        elif model_name.lower() == "no_model":
+            try:
+                from .transformer.no_model import NoModelStrategy
+                return NoModelStrategy(params)
             except ImportError:
                 pass
         

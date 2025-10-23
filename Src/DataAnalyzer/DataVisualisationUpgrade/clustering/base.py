@@ -45,3 +45,12 @@ class ClusteringStrategy(VisualizationStrategy):
                 raise ValueError("模型对象没有标签或预测方法")
         
         raise ValueError("无法获取聚类标签")
+        
+    def _get_feature_data(self):
+        """
+        获取特征数据
+        """
+        X = self.params.get("X", self.params.get("X_train"))
+        if X is None:
+            raise ValueError("无法获取特征数据")
+        return X

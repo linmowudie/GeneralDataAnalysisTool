@@ -52,13 +52,17 @@ class TransformerStrategySelector:
                 "embedding_scatter",
                 "connectivity_plot"
             ])
+        elif "three_d" in model_name:
+            # 3D投影
+            selected_charts.extend([
+                "scatter_3d",
+                "surface_3d",
+                "wireframe_3d"
+            ])
         elif "no_model" in model_name:
             # 无模型图表
-            selected_charts.extend([
-                "pie",
-                "word_cloud",
-                "network_graph"
-            ])
+            task_list = params.get("task_list", [])
+            selected_charts.extend(task_list)
         else:
             # 默认变换器图表
             selected_charts.append("before_after_distribution")

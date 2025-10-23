@@ -20,3 +20,12 @@ class TransformerStrategy(VisualizationStrategy):
         for param in required:
             if param not in self.params:
                 raise ValueError(f"变换器任务缺少必要参数: {param}")
+                
+    def _get_training_data(self):
+        """
+        获取训练数据
+        """
+        X_train = self.params.get("X_train")
+        if X_train is None:
+            raise ValueError("无法获取训练数据")
+        return X_train

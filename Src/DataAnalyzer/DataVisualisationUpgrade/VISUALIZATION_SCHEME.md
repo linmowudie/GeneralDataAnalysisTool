@@ -26,10 +26,10 @@ DataVisualisationUpgrade 模块采用工厂模式和策略模式相结合的设�
 ### 3.1 初始化阶段
 
 1. 用户通过 [DataVisualization](file:///E:/ProjectCode/GeneralDataAnalysisTool/Src/DataAnalyzer/ModuleInterfaces/data_visualization_upgrade_interfaces.py#L17-L108) 接口类传入参数：
-   - `model_name`: 模型名称
-   - `model`: 模型对象
-   - `task_list`: 任务列表
-   - `data_dict`: 数据字典
+   - `model_name`: 模型名称，用于读取配置文件，和校验是否支持该模型
+   - `model`: 模型对象，用于已训练模型的各种参数，方便绘图
+   - `task_list`: 任务列表，包含模型所对应的可选图像类型，需要检验，有不满足的模型将抛出警告到日志
+   - `data_dict`: 数据字典，包含`特征集`和`目标列`，特征集又包含`训练集`和`测试集`
    - `label_style`: 标签样式
    - `plot_style`: 绘图样式
    - `font_style`: 字体样式
@@ -72,19 +72,19 @@ DataVisualisationUpgrade 模块采用工厂模式和策略模式相结合的设�
 
 ```python
 params = {
-    "model_name": str,           # 模型名称
-    "model": object,             # 模型对象
-    "task_list": List[str],      # 任务列表
-    "label_style": str,          # 标签样式
-    "plot_style": str,           # 绘图样式
-    "font_style": str,           # 字体样式
-    # 数据相关参数，来自 data_dict
-    "X_train": array,            # 训练特征
-    "y_train": array,            # 训练标签
-    "X_test": array,             # 测试特征
-    "y_test": array,             # 测试标签
-    # 任务特定参数
-    # ... 其他参数
+    "model_name": str,           // 模型名称
+    "model": object,             // 模型对象
+    "task_list": List[str],      // 任务列表
+    "label_style": str,          // 标签样式
+    "plot_style": str,           // 绘图样式
+    "font_style": str,           // 字体样式
+    // 数据相关参数，来自 data_dict
+    "X_train": array,            // 训练特征
+    "y_train": array,            // 训练标签
+    "X_test": array,             // 测试特征
+    "y_test": array,             // 测试标签
+    // 任务特定参数
+    // ... 其他参数
 }
 ```
 
@@ -133,6 +133,7 @@ params = {
 - 回归线图
 - 置信区间图
 - 预测路径图
+- 特征系数/重要性图
 
 ### 5.3 聚类任务 (clustering)
 
@@ -147,6 +148,7 @@ params = {
 - 簇中心图
 - 树状图（dendrogram）
 - 簇合并过程图
+- 1D直方图（MeanShift专用）
 
 ### 5.4 变换器任务 (transformer)
 
@@ -181,3 +183,22 @@ params = {
 - 山脊图
 - Joy Plot
 - K线图
+
+## 6. 其他重点
+
+1. `base.py`文件基类需要添加预测集生成的方法以支持子类调用
+2. 聚类模块实现了三种主要聚类算法的可视化支持：
+   - KMeans：支持肘部法图、聚类散点图、聚类柱状图等
+   - MeanShift：支持1D直方图、聚类散点图、聚类柱状图等
+   - AgglomerativeClustering：支持树状图、聚类散点图等
+3. 回归模块实现了三种主要回归算法的可视化支持：
+   - LinearRegression：支持实际值vs预测值图、残差图、特征系数图等
+   - DecisionTreeRegressor：支持实际值vs预测值图、残差图、特征重要性图等
+   - RandomForestRegressor：支持实际值vs预测值图、残差图、特征重要性图等
+4. 变换器模块实现了多种变换器算法的可视化支持：
+   - StandardScaler：支持变换前后分布对比图、缩放特征箱线图等
+   - PCA：支持解释方差图、主成分散点图、生物图等
+   - t-SNE：支持嵌入散点图、困惑度比较图等
+   - UMAP：支持嵌入散点图、连接图等
+   - ThreeD：支持3D散点图、表面图、线框图等
+   - NoModel：支持饼图、词云图、网络图、仪表盘图、瀑布图、日历热力图等

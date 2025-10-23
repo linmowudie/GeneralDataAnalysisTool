@@ -34,3 +34,15 @@ class RegressionStrategy(VisualizationStrategy):
             raise ValueError("模型对象没有predict方法")
             
         return y_pred
+        
+    def _get_test_data(self):
+        """
+        获取测试数据
+        """
+        X_test = self.params.get("X_test")
+        y_test = self.params.get("y_test")
+        
+        if X_test is None or y_test is None:
+            raise ValueError("缺少测试数据")
+            
+        return X_test, y_test

@@ -18,8 +18,21 @@ class PCAStrategy(TransformerStrategy):
         """
         生成静态图表
         """
-        # 默认实现，可以被子类覆盖
-        return {}
+        charts = {}
+        
+        # 生成解释方差图
+        explained_variance_charts = self.generate_explained_variance()
+        charts.update(explained_variance_charts)
+        
+        # 生成主成分散点图
+        principal_components_charts = self.generate_principal_components_scatter()
+        charts.update(principal_components_charts)
+        
+        # 生成生物图
+        biplot_charts = self.generate_biplot()
+        charts.update(biplot_charts)
+        
+        return charts
         
     def generate_interactive_charts(self):
         """
@@ -78,7 +91,7 @@ class PCAStrategy(TransformerStrategy):
         import matplotlib.pyplot as plt
         
         model = self.params["model"]
-        X_train = self.params["X_train"]
+        X_train = self._get_training_data()
         
         # 变换数据到主成分空间
         X_transformed = model.transform(X_train)
@@ -107,7 +120,7 @@ class PCAStrategy(TransformerStrategy):
         import matplotlib.pyplot as plt
         
         model = self.params["model"]
-        X_train = self.params["X_train"]
+        X_train = self._get_training_data()
         
         # 获取主成分和特征向量
         components = model.components_

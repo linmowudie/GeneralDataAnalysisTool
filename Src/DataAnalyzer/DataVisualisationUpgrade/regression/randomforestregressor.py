@@ -1,5 +1,5 @@
 """
-线性回归模型可视化策略
+随机森林回归模型可视化策略
 """
 
 from typing import Dict, Any
@@ -9,12 +9,19 @@ import plotly.graph_objects as go
 import numpy as np
 
 
-class LinearRegressionStrategy(RegressionStrategy):
+class RandomForestRegressorStrategy(RegressionStrategy):
     """
-    线性回归模型可视化策略
+    随机森林回归模型可视化策略
     """
     
-    def generate_static_charts(self):
+    def validate_params(self) -> None:
+        """
+        验证随机森林回归参数
+        """
+        super().validate_params()
+        # 随机森林回归可以使用基础验证
+
+    def generate_static_charts(self) -> Dict[str, Figure]:
         """
         生成静态图表
         """
@@ -28,16 +35,16 @@ class LinearRegressionStrategy(RegressionStrategy):
         residuals_charts = self.generate_residuals_plot()
         charts.update(residuals_charts)
         
-        # 生成特征系数图
+        # 生成特征重要性图
         try:
-            feature_coefficients_charts = self.generate_feature_coefficients()
-            charts.update(feature_coefficients_charts)
+            feature_importance_charts = self.generate_feature_importance()
+            charts.update(feature_importance_charts)
         except Exception:
-            pass  # 如果无法生成特征系数图，则跳过
+            pass  # 如果无法生成特征重要性图，则跳过
         
         return charts
         
-    def generate_interactive_charts(self):
+    def generate_interactive_charts(self) -> Dict[str, go.Figure]:
         """
         生成交互式图表
         """
@@ -66,9 +73,9 @@ class LinearRegressionStrategy(RegressionStrategy):
         
         ax.set_xlabel('实际值')
         ax.set_ylabel('预测值')
-        ax.set_title('线性回归实际值 vs 预测值')
+        ax.set_title('随机森林回归实际值 vs 预测值')
         
-        return {"linear_regression_actual_vs_predicted": fig}
+        return {"random_forest_regressor_actual_vs_predicted": fig}
 
     def generate_residuals_plot(self) -> Dict[str, Figure]:
         """
@@ -91,39 +98,38 @@ class LinearRegressionStrategy(RegressionStrategy):
         
         ax.set_xlabel('预测值')
         ax.set_ylabel('残差')
-        ax.set_title('线性回归残差图')
+        ax.set_title('随机森林回归残差图')
         
-        return {"linear_regression_residuals_plot": fig}
+        return {"random_forest_regressor_residuals_plot": fig}
 
-    def generate_feature_coefficients(self) -> Dict[str, Figure]:
+    def generate_feature_importance(self) -> Dict[str, Figure]:
         """
-        生成特征系数图
+        生成特征重要性图
         """
         import matplotlib.pyplot as plt
         
         model = self.params["model"]
         
-        if not hasattr(model, "coef_"):
-            raise ValueError("模型没有coef_属性")
+        if not hasattr(model, "feature_importances_"):
+            raise ValueError("模型没有feature_importances_属性")
         
-        coef = model.coef_
-        feature_names = self.params.get("feature_names", [f"特征{i}" for i in range(len(coef))])
+        importances = model.feature_importances_
+        feature_names = self.params.get("feature_names", [f"特征{i}" for i in range(len(importances))])
         
-        # 排序特征系数
-        sorted_idx = np.argsort(np.abs(coef))[::-1]
-        sorted_coef = coef[sorted_idx]
+        # 排序特征重要性
+        sorted_idx = np.argsort(importances)[::-1]
+        sorted_importances = importances[sorted_idx]
         sorted_features = [feature_names[i] for i in sorted_idx]
         
         self.apply_styles()
         fig, ax = plt.subplots(figsize=(10, 6))
         
-        y_pos = np.arange(len(sorted_coef))
-        colors = ['red' if c < 0 else 'blue' for c in sorted_coef]
+        y_pos = np.arange(len(sorted_importances))
         
-        ax.barh(y_pos, sorted_coef, color=colors)
+        ax.barh(y_pos, sorted_importances, color='forestgreen')
         ax.set_yticks(y_pos)
         ax.set_yticklabels(sorted_features)
-        ax.set_xlabel('系数值')
-        ax.set_title('线性回归特征系数')
+        ax.set_xlabel('重要性')
+        ax.set_title('随机森林回归特征重要性')
         
-        return {"linear_regression_feature_coefficients": fig}
+        return {"random_forest_regressor_feature_importance": fig}
