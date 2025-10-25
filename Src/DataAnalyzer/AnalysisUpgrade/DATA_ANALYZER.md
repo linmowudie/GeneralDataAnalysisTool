@@ -92,6 +92,29 @@
 | 可选参数为空 | INFO | "Optional parameter 'test_set' not provided, using split strategy." |
 | 校验通过 | INFO | "All required parameters validated successfully." |
 
+## 三层架构设计
+
+数据分析模块2.0版本采用了清晰的三层架构设计，包括接口层、工厂层和策略层：
+
+### 接口层 (Interface Layer)
+- 由 `DataAnalysisUpgrade` 类实现
+- 负责接收用户请求和参数
+- 执行参数验证和预处理
+- 调用工厂层创建分析器实例
+
+### 工厂层 (Factory Layer)
+- 由 `AnalyzerFactory` 及其子工厂类实现
+- 实现两级路由机制：
+  - 第一级：根据 `learn_type` 选择工厂（ML或DL）
+  - 第二级：根据 `model_type` 选择任务类型工厂
+- 负责创建具体的分析器实例
+
+### 策略层 (Strategy Layer)
+- 由 `AnalysisStrategy` 基类及其子类实现
+- 控制分析流程的执行顺序和逻辑
+- 根据任务类型选择对应的策略实现
+- 处理任务特定的执行逻辑
+
 ## 基类 `base_analyzer.BaseAnalyzer`
   
 💡所有`Analyzer`类除`DataAnalysisUpgrade`都必须继承自此基类。
@@ -103,18 +126,17 @@
 | feature_set_encoding | 特征集编码方法，支持 "onehot"、"label"、"ordinal"、"target"、"none"、"auto" 等编码方式，自动识别类别型变量并执行相应编码，返回编码后数据及编码器对象 |
 | target_col_encoding | 目标列编码方法，根据任务类型（分类/回归）及指定编码方式对目标变量进行编码，分类任务默认使用 "label" 编码，回归任务默认为 "none" |
 | split_data_set | 数据集划分方法，根据 is_split 和 split_ratio 参数将数据划分为训练集和测试集，支持分类任务的分层抽样（stratify） |
-| validate_columns_exist | 列存在性校验方法，检查 feature_cols 和 target_col 是否均存在于输入 DataFrame 中，缺失时报错并提示具体列名 |
+| validate_cols_exist | 列存在性校验方法，检查 feature_cols 和 target_col 是否均存在于输入 DataFrame 中，缺失时报错并提示具体列名 |
 | fill_missing_values | 缺失值填充方法，支持均值、中位数、众数、前向填充等策略，可针对数值型和类别型特征分别处理 |
-| get_default_metrics | 根据 model_type 从 model_analysis.json 配置文件中加载默认评估指标列表，如分类任务返回 ["accuracy", "f1"]，回归任务返回 ["rmse", "r2"] |
 | build_model_instance | 根据 model 名称和 model_params 参数从模型注册表中实例化对应模型对象，确保模型创建过程统一可控 |
 | evaluate_model | 通用模型评估方法，接收模型、测试数据和 metrics_list，统一调用对应评分函数计算性能指标 |
-| log_step | 封装的日志输出方法，集成模块名、时间戳和日志级别，确保各子类日志格式一致 |
+|load_config | 加载配置文件方法，从指定路径加载配置文件，返回字典格式的配置信息 |
 
 ### 子类必须覆写的方法
 
 | 方法名 | 描述 |
 | ---- | ---- |
-| analyze | 执行完整分析流程的核心方法，包括数据预处理、模型训练、评估打分等步骤，返回标准化结果字典，是工厂调度的入口方法 |
+| analyzer | 执行完整分析流程的核心方法，包括数据预处理、模型训练、评估打分等步骤，返回标准化结果字典，是工厂调度的入口方法 |
 | validate_params | 参数校验方法，检查当前任务所需的特定参数是否合法（如列名是否存在、模型参数范围等），校验失败时记录日志并抛出异常 |
 | preprocess | 数据预处理方法，定义任务特定的特征工程逻辑，如标准化、归一化、特征选择、降维等，必须在训练前调用 |
 | train | 模型训练方法，使用训练集数据拟合模型，需处理模型收敛、超参适配等细节，确保训练过程稳定 |
@@ -122,6 +144,8 @@
 | get_feature_importance | 获取特征重要性或权重的方法，返回可解释的特征排序结果，用于下游可视化模块展示 |
 | predict | 封装的预测方法，接收新数据并输出模型预测结果，支持概率输出（分类）或数值预测（回归） |
 | save_model_artifacts | 模型产物持久化方法，负责将模型文件、编码器、特征列表等关键信息序列化保存，支持后续加载与部署 |
+| load_params | 从配置文件中加载任务参数，如模型名称、超参数、特征列、目标列等，并返回字典 | 
+| get_default_metrics | 根据 model_type 从 model_analysis.json 配置文件中加载默认评估指标列表，如分类任务返回 ["accuracy", "f1"]，回归任务返回 ["rmse", "r2"] |
 
 ## 异常处理
 

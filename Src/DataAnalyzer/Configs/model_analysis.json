@@ -52,7 +52,7 @@
     "agglomerativeclustering"
   ],
   "ML_model_special_params": {
-    "key_description": "按任务类型组织机器学习模型的超参数配置",
+    "key_description": "按任务类型组织机器学习模型的超参数配置，可通过model_params输入参数并与下列参数对比",
     "classification": {
       "key_description": "分类任务专用模型及其超参数搜索空间",
       "logisticregression": {

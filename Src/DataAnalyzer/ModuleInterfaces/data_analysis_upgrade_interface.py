@@ -5,6 +5,7 @@ import logging
 
 from typing import Dict, List, Optional, Union, Any
 from ..AnalysisUpgrade.base_analyzer import BaseAnalyzer
+from ..AnalysisUpgrade.factory import AnalyzerFactory
 
 logger = logging.getLogger(__name__)
 
@@ -16,6 +17,8 @@ class DataAnalysisUpgrade():
     def __init__(
         self,
         df: pd.DataFrame,
+        learn_type: str,
+        model_type: str,
         model: str,
         random_state: int = 42,
         is_split: bool = True,
@@ -34,6 +37,8 @@ class DataAnalysisUpgrade():
         初始化数据分析模块
 
         :param df: 待分析的数据集
+        :param learn_type: 学习类型，如 'ML'（机器学习）或 'DL'（深度学习）
+        :param model_type: 模型类别，如 'classification'、'regression'、'clustering'
         :param model: 模型名称（如 'lr', 'rf', 'xgb', 'svm' 等）
         :param random_state: 随机种子，用于保证结果可复现
         :param is_split: 是否进行数据集分割（训练/测试）
@@ -49,6 +54,8 @@ class DataAnalysisUpgrade():
         :param model_params: 模型参数字典，用于覆盖默认参数
         """
         self.df = df.copy()
+        self.learn_type = learn_type.lower()
+        self.model_type = model_type.lower()
         self.model_name = model.lower()
         self.random_state = random_state
         self.is_split = is_split
@@ -82,7 +89,31 @@ class DataAnalysisUpgrade():
             logger.error("数据集 (df) 不能为空（无行数据）")
             raise ValueError("数据集 (df) 不能为空")
 
-        # 2. 检查模型名称 model_name
+        # 2. 检查 learn_type
+        valid_learn_types = ['ml', 'dl']
+        if not self.learn_type:
+            logger.error("学习类型 (learn_type) 不能为空")
+            raise ValueError("学习类型 (learn_type) 不能为空")
+        if not isinstance(self.learn_type, str):
+            logger.error(f"学习类型 (learn_type) 必须是字符串类型，当前类型为 {type(self.learn_type)}")
+            raise ValueError(f"学习类型 (learn_type) 必须是字符串类型，当前类型为 {type(self.learn_type)}")
+        if self.learn_type not in valid_learn_types:
+            logger.error(f"学习类型 (learn_type) 不支持 '{self.learn_type}'，支持: {valid_learn_types}")
+            raise ValueError(f"学习类型 (learn_type) 不支持 '{self.learn_type}'，支持: {valid_learn_types}")
+        
+        # 3. 检查 model_type
+        valid_model_types = ['classification', 'regression', 'clustering', 'dimensionality_reduction']
+        if not self.model_type:
+            logger.error("模型类别 (model_type) 不能为空")
+            raise ValueError("模型类别 (model_type) 不能为空")
+        if not isinstance(self.model_type, str):
+            logger.error(f"模型类别 (model_type) 必须是字符串类型，当前类型为 {type(self.model_type)}")
+            raise ValueError(f"模型类别 (model_type) 必须是字符串类型，当前类型为 {type(self.model_type)}")
+        if self.model_type not in valid_model_types:
+            logger.error(f"模型类别 (model_type) 不支持 '{self.model_type}'，支持: {valid_model_types}")
+            raise ValueError(f"模型类别 (model_type) 不支持 '{self.model_type}'，支持: {valid_model_types}")
+        
+        # 4. 检查模型名称 model_name
         if not self.model_name:
             logger.error("模型名称 (model) 不能为空")
             raise ValueError("模型名称 (model) 不能为空")
@@ -171,13 +202,34 @@ class DataAnalysisUpgrade():
 
     def analyze(self):
         """
-        分析数据
+        分析数据，使用两级路由机制创建分析器实例
         """
         # 首先验证参数
         self._validate_params()
 
-        self.result = analyzer(
+        # 使用两级路由机制创建分析器实例
+        analyzer_instance = AnalyzerFactory.create_analyzer_full(
+            learn_type=self.learn_type,  # 第一级路由：选择机器学习或深度学习工厂
+            model_type=self.model_type,  # 第二级路由：指定模型类型（分类、回归等）
+            model=self.model_name        # 模型名称
+        )
+        
+        # 如果完整路由失败，回退到原来的方式
+        if analyzer_instance is None:
+            analyzer_instance = AnalyzerFactory.create_analyzer_by_task_and_model(
+                task_type=self.model_type,
+                model_name=self.model_name
+            )
+        
+        if analyzer_instance is None:
+            logger.error(f"无法创建分析器: {self.learn_type}.{self.model_type}.{self.model_name}")
+            raise ValueError(f"不支持的模型类型: {self.learn_type}.{self.model_type}.{self.model_name}")
+
+        # 调用分析器的analyzer方法
+        self.result = analyzer_instance.analyzer(
             df=self.df,
+            learn_type=self.learn_type,
+            model_type=self.model_type,
             model=self.model_name,
             random_state=self.random_state,
             is_split=self.is_split,
