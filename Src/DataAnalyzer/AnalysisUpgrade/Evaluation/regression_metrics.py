@@ -1,5 +1,5 @@
 """
-mse, mae, r2
+mse, mae, rmse, r2, explained_variance_score
 """
 
 from typing import Dict, Any
@@ -43,6 +43,21 @@ class RegressionMetrics:
         return float(mean_absolute_error(y_true, y_pred))
         
     @staticmethod
+    def rmse(y_true: pd.Series, y_pred: pd.Series) -> float:
+        """
+        计算均方根误差
+        
+        参数:
+            y_true (pd.Series): 真实值
+            y_pred (pd.Series): 预测值
+            
+        返回:
+            float: 均方根误差
+        """
+        from sklearn.metrics import mean_squared_error
+        return float(np.sqrt(mean_squared_error(y_true, y_pred)))
+        
+    @staticmethod
     def r2(y_true: pd.Series, y_pred: pd.Series) -> float:
         """
         计算R2分数
@@ -56,3 +71,18 @@ class RegressionMetrics:
         """
         from sklearn.metrics import r2_score
         return float(r2_score(y_true, y_pred))
+        
+    @staticmethod
+    def explained_variance_score(y_true: pd.Series, y_pred: pd.Series) -> float:
+        """
+        计算解释方差得分
+        
+        参数:
+            y_true (pd.Series): 真实值
+            y_pred (pd.Series): 预测值
+            
+        返回:
+            float: 解释方差得分
+        """
+        from sklearn.metrics import explained_variance_score
+        return float(explained_variance_score(y_true, y_pred))

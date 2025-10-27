@@ -46,3 +46,4 @@ class BaseFactory(ABC):
             list: 可用分析器类型列表
         """
         pass
+

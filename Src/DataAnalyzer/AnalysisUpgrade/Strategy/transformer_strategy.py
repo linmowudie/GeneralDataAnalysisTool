@@ -1,28 +1,27 @@
 """
-聚类任务策略
+数据转换任务策略
 """
 
 from ..Cores.base_strategy import BaseStrategy
 from typing import Dict, Any
 import pandas as pd
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+import numpy as np
 
 
-class ClusteringStrategy(BaseStrategy):
+class TransformerStrategy(BaseStrategy):
     """
-    聚类任务策略类，控制聚类分析流程的执行顺序和逻辑
+    数据转换任务策略类，控制数据转换分析流程的执行顺序和逻辑
     """
     
     def execute(self, **kwargs) -> Dict[str, Any]:
         """
-        执行聚类分析策略
+        执行数据转换分析策略
         
         参数:
             **kwargs: 分析参数
                 - df: 数据集
                 - feature_cols: 特征列名列表
                 - model: 模型实例
-                - metrics_list: 评估指标列表
                 
         返回:
             Dict[str, Any]: 分析结果
@@ -31,7 +30,6 @@ class ClusteringStrategy(BaseStrategy):
             df = kwargs.get("df")
             feature_cols = kwargs.get("feature_cols", [])
             model = kwargs.get("model")
-            metrics_list = kwargs.get("metrics_list", ["silhouette", "calinski_harabasz", "davies_bouldin"])
             
             if df is None or not feature_cols or model is None:
                 return {"error": "缺少必要的参数: df, feature_cols, model"}
@@ -39,39 +37,38 @@ class ClusteringStrategy(BaseStrategy):
             # 准备数据
             X = df[feature_cols]
             
-            # 训练模型
-            labels = model.fit_predict(X)
+            # 执行数据转换
+            X_transformed = model.fit_transform(X)
             
-            # 计算评估指标
+            # 计算统计信息
             results = {
                 "model": model,
-                "labels": labels.tolist(),
-                "data_shape": X.shape if hasattr(X, 'shape') else None
+                "transformed_data": X_transformed.tolist(),
+                "original_shape": X.shape if hasattr(X, 'shape') else None,
+                "transformed_shape": X_transformed.shape if hasattr(X_transformed, 'shape') else None
             }
             
-            metrics = {}
-            for metric in metrics_list:
-                try:
-                    if metric == "silhouette" and len(set(labels)) > 1:
-                        metrics[metric] = float(silhouette_score(X, labels))
-                    elif metric == "calinski_harabasz" and len(set(labels)) > 1:
-                        metrics[metric] = float(calinski_harabasz_score(X, labels))
-                    elif metric == "davies_bouldin" and len(set(labels)) > 1:
-                        metrics[metric] = float(davies_bouldin_score(X, labels))
-                    elif len(set(labels)) <= 1:
-                        metrics[metric] = "无法计算: 只有一个簇或所有点属于同一簇"
-                except Exception as e:
-                    metrics[metric] = f"计算出错: {str(e)}"
+            # 如果是标准化或归一化转换，可以提供一些统计信息
+            if hasattr(model, 'scale_') or hasattr(model, 'var_'):
+                stats = {}
+                if hasattr(model, 'mean_'):
+                    stats['mean'] = model.mean_.tolist() if hasattr(model.mean_, 'tolist') else model.mean_
+                if hasattr(model, 'scale_'):
+                    stats['scale'] = model.scale_.tolist() if hasattr(model.scale_, 'tolist') else model.scale_
+                if hasattr(model, 'var_'):
+                    stats['var'] = model.var_.tolist() if hasattr(model.var_, 'tolist') else model.var_
+                
+                if stats:
+                    results['transform_stats'] = stats
             
-            results["metrics"] = metrics
             return results
             
         except Exception as e:
-            return {"error": f"执行聚类分析策略时出错: {str(e)}"}
+            return {"error": f"执行数据转换分析策略时出错: {str(e)}"}
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """
-        验证聚类任务参数
+        验证数据转换任务参数
         
         参数:
             params (Dict[str, Any]): 参数字典
@@ -79,7 +76,7 @@ class ClusteringStrategy(BaseStrategy):
         返回:
             bool: 验证是否通过
         """
-        # 实现聚类任务特定的参数验证逻辑
+        # 实现数据转换任务特定的参数验证逻辑
         required_params = ["df", "feature_cols"]
         for param in required_params:
             if param not in params:

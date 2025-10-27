@@ -3,49 +3,86 @@ DL 工厂（预留）
 """
 
 from typing import Dict, Any, Optional, Type
+from ..Cores.base_factory import BaseFactory
+from ..Cores.base_analyzer import BaseAnalyzer
 
 
-class DLFactory:
+class DLFactory(BaseFactory):
     """
-    深度学习工厂类，专门负责创建各类深度学习分析器实例
+    深度学习工厂类，专门负责根据 model_type 分发到各深度学习任务工厂
     目前预留接口，可用于扩展深度学习功能
     """
     
-    _dl_analyzers: Dict[str, Type[Any]] = {}
+    # 深度学习任务工厂映射表（预留）
+    _dl_task_factories: Dict[str, Type[BaseFactory]] = {}
     
-    @classmethod
-    def register_dl_analyzer(cls, model_type: str, analyzer_class: Type[Any]) -> None:
+    def create_analyzer(self, model_name: str, **kwargs) -> Optional[BaseAnalyzer]:
         """
-        注册深度学习分析器类
+        DL工厂不直接创建分析器实例，仅作分发使用
         
         参数:
-            model_type (str): 模型类型
-            analyzer_class (Type[Any]): 分析器类
-        """
-        cls._dl_analyzers[model_type] = analyzer_class
-        print(f"已注册深度学习分析器: {model_type}")
-    
-    @classmethod
-    def create_dl_analyzer(cls, model_type: str, **kwargs) -> Optional[Any]:
-        """
-        创建深度学习分析器实例
-        
-        参数:
-            model_type (str): 模型类型
+            model_name (str): 模型类型
             **kwargs: 传递给分析器构造函数的参数
             
         返回:
-            Optional[Any]: 分析器实例，如果未找到则返回None
+            Optional[BaseAnalyzer]: 分析器实例，如果未找到则返回None
         """
-        analyzer_class = cls._dl_analyzers.get(model_type)
-        if analyzer_class:
-            try:
-                analyzer = analyzer_class(**kwargs)
-                print(f"成功创建深度学习分析器实例: {model_type}")
-                return analyzer
-            except Exception as e:
-                print(f"创建深度学习分析器实例失败: {model_type}, 错误: {e}")
-                return None
+        print("DL工厂不直接创建分析器，请使用get_factory方法获取对应的工厂实例")
+        return None
+    
+    def register_analyzer(self, model_name: str, analyzer_class: Type[BaseAnalyzer]) -> None:
+        """
+        注册深度学习任务工厂类
+        
+        参数:
+            model_name (str): 模型类型
+            analyzer_class (Type[BaseAnalyzer]): 工厂类
+        """
+        self._dl_task_factories[model_name.lower()] = analyzer_class  # type: ignore
+        print(f"已注册深度学习任务工厂: {model_name} -> {analyzer_class.__name__}")
+    
+    def get_available_analyzers(self) -> list:
+        """
+        获取所有可用的深度学习任务工厂类型
+        
+        返回:
+            list: 可用工厂类型列表
+        """
+        return list(self._dl_task_factories.keys())
+    
+    def get_factory(self, model_type: str) -> Optional[BaseFactory]:
+        """
+        获取深度学习任务工厂实例
+        
+        参数:
+            model_type (str): 模型类型
+            
+        返回:
+            Optional[BaseFactory]: 工厂实例，如果未找到则返回None
+        """
+        factory_class = self._dl_task_factories.get(model_type.lower())
+        if factory_class:
+            return factory_class()
         else:
-            print(f"未找到对应的深度学习分析器: {model_type}")
+            print(f"未找到对应的深度学习任务工厂: {model_type}")
             return None
+    
+    def register_factory(self, model_type: str, factory_class: Type[BaseFactory]) -> None:
+        """
+        注册深度学习任务工厂类
+        
+        参数:
+            model_type (str): 模型类型
+            factory_class (Type[BaseFactory]): 工厂类
+        """
+        self._dl_task_factories[model_type.lower()] = factory_class
+        print(f"已注册深度学习任务工厂: {model_type} -> {factory_class.__name__}")
+    
+    def get_available_factories(self) -> list:
+        """
+        获取所有可用的深度学习任务工厂类型
+        
+        返回:
+            list: 可用工厂类型列表
+        """
+        return list(self._dl_task_factories.keys())

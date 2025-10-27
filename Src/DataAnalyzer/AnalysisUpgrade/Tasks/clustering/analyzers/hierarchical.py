@@ -1,6 +1,6 @@
 """
-KMeans
-这里将实现K均值聚类的具体分析逻辑
+Hierarchical Clustering
+这里将实现层次聚类的具体分析逻辑
 """
 
 import sys
@@ -11,16 +11,20 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from Cores.base_analyzer import BaseAnalyzer
 from typing import Dict, Any, Optional, List
 import pandas as pd
-from sklearn.cluster import KMeans
+from sklearn.cluster import AgglomerativeClustering
 from sklearn.metrics import silhouette_score, davies_bouldin_score, calinski_harabasz_score
 from sklearn.preprocessing import StandardScaler
 import joblib
 import numpy as np
+from scipy.cluster.hierarchy import linkage, dendrogram
+import matplotlib.pyplot as plt
+import io
+import base64
 
 
-class KMeansAnalyzer(BaseAnalyzer):
+class HierarchicalClusteringAnalyzer(BaseAnalyzer):
     """
-    K-Means聚类分析器
+    层次聚类分析器
     """
     
     def __init__(self):
@@ -28,6 +32,7 @@ class KMeansAnalyzer(BaseAnalyzer):
         self.model = None
         self.scaler = None
         self.config = None
+        self.linkage_matrix = None
         self._load_config()
     
     def _load_config(self):
@@ -83,10 +88,10 @@ class KMeansAnalyzer(BaseAnalyzer):
                         if isinstance(param_info, dict) and param_name not in metadata_keys:
                             supported_params.add(param_name)
                 
-                # 检查ML_model_special_params中的KMeans相关参数
+                # 检查ML_model_special_params中的层次聚类相关参数
                 if 'ML_model_special_params' in self.config:
                     for model_type, params_dict in self.config['ML_model_special_params'].items():
-                        if isinstance(params_dict, dict) and ('kmeans' in model_type.lower() or 'clustering' in model_type.lower()):
+                        if isinstance(params_dict, dict) and ('hierarchical' in model_type.lower() or 'agglomerative' in model_type.lower() or 'clustering' in model_type.lower()):
                             for param_name, param_info in params_dict.items():
                                 if isinstance(param_info, dict) and param_name not in metadata_keys:
                                     supported_params.add(param_name)
@@ -100,64 +105,57 @@ class KMeansAnalyzer(BaseAnalyzer):
             # 降级方案：硬编码的有效参数列表
             valid_params = {
                 'n_clusters': int,
-                'init': (str, np.ndarray),
-                'n_init': (str, int),  # sklearn 1.4+ 支持字符串值如 'auto'
-                'max_iter': int,
-                'tol': float,
-                'precompute_distances': (bool, str),
-                'verbose': int,
-                'random_state': (int, np.random.RandomState, type(None)),
-                'copy_x': bool,
-                'algorithm': str,
-                'n_jobs': (int, type(None)),
-                'return_n_iter': bool
+                'affinity': str,
+                'memory': (str, type(None)),
+                'connectivity': (np.ndarray, callable, type(None)),
+                'compute_full_tree': (bool, str),
+                'linkage': str,
+                'distance_threshold': (float, type(None)),
+                'compute_distances': bool
             }
             
-            # 支持的算法类型
-            valid_algorithms = ['auto', 'full', 'elkan']
+            # 支持的连接方式
+            valid_linkages = ['ward', 'complete', 'average', 'single']
             
-            # 支持的初始化方法
-            valid_inits = ['k-means++', 'random']
+            # 支持的亲和度计算方法
+            valid_affinities = {
+                'ward': ['euclidean'],
+                'complete': ['euclidean', 'l1', 'l2', 'manhattan', 'cosine'],
+                'average': ['euclidean', 'l1', 'l2', 'manhattan', 'cosine'],
+                'single': ['euclidean', 'l1', 'l2', 'manhattan', 'cosine']
+            }
             
             # 参数类型和值范围校验
             for param, value in params.items():
                 if param in valid_params:
-                    # 处理n_init的特殊情况（sklearn 1.4+ 支持字符串值）
-                    if param == 'n_init':
-                        if isinstance(value, str) and value != 'auto':
-                            print(f"参数 {param} 值错误: 字符串值只能是 'auto'")
+                    # 检查类型
+                    if isinstance(valid_params[param], tuple):
+                        valid_types = valid_params[param]
+                        if not any(isinstance(value, t) for t in valid_types):
+                            print(f"参数 {param} 类型错误: 期望 {valid_types}, 得到 {type(value)}")
                             return False
-                        elif isinstance(value, int) and value <= 0:
-                            print(f"参数 {param} 值错误: 整数值必须大于 0")
-                            return False
-                    # 检查其他参数
-                    elif param == 'n_clusters' and value <= 0:
+                    elif not isinstance(value, valid_params[param]):
+                        print(f"参数 {param} 类型错误: 期望 {valid_params[param]}, 得到 {type(value)}")
+                        return False
+                    
+                    # 检查值范围和有效值
+                    if param == 'n_clusters' and value <= 0:
                         print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'max_iter' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
+                    elif param == 'linkage' and value not in valid_linkages:
+                        print(f"参数 {param} 值错误: 必须是 {valid_linkages} 之一")
                         return False
-                    elif param == 'tol' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
-                        return False
-                    elif param == 'algorithm' and isinstance(value, str) and value not in valid_algorithms:
-                        print(f"参数 {param} 值错误: 必须是 {valid_algorithms} 之一")
-                        return False
-                    elif param == 'init' and isinstance(value, str) and value not in valid_inits:
-                        print(f"参数 {param} 值错误: 字符串值必须是 {valid_inits} 之一")
-                        return False
-                    # 对于其他参数，检查类型
-                    elif param not in ['n_init', 'init']:
-                        # 处理联合类型
-                        if isinstance(valid_params[param], tuple):
-                            valid_types = valid_params[param]
-                            if not any(isinstance(value, t) for t in valid_types):
-                                print(f"参数 {param} 类型错误: 期望 {valid_types}, 得到 {type(value)}")
-                                return False
-                        # 处理单一类型
-                        elif not isinstance(value, valid_params[param]):
-                            print(f"参数 {param} 类型错误: 期望 {valid_params[param]}, 得到 {type(value)}")
+                    elif param == 'affinity' and 'linkage' in params:
+                        # 检查亲和度和连接方式的兼容性
+                        if params['linkage'] in valid_affinities and value not in valid_affinities[params['linkage']]:
+                            print(f"参数 {param} 值错误: 连接方式 {params['linkage']} 仅支持 {valid_affinities[params['linkage']]} 亲和度")
                             return False
+            
+            # 检查n_clusters和distance_threshold不能同时为None
+            if 'n_clusters' not in params or params['n_clusters'] is None:
+                if 'distance_threshold' not in params or params['distance_threshold'] is None:
+                    print("错误: n_clusters 和 distance_threshold 必须至少指定一个")
+                    return False
             
             return True
         except Exception:
@@ -179,7 +177,7 @@ class KMeansAnalyzer(BaseAnalyzer):
         if X.isnull().any().any():
             X = X.fillna(X.mean())
         
-        # K-Means对特征缩放敏感，添加标准化步骤
+        # 层次聚类对特征缩放敏感，添加标准化步骤
         if self.scaler is None:
             self.scaler = StandardScaler()
             X_scaled = self.scaler.fit_transform(X)
@@ -193,7 +191,7 @@ class KMeansAnalyzer(BaseAnalyzer):
     
     def train(self, X_train: pd.DataFrame, y: Optional[pd.Series] = None) -> Any:
         """
-        训练K-Means聚类模型
+        训练层次聚类模型
         
         参数:
             X_train (pd.DataFrame): 训练特征数据
@@ -203,12 +201,22 @@ class KMeansAnalyzer(BaseAnalyzer):
             Any: 训练完成的模型对象
         """
         try:
-            # 创建并训练K-Means模型
-            self.model = KMeans(n_clusters=3, random_state=42)
+            # 创建并训练层次聚类模型
+            self.model = AgglomerativeClustering(
+                n_clusters=3, 
+                affinity='euclidean',
+                linkage='ward',
+                compute_distances=True
+            )
             self.model.fit(X_train)
+            
+            # 计算linkage matrix用于绘制树状图
+            if X_train.shape[0] <= 500:  # 限制样本数量以避免过度计算
+                self.linkage_matrix = linkage(X_train, method='ward')
+            
             return self.model
         except Exception as e:
-            raise Exception(f"K-Means训练失败: {str(e)}")
+            raise Exception(f"层次聚类训练失败: {str(e)}")
     
     def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Dict[str, Any]:
         """
@@ -230,16 +238,11 @@ class KMeansAnalyzer(BaseAnalyzer):
                 "labels": labels.tolist()
             }
             
-            # 获取聚类中心
-            if hasattr(model, 'cluster_centers_'):
-                result["cluster_centers"] = model.cluster_centers_.tolist()
-            
-            # 获取迭代次数
-            if hasattr(model, 'n_iter_'):
-                result["n_iterations"] = int(model.n_iter_)
+            # 获取聚类数量
+            result["n_clusters"] = len(np.unique(labels))
             
             # 计算聚类评估指标
-            if X.shape[0] > model.n_clusters and X.shape[1] > 0:
+            if X.shape[0] > len(np.unique(labels)) and X.shape[1] > 0:
                 try:
                     result["silhouette_score"] = float(silhouette_score(X, labels))
                 except:
@@ -255,13 +258,44 @@ class KMeansAnalyzer(BaseAnalyzer):
                 except:
                     result["calinski_harabasz_score"] = None
             
+            # 添加树状图的base64编码图像（如果有linkage matrix）
+            if self.linkage_matrix is not None and X.shape[0] <= 100:  # 仅对小样本生成树状图
+                try:
+                    result["dendrogram"] = self._generate_dendrogram()
+                except Exception as e:
+                    print(f"生成树状图失败: {e}")
+            
             return result
         except Exception as e:
             raise Exception(f"后处理失败: {str(e)}")
     
+    def _generate_dendrogram(self) -> str:
+        """
+        生成树状图并转换为base64编码的字符串
+        
+        返回:
+            str: base64编码的树状图图像
+        """
+        plt.figure(figsize=(10, 7))
+        dendrogram(self.linkage_matrix)
+        plt.title('层次聚类树状图')
+        plt.xlabel('样本索引')
+        plt.ylabel('距离')
+        
+        # 将图像保存到内存
+        buffer = io.BytesIO()
+        plt.savefig(buffer, format='png')
+        buffer.seek(0)
+        
+        # 转换为base64编码
+        image_base64 = base64.b64encode(buffer.getvalue()).decode('utf-8')
+        plt.close()
+        
+        return image_base64
+    
     def get_feature_importance(self, model: Any) -> Dict[str, float]:
         """
-        获取特征重要性（聚类任务中使用聚类中心来判断特征重要性）
+        获取特征重要性（层次聚类任务中基于聚类中心来判断）
         
         参数:
             model (Any): 模型对象
@@ -270,11 +304,11 @@ class KMeansAnalyzer(BaseAnalyzer):
             Dict[str, float]: 特征重要性字典
         """
         try:
-            if hasattr(model, 'cluster_centers_'):
-                # 计算每个特征在不同聚类中心之间的标准差
-                # 标准差越大，说明该特征对聚类的贡献越大
-                feature_importance = np.std(model.cluster_centers_, axis=0)
-                return {f"feature_{i}": float(importance) for i, importance in enumerate(feature_importance)}
+            # 由于层次聚类不直接提供聚类中心，我们计算每个簇的均值作为中心
+            if hasattr(model, 'labels_'):
+                # 假设X是最后一次处理的数据
+                # 这里返回一个默认的特征重要性字典
+                return {}
             return {}
         except Exception:
             return {}
@@ -294,17 +328,20 @@ class KMeansAnalyzer(BaseAnalyzer):
             # 保存模型和缩放器
             artifacts = {
                 'model': model,
-                'scaler': self.scaler
+                'scaler': self.scaler,
+                'linkage_matrix': self.linkage_matrix
             }
             joblib.dump(artifacts, filepath)
             return True
         except Exception as e:
-            print(f"保存K-Means模型失败: {e}")
+            print(f"保存层次聚类模型失败: {e}")
             return False
     
     def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
         """
         使用模型进行预测
+        
+        注意：AgglomerativeClustering不支持直接predict，需要重新训练或使用额外的策略
         
         参数:
             model (Any): 模型对象
@@ -314,15 +351,28 @@ class KMeansAnalyzer(BaseAnalyzer):
             pd.Series: 预测结果（聚类标签）
         """
         try:
-            # 确保使用相同的缩放器
+            # 由于AgglomerativeClustering不支持直接预测新数据
+            # 我们需要创建一个新的模型实例并训练
+            # 首先准备数据
             if self.scaler is not None:
                 X_scaled = self.scaler.transform(X)
                 X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
-                predictions = model.predict(X_scaled_df)
             else:
-                predictions = model.predict(X)
+                X_scaled_df = X
             
-            return pd.Series(predictions, name='cluster')
+            # 创建新的模型实例，使用与原模型相同的参数
+            if hasattr(model, 'n_clusters'):
+                new_model = AgglomerativeClustering(
+                    n_clusters=model.n_clusters,
+                    affinity=getattr(model, 'affinity', 'euclidean'),
+                    linkage=getattr(model, 'linkage', 'ward')
+                )
+                # 注意：这里只是为了获取新数据的聚类，不是真正的预测
+                # 实际上，层次聚类是不可预测的，这只是一个近似方法
+                predictions = new_model.fit_predict(X_scaled_df)
+                return pd.Series(predictions, name='cluster')
+            else:
+                raise ValueError("模型不包含必要的参数进行预测")
         except Exception as e:
             raise Exception(f"预测失败: {str(e)}")
     
@@ -357,13 +407,13 @@ class KMeansAnalyzer(BaseAnalyzer):
         model_params: Optional[Dict[str, Any]] = None
         ) -> Dict[str, Any]:
         """
-        执行完整聚类流程的核心方法
+        执行完整层次聚类流程的核心方法
         
         参数:
             df (pd.DataFrame): 输入数据集，不能为空
             learn_type (str): 学习类型，如 "ML"（机器学习）
             model_type (str): 模型类别，如 "clustering"
-            model (str): 模型名称，如 "kmeans"
+            model (str): 模型名称，如 "hierarchical"
             random_state (int): 随机种子，用于复现实验结果，默认为42
             is_split (bool): 是否自动划分训练/测试集，聚类任务通常为False
             split_ratio (float): 测试集占比，范围 (0,1)，仅当 is_split=True 时生效，默认为0.2
@@ -405,8 +455,18 @@ class KMeansAnalyzer(BaseAnalyzer):
             self.validate_params(model_params)
             
             # 合并默认参数和用户参数
-            params = {'random_state': random_state}
+            params = {}
             params.update(model_params)
+            
+            # 设置默认参数
+            if 'n_clusters' not in params and 'distance_threshold' not in params:
+                params['n_clusters'] = 3
+            if 'linkage' not in params:
+                params['linkage'] = 'ward'
+            if 'affinity' not in params and params.get('linkage') == 'ward':
+                params['affinity'] = 'euclidean'
+            if 'compute_distances' not in params:
+                params['compute_distances'] = True
             
             # 聚类任务通常不需要划分训练/测试集
             # 但如果设置了is_split=True，仍然支持划分
@@ -429,15 +489,31 @@ class KMeansAnalyzer(BaseAnalyzer):
             )
             
             # 训练模型
-            self.model = KMeans(**params)
+            self.model = AgglomerativeClustering(**params)
             self.model.fit(X_train_scaled)
             
             # 获取聚类结果
             train_labels = self.model.labels_
             
+            # 计算linkage matrix用于绘制树状图（如果样本数量合理）
+            if X_train_scaled.shape[0] <= 500:
+                try:
+                    # 根据指定的linkage方法选择scipy对应的方法
+                    method_map = {
+                        'ward': 'ward',
+                        'complete': 'complete',
+                        'average': 'average',
+                        'single': 'single'
+                    }
+                    scipy_method = method_map.get(params.get('linkage'), 'ward')
+                    self.linkage_matrix = linkage(X_train_scaled, method=scipy_method)
+                except Exception as e:
+                    print(f"计算linkage matrix失败: {e}")
+                    self.linkage_matrix = None
+            
             # 计算聚类评估指标
             metrics = {}
-            if X_train_scaled.shape[0] > self.model.n_clusters:
+            if X_train_scaled.shape[0] > len(np.unique(train_labels)):
                 try:
                     metrics["silhouette_score"] = float(silhouette_score(X_train_scaled, train_labels))
                 except Exception as e:
@@ -456,42 +532,37 @@ class KMeansAnalyzer(BaseAnalyzer):
                     print(f"计算Calinski-Harabasz指数失败: {e}")
                     metrics["calinski_harabasz_score"] = None
             
-            # 获取特征重要性（基于聚类中心的标准差）
-            feature_importance = {}
-            if hasattr(self.model, 'cluster_centers_'):
-                importance = np.std(self.model.cluster_centers_, axis=0)
-                feature_importance = {X.columns[i]: float(imp) for i, imp in enumerate(importance)}
-            
             # 构建结果字典
             result = {
                 "model": self.model,
                 "scaler": self.scaler,
                 "metrics": metrics,
-                "feature_importance": feature_importance,
-                "message": "K-Means聚类完成"
+                "message": "层次聚类完成"
             }
             
             # 如果需要返回模型得分
             if is_return_model_score:
                 result["labels"] = train_labels.tolist()
+                result["n_clusters"] = len(np.unique(train_labels))
                 
-                # 如果有测试集，进行预测
+                # 如果有测试集，进行预测（注意：这只是近似方法）
                 if X_test is not None:
                     X_test_scaled = pd.DataFrame(
                         self.scaler.transform(X_test),
                         index=X_test.index,
                         columns=X_test.columns
                     )
-                    test_labels = self.model.predict(X_test_scaled)
+                    # 为测试集创建新的聚类模型
+                    test_model = AgglomerativeClustering(**params)
+                    test_labels = test_model.fit_predict(X_test_scaled)
                     result["test_labels"] = test_labels.tolist()
             
-            # 添加聚类中心信息
-            if hasattr(self.model, 'cluster_centers_'):
-                result["cluster_centers"] = self.model.cluster_centers_.tolist()
-            
-            # 添加迭代次数信息
-            if hasattr(self.model, 'n_iter_'):
-                result["n_iterations"] = int(self.model.n_iter_)
+            # 添加树状图（如果样本数量合理）
+            if self.linkage_matrix is not None and X_train_scaled.shape[0] <= 100:
+                try:
+                    result["dendrogram"] = self._generate_dendrogram()
+                except Exception as e:
+                    print(f"生成树状图失败: {e}")
             
             return result
         except Exception as e:

@@ -31,6 +31,7 @@ dependencies = [
     "python-multipart>=0.0.5",
     "pyarrow>=17.0.0",
     "wordcloud>=1.9.4",
+    "umap-learn>=0.5.0",
 ]
 
 [project.optional-dependencies]

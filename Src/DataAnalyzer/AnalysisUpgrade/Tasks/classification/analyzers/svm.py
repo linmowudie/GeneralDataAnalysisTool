@@ -1,6 +1,6 @@
 """
-DecisionTreeClassifier
-这里将实现决策树分类器的具体分析逻辑
+SVMClassifier
+这里将实现支持向量机分类器的具体分析逻辑
 """
 
 import sys
@@ -11,20 +11,22 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from Cores.base_analyzer import BaseAnalyzer
 from typing import Dict, Any, Optional, List
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.svm import SVC
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+from sklearn.preprocessing import StandardScaler
 import joblib
 import numpy as np
 
 
-class DecisionTreeAnalyzer(BaseAnalyzer):
+class SVMAnalyzer(BaseAnalyzer):
     """
-    决策树分类器分析器
+    支持向量机分类器分析器
     """
     
     def __init__(self):
         super().__init__()
         self.model = None
+        self.scaler = None
         self.config = None
         self._load_config()
     
@@ -81,10 +83,10 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                         if isinstance(param_info, dict) and param_name not in metadata_keys:
                             supported_params.add(param_name)
                 
-                # 检查ML_model_special_params中的决策树相关参数
+                # 检查ML_model_special_params中的SVM相关参数
                 if 'ML_model_special_params' in self.config:
                     for model_type, params_dict in self.config['ML_model_special_params'].items():
-                        if isinstance(params_dict, dict) and ('decision_tree' in model_type.lower() or 'classification' in model_type.lower()):
+                        if isinstance(params_dict, dict) and ('svm' in model_type.lower() or 'classification' in model_type.lower()):
                             for param_name, param_info in params_dict.items():
                                 if isinstance(param_info, dict) and param_name not in metadata_keys:
                                     supported_params.add(param_name)
@@ -97,19 +99,28 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             
             # 降级方案：硬编码的有效参数列表
             valid_params = {
-                'criterion': str,
-                'splitter': str,
-                'max_depth': (int, type(None)),
-                'min_samples_split': (int, float),
-                'min_samples_leaf': (int, float),
-                'min_weight_fraction_leaf': float,
-                'max_features': (int, float, str, type(None)),
-                'random_state': (int, type(None)),
-                'max_leaf_nodes': (int, type(None)),
-                'min_impurity_decrease': float,
+                'C': (float, int),
+                'kernel': str,
+                'degree': int,
+                'gamma': (float, str),
+                'coef0': float,
+                'shrinking': bool,
+                'probability': bool,
+                'tol': float,
+                'cache_size': float,
                 'class_weight': (dict, list, str, type(None)),
-                'ccp_alpha': float
+                'verbose': bool,
+                'max_iter': int,
+                'decision_function_shape': str,
+                'break_ties': bool,
+                'random_state': (int, type(None))
             }
+            
+            # 支持的核函数类型
+            valid_kernels = ['linear', 'poly', 'rbf', 'sigmoid', 'precomputed']
+            
+            # 支持的决策函数形状
+            valid_decision_shapes = ['ovr', 'ovo']
             
             # 参数类型和值范围校验
             for param, value in params.items():
@@ -120,23 +131,26 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                         return False
                     
                     # 检查值范围
-                    if param == 'max_depth' and isinstance(value, int) and value <= 0:
+                    if param == 'C' and value <= 0:
                         print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'min_samples_split' and value <= 0:
+                    elif param == 'degree' and value < 1:
+                        print(f"参数 {param} 值错误: 必须大于等于 1")
+                        return False
+                    elif param == 'tol' and value <= 0:
                         print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'min_samples_leaf' and value <= 0:
+                    elif param == 'cache_size' and value <= 0:
                         print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'min_weight_fraction_leaf' and not (0 <= value <= 0.5):
-                        print(f"参数 {param} 值错误: 必须在 0-0.5 范围内")
+                    elif param == 'max_iter' and value < -1:
+                        print(f"参数 {param} 值错误: 必须大于等于 -1")
                         return False
-                    elif param == 'ccp_alpha' and value < 0:
-                        print(f"参数 {param} 值错误: 必须大于等于 0")
+                    elif param == 'kernel' and value not in valid_kernels:
+                        print(f"参数 {param} 值错误: 必须是 {valid_kernels} 之一")
                         return False
-                    elif param == 'min_impurity_decrease' and value < 0:
-                        print(f"参数 {param} 值错误: 必须大于等于 0")
+                    elif param == 'decision_function_shape' and value not in valid_decision_shapes:
+                        print(f"参数 {param} 值错误: 必须是 {valid_decision_shapes} 之一")
                         return False
             
             return True
@@ -159,11 +173,21 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         if X.isnull().any().any():
             X = X.fillna(X.mean())
         
-        return X, y
+        # SVM对特征缩放敏感，添加标准化步骤
+        if self.scaler is None:
+            self.scaler = StandardScaler()
+            X_scaled = self.scaler.fit_transform(X)
+        else:
+            X_scaled = self.scaler.transform(X)
+        
+        # 转换回DataFrame以保持特征名称
+        X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
+        
+        return X_scaled_df, y
     
     def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> Any:
         """
-        训练决策树分类器
+        训练SVM分类器
         
         参数:
             X_train (pd.DataFrame): 训练特征数据
@@ -173,12 +197,12 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             Any: 训练完成的模型对象
         """
         try:
-            # 创建并训练决策树模型
-            self.model = DecisionTreeClassifier(random_state=42)
+            # 创建并训练SVM模型
+            self.model = SVC(kernel='rbf', C=1.0, random_state=42, probability=True)
             self.model.fit(X_train, y_train)
             return self.model
         except Exception as e:
-            raise Exception(f"决策树训练失败: {str(e)}")
+            raise Exception(f"SVM训练失败: {str(e)}")
     
     def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Dict[str, Any]:
         """
@@ -199,6 +223,11 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             result = {
                 "predictions": predictions.tolist()
             }
+            
+            # 获取预测概率（如果支持）
+            if hasattr(model, 'predict_proba'):
+                probabilities = model.predict_proba(X)
+                result["probabilities"] = probabilities.tolist()
             
             # 如果有目标数据，可以计算评估指标
             if y is not None:
@@ -224,8 +253,16 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             Dict[str, float]: 特征重要性字典
         """
         try:
-            if hasattr(model, 'feature_importances_'):
-                return {f"feature_{i}": importance for i, importance in enumerate(model.feature_importances_)}
+            # 对于线性核，可以使用系数作为重要性
+            if hasattr(model, 'coef_'):
+                # 如果是多分类问题，coef_的shape是(n_classes, n_features)
+                if len(model.coef_.shape) > 1:
+                    # 计算每个特征的平均绝对系数
+                    importances = np.abs(model.coef_).mean(axis=0)
+                else:
+                    importances = np.abs(model.coef_)
+                
+                return {f"feature_{i}": float(importance) for i, importance in enumerate(importances)}
             return {}
         except Exception:
             return {}
@@ -242,10 +279,15 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             bool: 是否保存成功
         """
         try:
-            joblib.dump(model, filepath)
+            # 保存模型和缩放器
+            artifacts = {
+                'model': model,
+                'scaler': self.scaler
+            }
+            joblib.dump(artifacts, filepath)
             return True
         except Exception as e:
-            print(f"保存决策树模型失败: {e}")
+            print(f"保存SVM模型失败: {e}")
             return False
     
     def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
@@ -260,7 +302,14 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             pd.Series: 预测结果
         """
         try:
-            predictions = model.predict(X)
+            # 确保使用相同的缩放器
+            if self.scaler is not None:
+                X_scaled = self.scaler.transform(X)
+                X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
+                predictions = model.predict(X_scaled_df)
+            else:
+                predictions = model.predict(X)
+            
             return pd.Series(predictions, name='predictions')
         except Exception as e:
             raise Exception(f"预测失败: {str(e)}")
@@ -302,7 +351,7 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             df (pd.DataFrame): 输入数据集，不能为空
             learn_type (str): 学习类型，如 "ML"（机器学习）或 "DL"（深度学习）
             model_type (str): 模型类别，如 "classification"、"regression"、"clustering"
-            model (str): 模型名称，如 "decision_tree"、"random_forest"
+            model (str): 模型名称，如 "svm"、"decision_tree"
             random_state (int): 随机种子，用于复现实验结果，默认为42
             is_split (bool): 是否自动划分训练/测试集，默认为True
             split_ratio (float): 测试集占比，范围 (0,1)，仅当 is_split=True 时生效，默认为0.2
@@ -342,7 +391,7 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             self.validate_params(model_params)
             
             # 合并默认参数和用户参数
-            params = {'random_state': random_state}
+            params = {'random_state': random_state, 'probability': True}
             params.update(model_params)
             
             # 训练测试集划分
@@ -363,13 +412,34 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                 else:
                     X_test, y_test = X, y
             
+            # 数据预处理（包括标准化）
+            # 初始化缩放器
+            self.scaler = StandardScaler()
+            X_train_scaled = pd.DataFrame(
+                self.scaler.fit_transform(X_train), 
+                index=X_train.index, 
+                columns=X_train.columns
+            )
+            X_test_scaled = pd.DataFrame(
+                self.scaler.transform(X_test), 
+                index=X_test.index, 
+                columns=X_test.columns
+            )
+            
             # 训练模型
-            self.model = DecisionTreeClassifier(**params)
-            self.model.fit(X_train, y_train)
+            self.model = SVC(**params)
+            self.model.fit(X_train_scaled, y_train)
             
             # 预测和评估
-            train_predictions = self.model.predict(X_train)
-            test_predictions = self.model.predict(X_test)
+            train_predictions = self.model.predict(X_train_scaled)
+            test_predictions = self.model.predict(X_test_scaled)
+            
+            # 获取预测概率（如果支持）
+            train_probabilities = None
+            test_probabilities = None
+            if hasattr(self.model, 'predict_proba'):
+                train_probabilities = self.model.predict_proba(X_train_scaled)
+                test_probabilities = self.model.predict_proba(X_test_scaled)
             
             # 计算评估指标
             metrics = {
@@ -387,24 +457,31 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                 }
             }
             
-            # 获取特征重要性
+            # 获取特征重要性（仅对线性核有效）
             feature_importance = {}
-            if hasattr(self.model, 'feature_importances_'):
-                feature_importance = {X.columns[i]: float(importance) 
-                                     for i, importance in enumerate(self.model.feature_importances_)}
+            if hasattr(self.model, 'coef_'):
+                if len(self.model.coef_.shape) > 1:
+                    importances = np.abs(self.model.coef_).mean(axis=0)
+                else:
+                    importances = np.abs(self.model.coef_)
+                feature_importance = {X.columns[i]: float(importance) for i, importance in enumerate(importances)}
             
             # 构建结果字典
             result = {
                 "model": self.model,
+                "scaler": self.scaler,
                 "metrics": metrics,
                 "feature_importance": feature_importance,
-                "message": "决策树分类完成"
+                "message": "SVM分类完成"
             }
             
             # 如果需要返回模型得分
             if is_return_model_score:
                 result["train_predictions"] = train_predictions.tolist()
                 result["test_predictions"] = test_predictions.tolist()
+                if train_probabilities is not None:
+                    result["train_probabilities"] = train_probabilities.tolist()
+                    result["test_probabilities"] = test_probabilities.tolist()
             
             return result
         except Exception as e:

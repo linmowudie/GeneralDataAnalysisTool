@@ -11,6 +11,12 @@ Src/DataAnalyzer/AnalysisUpgrade/
 │   ├── main_factory.py              # 主工厂：根据 learn_type 分发
 │   ├── ml_factory.py                # ML 工厂：创建任务分析器 + 策略
 │   ├── dl_factory.py                # DL 工厂（预留）
+│   ├── classification_factory.py    # 分类任务工厂
+│   ├── regression_factory.py        # 回归任务工厂
+│   ├── clustering_factory.py        # 聚类任务工厂
+│   ├── dimensionality_reduction_factory.py  # 降维任务工厂
+│   ├── anomaly_detection_factory.py # 异常检测任务工厂（预留）
+│   ├── transformer_factory.py       # 数据转换任务工厂
 │   └── __init__.py
 │
 ├── Strategy/                        # 🧠 分层策略体系（控制行为）

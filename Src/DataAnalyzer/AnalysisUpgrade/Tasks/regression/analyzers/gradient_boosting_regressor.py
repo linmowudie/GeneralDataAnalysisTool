@@ -1,6 +1,6 @@
 """
-Linear Regression
-这里将实现线性回归的具体分析逻辑
+Gradient Boosting Regressor
+这里将实现梯度提升回归的具体分析逻辑
 """
 
 import sys
@@ -11,16 +11,16 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from Cores.base_analyzer import BaseAnalyzer
 from typing import Dict, Any, Optional, List
 import pandas as pd
-from sklearn.linear_model import LinearRegression, Ridge, Lasso, ElasticNet
+from sklearn.ensemble import GradientBoostingRegressor
 from sklearn.metrics import mean_squared_error, mean_absolute_error, r2_score
 from sklearn.preprocessing import StandardScaler
 import joblib
 import numpy as np
 
 
-class LinearRegressionAnalyzer(BaseAnalyzer):
+class GradientBoostingRegressorAnalyzer(BaseAnalyzer):
     """
-    线性回归分析器
+    梯度提升回归分析器
     """
     
     def __init__(self):
@@ -83,10 +83,10 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
                         if isinstance(param_info, dict) and param_name not in metadata_keys:
                             supported_params.add(param_name)
                 
-                # 检查ML_model_special_params中的线性回归相关参数
+                # 检查ML_model_special_params中的梯度提升回归相关参数
                 if 'ML_model_special_params' in self.config:
                     for model_type, params_dict in self.config['ML_model_special_params'].items():
-                        if isinstance(params_dict, dict) and ('linear' in model_type.lower() or 'regression' in model_type.lower()):
+                        if isinstance(params_dict, dict) and ('gradient_boosting' in model_type.lower() or 'boosting' in model_type.lower() or 'regressor' in model_type.lower()):
                             for param_name, param_info in params_dict.items():
                                 if isinstance(param_info, dict) and param_name not in metadata_keys:
                                     supported_params.add(param_name)
@@ -97,40 +97,40 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
                         if param not in supported_params:
                             print(f"警告: 参数 {param} 不在配置文件定义的支持参数列表中")
             
-            # 降级方案：硬编码的有效参数列表（支持普通线性回归、Ridge、Lasso和ElasticNet）
+            # 降级方案：硬编码的有效参数列表（GradientBoostingRegressor）
             valid_params = {
-                # LinearRegression参数
-                'fit_intercept': bool,
-                'normalize': bool,
-                'copy_X': bool,
-                'n_jobs': (int, type(None)),
-                'positive': bool,
-                # Ridge参数
-                'alpha': (float, np.ndarray),
-                'solver': str,
-                'max_iter': int,
-                'tol': float,
+                'loss': str,
+                'learning_rate': float,
+                'n_estimators': int,
+                'subsample': float,
+                'criterion': str,
+                'min_samples_split': (int, float),
+                'min_samples_leaf': (int, float),
+                'min_weight_fraction_leaf': float,
+                'max_depth': int,
+                'min_impurity_decrease': float,
+                'init': (str, object, type(None)),
                 'random_state': (int, type(None)),
-                'selection': str,
-                # Lasso参数
-                'precompute': (bool, str, np.ndarray),
+                'max_features': (str, int, float, type(None)),
+                'alpha': float,
+                'verbose': int,
+                'max_leaf_nodes': (int, type(None)),
                 'warm_start': bool,
-                'positive': bool,
-                'selection': str,
-                # ElasticNet参数
-                'l1_ratio': float,
-                # 通用回归参数
-                'model_type': str  # 'linear', 'ridge', 'lasso', 'elasticnet'
+                'presort': (str, bool, type(None)),
+                'validation_fraction': float,
+                'n_iter_no_change': (int, type(None)),
+                'tol': float,
+                'ccp_alpha': float
             }
             
-            # 支持的求解器
-            valid_solvers = ['auto', 'svd', 'cholesky', 'lsqr', 'sparse_cg', 'sag', 'saga', 'lbfgs']
+            # 支持的损失函数
+            valid_losses = ['squared_error', 'absolute_error', 'huber', 'quantile']
             
-            # 支持的选择策略
-            valid_selections = ['cyclic', 'random']
+            # 支持的评估标准
+            valid_criteria = ['friedman_mse', 'mse', 'mae']
             
-            # 支持的模型类型
-            valid_model_types = ['linear', 'ridge', 'lasso', 'elasticnet']
+            # 支持的max_features值
+            valid_max_features = ['sqrt', 'log2', 'auto', None]
             
             # 参数类型和值范围校验
             for param, value in params.items():
@@ -146,26 +146,68 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
                         return False
                     
                     # 检查值范围和有效值
-                    if param == 'alpha' and isinstance(value, (int, float)) and value < 0:
+                    if param == 'loss' and value not in valid_losses:
+                        print(f"参数 {param} 值错误: 必须是 {valid_losses} 之一")
+                        return False
+                    elif param == 'learning_rate' and (value <= 0 or value > 1):
+                        print(f"参数 {param} 值错误: 必须在 (0, 1] 范围内")
+                        return False
+                    elif param == 'n_estimators' and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0")
+                        return False
+                    elif param == 'subsample' and (value <= 0 or value > 1):
+                        print(f"参数 {param} 值错误: 必须在 (0, 1] 范围内")
+                        return False
+                    elif param == 'criterion' and value not in valid_criteria:
+                        print(f"参数 {param} 值错误: 必须是 {valid_criteria} 之一")
+                        return False
+                    elif param == 'min_samples_split':
+                        if isinstance(value, int) and value <= 1:
+                            print(f"参数 {param} 值错误: 整数类型必须大于 1")
+                            return False
+                        elif isinstance(value, float) and (value <= 0 or value >= 1):
+                            print(f"参数 {param} 值错误: 浮点类型必须在 (0, 1) 范围内")
+                            return False
+                    elif param == 'min_samples_leaf':
+                        if isinstance(value, int) and value <= 0:
+                            print(f"参数 {param} 值错误: 整数类型必须大于 0")
+                            return False
+                        elif isinstance(value, float) and (value <= 0 or value >= 0.5):
+                            print(f"参数 {param} 值错误: 浮点类型必须在 (0, 0.5) 范围内")
+                            return False
+                    elif param == 'min_weight_fraction_leaf' and (value < 0 or value > 0.5):
+                        print(f"参数 {param} 值错误: 必须在 [0, 0.5] 范围内")
+                        return False
+                    elif param == 'max_depth' and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0")
+                        return False
+                    elif param == 'min_impurity_decrease' and value < 0:
                         print(f"参数 {param} 值错误: 必须大于等于 0")
                         return False
-                    elif param == 'l1_ratio' and (value < 0 or value > 1):
+                    elif param == 'max_features':
+                        if value not in valid_max_features and not isinstance(value, (int, float)):
+                            print(f"参数 {param} 值错误: 必须是 {valid_max_features} 之一或数值类型")
+                            return False
+                        if isinstance(value, float) and (value <= 0 or value > 1):
+                            print(f"参数 {param} 值错误: 浮点类型必须在 (0, 1] 范围内")
+                            return False
+                    elif param == 'alpha' and (value < 0 or value > 1):
                         print(f"参数 {param} 值错误: 必须在 [0, 1] 范围内")
                         return False
-                    elif param == 'max_iter' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
+                    elif param == 'max_leaf_nodes' and value is not None and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0 或为 None")
                         return False
-                    elif param == 'tol' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
+                    elif param == 'validation_fraction' and (value <= 0 or value >= 1):
+                        print(f"参数 {param} 值错误: 必须在 (0, 1) 范围内")
                         return False
-                    elif param == 'solver' and value not in valid_solvers:
-                        print(f"参数 {param} 值错误: 必须是 {valid_solvers} 之一")
+                    elif param == 'n_iter_no_change' and value is not None and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0 或为 None")
                         return False
-                    elif param == 'selection' and value not in valid_selections:
-                        print(f"参数 {param} 值错误: 必须是 {valid_selections} 之一")
+                    elif param == 'tol' and value < 0:
+                        print(f"参数 {param} 值错误: 必须大于等于 0")
                         return False
-                    elif param == 'model_type' and value not in valid_model_types:
-                        print(f"参数 {param} 值错误: 必须是 {valid_model_types} 之一")
+                    elif param == 'ccp_alpha' and value < 0:
+                        print(f"参数 {param} 值错误: 必须大于等于 0")
                         return False
             
             return True
@@ -188,25 +230,20 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
         if X.isnull().any().any():
             X = X.fillna(X.mean())
         
-        # 线性回归对特征缩放有一定敏感性，添加标准化步骤
-        if self.scaler is None:
-            self.scaler = StandardScaler()
-            X_scaled = self.scaler.fit_transform(X)
-        else:
+        # 梯度提升对特征缩放有一定敏感性，可以添加标准化
+        if self.scaler is not None:
             X_scaled = self.scaler.transform(X)
-        
-        # 转换回DataFrame以保持特征名称
-        X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
+            X = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
         
         # 处理目标变量
         if y is not None and y.isnull().any():
             y = y.fillna(y.mean())
         
-        return X_scaled_df, y
+        return X, y
     
     def train(self, X_train: pd.DataFrame, y: Optional[pd.Series] = None) -> Any:
         """
-        训练线性回归模型
+        训练梯度提升回归模型
         
         参数:
             X_train (pd.DataFrame): 训练特征数据
@@ -218,14 +255,14 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
         try:
             # 确保有目标变量
             if y is None:
-                raise ValueError("线性回归需要目标变量")
+                raise ValueError("梯度提升回归需要目标变量")
             
-            # 创建并训练线性回归模型
-            self.model = LinearRegression(fit_intercept=True, random_state=42)
+            # 创建并训练梯度提升回归模型
+            self.model = GradientBoostingRegressor(n_estimators=100, learning_rate=0.1, random_state=42)
             self.model.fit(X_train, y)
             return self.model
         except Exception as e:
-            raise Exception(f"线性回归训练失败: {str(e)}")
+            raise Exception(f"梯度提升回归训练失败: {str(e)}")
     
     def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Dict[str, Any]:
         """
@@ -242,13 +279,17 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
         try:
             result = {}
             
-            # 获取系数
-            if hasattr(model, 'coef_'):
-                result["coefficients"] = model.coef_.tolist()
+            # 获取特征重要性
+            if hasattr(model, 'feature_importances_'):
+                result["feature_importances"] = model.feature_importances_.tolist()
             
-            # 获取截距
-            if hasattr(model, 'intercept_'):
-                result["intercept"] = float(model.intercept_)
+            # 获取迭代次数
+            if hasattr(model, 'n_estimators_'):
+                result["n_estimators"] = model.n_estimators_
+            
+            # 学习率
+            if hasattr(model, 'learning_rate'):
+                result["learning_rate"] = model.learning_rate
             
             # 如果有目标变量，计算预测值和评估指标
             if y is not None:
@@ -270,7 +311,7 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
     
     def get_feature_importance(self, model: Any) -> Dict[str, float]:
         """
-        获取特征重要性（基于回归系数的绝对值）
+        获取特征重要性
         
         参数:
             model (Any): 模型对象
@@ -279,13 +320,10 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             Dict[str, float]: 特征重要性字典
         """
         try:
-            if hasattr(model, 'coef_'):
-                # 使用系数的绝对值作为特征重要性
-                coef_abs = np.abs(model.coef_)
-                # 归一化
-                if np.sum(coef_abs) > 0:
-                    coef_normalized = coef_abs / np.sum(coef_abs)
-                    return {f"feature_{i}": float(importance) for i, importance in enumerate(coef_normalized)}
+            if hasattr(model, 'feature_importances_'):
+                # 返回特征重要性
+                importances = model.feature_importances_
+                return {f"feature_{i}": float(importance) for i, importance in enumerate(importances)}
             return {}
         except Exception:
             return {}
@@ -310,7 +348,7 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             joblib.dump(artifacts, filepath)
             return True
         except Exception as e:
-            print(f"保存线性回归模型失败: {e}")
+            print(f"保存梯度提升回归模型失败: {e}")
             return False
     
     def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
@@ -325,7 +363,7 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             pd.Series: 预测结果
         """
         try:
-            # 确保使用相同的缩放器
+            # 确保使用相同的预处理步骤
             if self.scaler is not None:
                 X_scaled = self.scaler.transform(X)
                 X_scaled_df = pd.DataFrame(X_scaled, index=X.index, columns=X.columns)
@@ -368,13 +406,13 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
         model_params: Optional[Dict[str, Any]] = None
         ) -> Dict[str, Any]:
         """
-        执行完整线性回归流程的核心方法
+        执行完整梯度提升回归流程的核心方法
         
         参数:
             df (pd.DataFrame): 输入数据集，不能为空
             learn_type (str): 学习类型，如 "ML"（机器学习）
             model_type (str): 模型类别，如 "regression"
-            model (str): 模型名称，如 "linear_regression"
+            model (str): 模型名称，如 "gradient_boosting_regressor"
             random_state (int): 随机种子，用于复现实验结果，默认为42
             is_split (bool): 是否自动划分训练/测试集，默认为True
             split_ratio (float): 测试集占比，范围 (0,1)，仅当 is_split=True 时生效，默认为0.2
@@ -422,27 +460,18 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             # 校验参数
             self.validate_params(model_params)
             
-            # 获取模型类型
-            model_type = model_params.pop('model_type', 'linear')
-            
             # 设置默认参数
-            params = {'random_state': random_state}
-            if model_type == 'linear':
-                params.update({k: v for k, v in model_params.items() if k in ['fit_intercept', 'normalize', 'copy_X', 'n_jobs', 'positive']})
-            elif model_type == 'ridge':
-                params.update({k: v for k, v in model_params.items() if k in ['alpha', 'fit_intercept', 'normalize', 'copy_X', 'max_iter', 'tol', 'solver', 'random_state', 'selection']})
-                if 'alpha' not in params:
-                    params['alpha'] = 1.0
-            elif model_type == 'lasso':
-                params.update({k: v for k, v in model_params.items() if k in ['alpha', 'fit_intercept', 'normalize', 'precompute', 'copy_X', 'max_iter', 'tol', 'warm_start', 'positive', 'random_state', 'selection']})
-                if 'alpha' not in params:
-                    params['alpha'] = 1.0
-            elif model_type == 'elasticnet':
-                params.update({k: v for k, v in model_params.items() if k in ['alpha', 'l1_ratio', 'fit_intercept', 'normalize', 'precompute', 'copy_X', 'max_iter', 'tol', 'warm_start', 'positive', 'random_state', 'selection']})
-                if 'alpha' not in params:
-                    params['alpha'] = 1.0
-                if 'l1_ratio' not in params:
-                    params['l1_ratio'] = 0.5
+            params = {
+                'n_estimators': 100,
+                'learning_rate': 0.1,
+                'random_state': random_state
+            }
+            params.update(model_params)
+            
+            # 处理是否使用标准化
+            use_scaling = model_params.pop('use_scaling', True)  # 梯度提升对标准化较敏感，默认开启
+            if use_scaling:
+                self.scaler = StandardScaler()
             
             # 划分训练/测试集
             if is_split and test_set is None:
@@ -458,27 +487,26 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
                 else:
                     X_test, y_test = None, None
             
-            # 数据预处理（包括标准化）
-            # 初始化缩放器
-            self.scaler = StandardScaler()
-            X_train_scaled = pd.DataFrame(
-                self.scaler.fit_transform(X_train), 
-                index=X_train.index, 
-                columns=X_train.columns
-            )
+            # 数据预处理
+            # 处理缺失值
+            if X_train.isnull().any().any():
+                X_train = X_train.fillna(X_train.mean())
             
-            # 创建并训练模型
-            if model_type == 'linear':
-                self.model = LinearRegression(**params)
-            elif model_type == 'ridge':
-                self.model = Ridge(**params)
-            elif model_type == 'lasso':
-                self.model = Lasso(**params)
-            elif model_type == 'elasticnet':
-                self.model = ElasticNet(**params)
+            if y_train.isnull().any():
+                y_train = y_train.fillna(y_train.mean())
+            
+            # 特征标准化（如果启用）
+            if self.scaler is not None:
+                X_train_scaled = pd.DataFrame(
+                    self.scaler.fit_transform(X_train), 
+                    index=X_train.index, 
+                    columns=X_train.columns
+                )
             else:
-                self.model = LinearRegression(**params)
+                X_train_scaled = X_train.copy()
             
+            # 创建并训练梯度提升回归模型
+            self.model = GradientBoostingRegressor(**params)
             self.model.fit(X_train_scaled, y_train)
             
             # 计算训练集评估指标
@@ -494,11 +522,20 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             test_metrics = {}
             test_predictions = None
             if X_test is not None and y_test is not None:
-                X_test_scaled = pd.DataFrame(
-                    self.scaler.transform(X_test),
-                    index=X_test.index,
-                    columns=X_test.columns
-                )
+                # 处理测试集缺失值
+                if X_test.isnull().any().any():
+                    X_test = X_test.fillna(X_train.mean())  # 使用训练集的均值填充
+                
+                # 特征标准化（如果启用）
+                if self.scaler is not None:
+                    X_test_scaled = pd.DataFrame(
+                        self.scaler.transform(X_test),
+                        index=X_test.index,
+                        columns=X_test.columns
+                    )
+                else:
+                    X_test_scaled = X_test.copy()
+                
                 test_predictions = self.model.predict(X_test_scaled)
                 test_metrics["mse"] = float(mean_squared_error(y_test, test_predictions))
                 test_metrics["mae"] = float(mean_absolute_error(y_test, test_predictions))
@@ -507,30 +544,37 @@ class LinearRegressionAnalyzer(BaseAnalyzer):
             
             # 获取特征重要性
             feature_importance = {}
-            if hasattr(self.model, 'coef_'):
-                # 使用系数的绝对值作为特征重要性
-                coef_abs = np.abs(self.model.coef_)
-                # 归一化
-                if np.sum(coef_abs) > 0:
-                    coef_normalized = coef_abs / np.sum(coef_abs)
-                    feature_importance = {X.columns[i]: float(imp) for i, imp in enumerate(coef_normalized)}
+            if hasattr(self.model, 'feature_importances_'):
+                importances = self.model.feature_importances_
+                feature_importance = {X.columns[i]: float(imp) for i, imp in enumerate(importances)}
             
             # 构建结果字典
             result = {
                 "model": self.model,
-                "scaler": self.scaler,
-                "model_type": model_type,
+                "scaler": self.scaler if use_scaling else None,
                 "train_metrics": train_metrics,
                 "test_metrics": test_metrics if test_metrics else None,
                 "feature_importance": feature_importance,
-                "message": f"{model_type.capitalize()} 回归训练完成"
+                "message": "梯度提升回归训练完成"
             }
             
-            # 添加模型参数信息
-            if hasattr(self.model, 'coef_'):
-                result["coefficients"] = {X.columns[i]: float(coef) for i, coef in enumerate(self.model.coef_)}
-            if hasattr(self.model, 'intercept_'):
-                result["intercept"] = float(self.model.intercept_)
+            # 添加模型配置信息
+            result["model_config"] = params
+            result["n_estimators"] = params.get('n_estimators', 100)
+            result["learning_rate"] = params.get('learning_rate', 0.1)
+            result["max_depth"] = params.get('max_depth', 'None')
+            
+            # 如果有最佳迭代次数信息（用于早停）
+            if hasattr(self.model, 'n_estimators_'):
+                result["best_n_estimators"] = self.model.n_estimators_
+            
+            # 获取训练过程中的损失历史
+            if hasattr(self.model, 'train_score_'):
+                result["train_score_history"] = self.model.train_score_.tolist()
+            
+            # 如果有验证分数历史
+            if hasattr(self.model, 'loss_') and hasattr(self.model, 'validation_score_'):
+                result["validation_score_history"] = self.model.validation_score_.tolist()
             
             # 如果需要返回预测值
             if is_return_model_score:

@@ -1,6 +1,5 @@
 """
-DecisionTreeClassifier
-这里将实现决策树分类器的具体分析逻辑
+Local Outlier Factor 异常检测分析器
 """
 
 import sys
@@ -11,15 +10,14 @@ sys.path.append(os.path.join(os.path.dirname(__file__), '..', '..'))
 from Cores.base_analyzer import BaseAnalyzer
 from typing import Dict, Any, Optional, List
 import pandas as pd
-from sklearn.tree import DecisionTreeClassifier
-from sklearn.metrics import classification_report, accuracy_score, precision_score, recall_score, f1_score
+from sklearn.neighbors import LocalOutlierFactor
 import joblib
 import numpy as np
 
 
-class DecisionTreeAnalyzer(BaseAnalyzer):
+class LocalOutlierFactorAnalyzer(BaseAnalyzer):
     """
-    决策树分类器分析器
+    Local Outlier Factor 异常检测分析器
     """
     
     def __init__(self):
@@ -75,16 +73,16 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                 # 从配置中提取支持的参数列表
                 supported_params = set()
                 
-                # 检查preprocessing_special_params中的分类相关参数
+                # 检查preprocessing_special_params中的异常检测相关参数
                 if 'preprocessing_special_params' in self.config:
                     for param_name, param_info in self.config['preprocessing_special_params'].items():
                         if isinstance(param_info, dict) and param_name not in metadata_keys:
                             supported_params.add(param_name)
                 
-                # 检查ML_model_special_params中的决策树相关参数
+                # 检查ML_model_special_params中的Local Outlier Factor相关参数
                 if 'ML_model_special_params' in self.config:
                     for model_type, params_dict in self.config['ML_model_special_params'].items():
-                        if isinstance(params_dict, dict) and ('decision_tree' in model_type.lower() or 'classification' in model_type.lower()):
+                        if isinstance(params_dict, dict) and ('local_outlier_factor' in model_type.lower() or 'anomaly_detection' in model_type.lower()):
                             for param_name, param_info in params_dict.items():
                                 if isinstance(param_info, dict) and param_name not in metadata_keys:
                                     supported_params.add(param_name)
@@ -97,18 +95,14 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             
             # 降级方案：硬编码的有效参数列表
             valid_params = {
-                'criterion': str,
-                'splitter': str,
-                'max_depth': (int, type(None)),
-                'min_samples_split': (int, float),
-                'min_samples_leaf': (int, float),
-                'min_weight_fraction_leaf': float,
-                'max_features': (int, float, str, type(None)),
-                'random_state': (int, type(None)),
-                'max_leaf_nodes': (int, type(None)),
-                'min_impurity_decrease': float,
-                'class_weight': (dict, list, str, type(None)),
-                'ccp_alpha': float
+                'n_neighbors': int,
+                'algorithm': str,
+                'leaf_size': int,
+                'metric': str,
+                'p': (int, float),
+                'contamination': float,
+                'novelty': bool,
+                'n_jobs': (int, type(None))
             }
             
             # 参数类型和值范围校验
@@ -120,23 +114,17 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
                         return False
                     
                     # 检查值范围
-                    if param == 'max_depth' and isinstance(value, int) and value <= 0:
+                    if param == 'n_neighbors' and value <= 0:
                         print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'min_samples_split' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
-                        return False
-                    elif param == 'min_samples_leaf' and value <= 0:
-                        print(f"参数 {param} 值错误: 必须大于 0")
-                        return False
-                    elif param == 'min_weight_fraction_leaf' and not (0 <= value <= 0.5):
+                    elif param == 'contamination' and not (0 <= value <= 0.5):
                         print(f"参数 {param} 值错误: 必须在 0-0.5 范围内")
                         return False
-                    elif param == 'ccp_alpha' and value < 0:
-                        print(f"参数 {param} 值错误: 必须大于等于 0")
+                    elif param == 'p' and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0")
                         return False
-                    elif param == 'min_impurity_decrease' and value < 0:
-                        print(f"参数 {param} 值错误: 必须大于等于 0")
+                    elif param == 'leaf_size' and value <= 0:
+                        print(f"参数 {param} 值错误: 必须大于 0")
                         return False
             
             return True
@@ -155,32 +143,30 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         返回:
             tuple: 预处理后的(X, y)数据
         """
-        # 基本预处理，确保数据类型正确
-        if X.isnull().any().any():
-            X = X.fillna(X.mean())
-        
+        # 异常检测通常不需要目标变量
         return X, y
     
-    def train(self, X_train: pd.DataFrame, y_train: pd.Series) -> Any:
+    def train(self, X_train: pd.DataFrame, y_train: Optional[pd.Series]) -> Any:
         """
-        训练决策树分类器
+        训练Local Outlier Factor模型
         
         参数:
             X_train (pd.DataFrame): 训练特征数据
-            y_train (pd.Series): 训练目标数据
+            y_train (Optional[pd.Series]): 训练目标数据（通常不使用）
             
         返回:
             Any: 训练完成的模型对象
         """
         try:
-            # 创建并训练决策树模型
-            self.model = DecisionTreeClassifier(random_state=42)
-            self.model.fit(X_train, y_train)
+            # 创建并训练Local Outlier Factor模型
+            # 设置novelty=True以支持预测新样本
+            self.model = LocalOutlierFactor(n_neighbors=20, contamination=0.1, novelty=True)
+            self.model.fit(X_train)
             return self.model
         except Exception as e:
-            raise Exception(f"决策树训练失败: {str(e)}")
+            raise Exception(f"Local Outlier Factor训练失败: {str(e)}")
     
-    def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series] = None) -> Dict[str, Any]:
+    def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series]) -> Dict[str, Any]:
         """
         训练后处理方法
         
@@ -193,29 +179,23 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             Dict[str, Any]: 包含后处理结果的字典
         """
         try:
-            # 获取预测结果
+            # 获取异常分数
+            anomaly_scores = -model.decision_function(X)  # 注意取负号使值越大越异常
+            # 获取预测标签（-1表示异常，1表示正常）
             predictions = model.predict(X)
             
-            result = {
-                "predictions": predictions.tolist()
+            return {
+                "anomaly_scores": anomaly_scores.tolist(),
+                "predictions": predictions.tolist(),
+                "anomaly_count": int((predictions == -1).sum()),
+                "normal_count": int((predictions == 1).sum())
             }
-            
-            # 如果有目标数据，可以计算评估指标
-            if y is not None:
-                result.update({
-                    "accuracy": accuracy_score(y, predictions),
-                    "precision": precision_score(y, predictions, average='macro'),
-                    "recall": recall_score(y, predictions, average='macro'),
-                    "f1_score": f1_score(y, predictions, average='macro')
-                })
-            
-            return result
         except Exception as e:
             raise Exception(f"后处理失败: {str(e)}")
     
     def get_feature_importance(self, model: Any) -> Dict[str, float]:
         """
-        获取特征重要性
+        获取特征重要性（Local Outlier Factor没有直接的特征重要性）
         
         参数:
             model (Any): 模型对象
@@ -223,12 +203,7 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         返回:
             Dict[str, float]: 特征重要性字典
         """
-        try:
-            if hasattr(model, 'feature_importances_'):
-                return {f"feature_{i}": importance for i, importance in enumerate(model.feature_importances_)}
-            return {}
-        except Exception:
-            return {}
+        return {}
     
     def save_model_artifacts(self, model: Any, filepath: str) -> bool:
         """
@@ -245,23 +220,27 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             joblib.dump(model, filepath)
             return True
         except Exception as e:
-            print(f"保存决策树模型失败: {e}")
+            print(f"保存Local Outlier Factor模型失败: {e}")
             return False
     
     def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
         """
-        使用模型进行预测
+        使用模型预测异常
         
         参数:
             model (Any): 模型对象
             X (pd.DataFrame): 输入数据
             
         返回:
-            pd.Series: 预测结果
+            pd.Series: 预测结果（-1表示异常，1表示正常）
         """
         try:
+            # 确保模型是novelty模式
+            if not hasattr(model, 'predict'):
+                raise ValueError("模型必须以novelty=True模式训练才能进行预测")
+            
             predictions = model.predict(X)
-            return pd.Series(predictions, name='predictions')
+            return pd.Series(predictions, name='anomaly_predictions')
         except Exception as e:
             raise Exception(f"预测失败: {str(e)}")
     
@@ -275,7 +254,8 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         返回:
             List[str]: 默认评估指标列表
         """
-        return ['accuracy', 'precision', 'recall', 'f1_score']
+        # 异常检测使用的评估指标
+        return ['precision', 'recall', 'f1_score', 'roc_auc']
     
     def analyzer(
         self, 
@@ -284,7 +264,7 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         model_type: str, 
         model: str,
         random_state: int = 42, 
-        is_split: bool = True,
+        is_split: bool = False,  # 异常检测通常不分训练测试集
         split_ratio: float = 0.2,
         feature_cols: Optional[List[str]] = None, 
         target_col: Optional[str] = None,
@@ -296,39 +276,37 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
         model_params: Optional[Dict[str, Any]] = None
         ) -> Dict[str, Any]:
         """
-        执行完整分类流程的核心方法
+        执行完整异常检测流程的核心方法
         
         参数:
             df (pd.DataFrame): 输入数据集，不能为空
             learn_type (str): 学习类型，如 "ML"（机器学习）或 "DL"（深度学习）
             model_type (str): 模型类别，如 "classification"、"regression"、"clustering"
-            model (str): 模型名称，如 "decision_tree"、"random_forest"
+            model (str): 模型名称，如 "isolation_forest"、"local_outlier_factor"
             random_state (int): 随机种子，用于复现实验结果，默认为42
-            is_split (bool): 是否自动划分训练/测试集，默认为True
+            is_split (bool): 是否自动划分训练/测试集，默认为False
             split_ratio (float): 测试集占比，范围 (0,1)，仅当 is_split=True 时生效，默认为0.2
             feature_cols (List[str]): 特征列名列表，不能为空
-            target_col (str): 目标列名，不能为空
-            metrics_list (List[str]): 评价指标列表，如 ["accuracy", "precision"]，默认使用默认指标
+            target_col (str): 目标列名，可选
+            metrics_list (List[str]): 评价指标列表，如 ["precision", "recall"]，默认使用默认指标
             is_return_model_score (bool): 是否返回模型评估得分，默认为True
             feature_cols_encoding (str): 特征列编码方式，支持 "onehot"、"label"、"ordinal"、"target"、"none"、"auto" 等，默认为"auto"
             target_col_encoding (str): 目标列编码方式，分类任务常用 "label"，回归为 "none"，默认为"auto"
-            test_set (pd.DataFrame): 外部传入的测试集，仅当 is_split=False 时使用，默认为None
+            test_set (pd.DataFrame): 外部传入的测试集，仅当 is_split=False 时使用，默默认为None
             model_params (Dict[str, Any]): 模型特定超参数，默认为{}
             
         返回:
             Dict[str, Any]: 包含模型、评估结果等信息的字典
         """
         try:
-            # 检查必要参数
-            if target_col is None or target_col not in df.columns:
-                raise ValueError("必须指定有效的目标列")
-            
             # 准备数据
             if feature_cols:
                 X = df[feature_cols].copy()
             else:
-                X = df.drop(columns=[target_col]).copy()
-            y = df[target_col].copy()
+                X = df.copy()
+                # 如果没有指定特征列且存在目标列，则移除目标列
+                if target_col and target_col in X.columns:
+                    X = X.drop(columns=[target_col])
             
             # 确保X是DataFrame类型
             if not isinstance(X, pd.DataFrame):
@@ -338,6 +316,9 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             if model_params is None:
                 model_params = {}
             
+            # 确保novelty=True以支持预测
+            model_params['novelty'] = True
+            
             # 校验参数
             self.validate_params(model_params)
             
@@ -345,69 +326,54 @@ class DecisionTreeAnalyzer(BaseAnalyzer):
             params = {'random_state': random_state}
             params.update(model_params)
             
-            # 训练测试集划分
-            if is_split:
-                from sklearn.model_selection import train_test_split
-                X_train, X_test, y_train, y_test = train_test_split(
-                    X, y, test_size=split_ratio, random_state=random_state, stratify=y if len(y.unique()) > 1 else None
-                )
-            else:
-                X_train, y_train = X, y
-                if test_set is not None:
-                    if feature_cols:
-                        X_test = test_set[feature_cols].copy()
-                        y_test = test_set[target_col].copy()
-                    else:
-                        X_test = test_set.drop(columns=[target_col]).copy()
-                        y_test = test_set[target_col].copy()
-                else:
-                    X_test, y_test = X, y
+            # 移除random_state参数，因为LocalOutlierFactor不支持
+            if 'random_state' in params:
+                del params['random_state']
             
             # 训练模型
-            self.model = DecisionTreeClassifier(**params)
-            self.model.fit(X_train, y_train)
+            self.model = LocalOutlierFactor(**params)
+            self.model.fit(X)
             
-            # 预测和评估
-            train_predictions = self.model.predict(X_train)
-            test_predictions = self.model.predict(X_test)
-            
-            # 计算评估指标
-            metrics = {
-                "train": {
-                    "accuracy": accuracy_score(y_train, train_predictions),
-                    "precision": precision_score(y_train, train_predictions, average='macro', zero_division=0),
-                    "recall": recall_score(y_train, train_predictions, average='macro', zero_division=0),
-                    "f1_score": f1_score(y_train, train_predictions, average='macro', zero_division=0)
-                },
-                "test": {
-                    "accuracy": accuracy_score(y_test, test_predictions),
-                    "precision": precision_score(y_test, test_predictions, average='macro', zero_division=0),
-                    "recall": recall_score(y_test, test_predictions, average='macro', zero_division=0),
-                    "f1_score": f1_score(y_test, test_predictions, average='macro', zero_division=0)
-                }
-            }
-            
-            # 获取特征重要性
-            feature_importance = {}
-            if hasattr(self.model, 'feature_importances_'):
-                feature_importance = {X.columns[i]: float(importance) 
-                                     for i, importance in enumerate(self.model.feature_importances_)}
+            # 获取异常检测结果
+            predictions = self.model.predict(X)
+            anomaly_scores = -self.model.decision_function(X)  # 取负号使值越大越异常
             
             # 构建结果字典
             result = {
                 "model": self.model,
-                "metrics": metrics,
-                "feature_importance": feature_importance,
-                "message": "决策树分类完成"
+                "predictions": predictions.tolist(),
+                "anomaly_scores": anomaly_scores.tolist(),
+                "anomaly_count": int((predictions == -1).sum()),
+                "normal_count": int((predictions == 1).sum()),
+                "message": "Local Outlier Factor异常检测完成"
             }
             
-            # 如果需要返回模型得分
-            if is_return_model_score:
-                result["train_predictions"] = train_predictions.tolist()
-                result["test_predictions"] = test_predictions.tolist()
+            # 如果有目标列，可以计算评估指标
+            if target_col and target_col in df.columns:
+                # 假设目标列中1表示异常，0表示正常，需要转换为-1和1
+                y_true = df[target_col].replace(0, 1).replace(1, -1)  # 转换为与模型输出一致的格式
+                
+                # 计算评估指标
+                from sklearn.metrics import precision_score, recall_score, f1_score, roc_auc_score
+                
+                # 计算ROC AUC
+                auc_score = roc_auc_score(y_true, anomaly_scores)
+                
+                # 计算其他指标
+                precision = precision_score(y_true, predictions, average='binary')
+                recall = recall_score(y_true, predictions, average='binary')
+                f1 = f1_score(y_true, predictions, average='binary')
+                
+                result["metrics"] = {
+                    "precision": precision,
+                    "recall": recall,
+                    "f1_score": f1,
+                    "roc_auc": auc_score
+                }
             
             return result
         except Exception as e:
             return {
                 "error": str(e)
             }
+

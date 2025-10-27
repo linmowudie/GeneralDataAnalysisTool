@@ -1,27 +1,29 @@
 """
-聚类任务策略
+异常检测任务策略
 """
 
 from ..Cores.base_strategy import BaseStrategy
 from typing import Dict, Any
 import pandas as pd
-from sklearn.metrics import silhouette_score, calinski_harabasz_score, davies_bouldin_score
+from sklearn.metrics import accuracy_score, precision_score, recall_score, f1_score
+import numpy as np
 
 
-class ClusteringStrategy(BaseStrategy):
+class AnomalyDetectionStrategy(BaseStrategy):
     """
-    聚类任务策略类，控制聚类分析流程的执行顺序和逻辑
+    异常检测任务策略类，控制异常检测分析流程的执行顺序和逻辑
     """
     
     def execute(self, **kwargs) -> Dict[str, Any]:
         """
-        执行聚类分析策略
+        执行异常检测分析策略
         
         参数:
             **kwargs: 分析参数
                 - df: 数据集
                 - feature_cols: 特征列名列表
                 - model: 模型实例
+                - true_labels: 真实标签（可选，用于评估）
                 - metrics_list: 评估指标列表
                 
         返回:
@@ -31,7 +33,8 @@ class ClusteringStrategy(BaseStrategy):
             df = kwargs.get("df")
             feature_cols = kwargs.get("feature_cols", [])
             model = kwargs.get("model")
-            metrics_list = kwargs.get("metrics_list", ["silhouette", "calinski_harabasz", "davies_bouldin"])
+            true_labels = kwargs.get("true_labels", None)
+            metrics_list = kwargs.get("metrics_list", ["precision", "recall"])
             
             if df is None or not feature_cols or model is None:
                 return {"error": "缺少必要的参数: df, feature_cols, model"}
@@ -39,39 +42,43 @@ class ClusteringStrategy(BaseStrategy):
             # 准备数据
             X = df[feature_cols]
             
-            # 训练模型
-            labels = model.fit_predict(X)
+            # 执行异常检测
+            predictions = model.fit_predict(X)
             
             # 计算评估指标
             results = {
                 "model": model,
-                "labels": labels.tolist(),
+                "predictions": predictions.tolist(),
+                "anomaly_count": int(sum(predictions == -1)),
                 "data_shape": X.shape if hasattr(X, 'shape') else None
             }
             
-            metrics = {}
-            for metric in metrics_list:
-                try:
-                    if metric == "silhouette" and len(set(labels)) > 1:
-                        metrics[metric] = float(silhouette_score(X, labels))
-                    elif metric == "calinski_harabasz" and len(set(labels)) > 1:
-                        metrics[metric] = float(calinski_harabasz_score(X, labels))
-                    elif metric == "davies_bouldin" and len(set(labels)) > 1:
-                        metrics[metric] = float(davies_bouldin_score(X, labels))
-                    elif len(set(labels)) <= 1:
-                        metrics[metric] = "无法计算: 只有一个簇或所有点属于同一簇"
-                except Exception as e:
-                    metrics[metric] = f"计算出错: {str(e)}"
+            # 如果提供了真实标签，则计算评估指标
+            if true_labels is not None and len(true_labels) == len(predictions):
+                metrics = {}
+                for metric in metrics_list:
+                    try:
+                        if metric == "accuracy":
+                            metrics[metric] = float(accuracy_score(true_labels, predictions))
+                        elif metric == "precision":
+                            metrics[metric] = float(precision_score(true_labels, predictions, pos_label=-1))
+                        elif metric == "recall":
+                            metrics[metric] = float(recall_score(true_labels, predictions, pos_label=-1))
+                        elif metric == "f1":
+                            metrics[metric] = float(f1_score(true_labels, predictions, pos_label=-1))
+                    except Exception as e:
+                        metrics[metric] = f"计算出错: {str(e)}"
+                
+                results["metrics"] = metrics
             
-            results["metrics"] = metrics
             return results
             
         except Exception as e:
-            return {"error": f"执行聚类分析策略时出错: {str(e)}"}
+            return {"error": f"执行异常检测分析策略时出错: {str(e)}"}
 
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """
-        验证聚类任务参数
+        验证异常检测任务参数
         
         参数:
             params (Dict[str, Any]): 参数字典
@@ -79,7 +86,7 @@ class ClusteringStrategy(BaseStrategy):
         返回:
             bool: 验证是否通过
         """
-        # 实现聚类任务特定的参数验证逻辑
+        # 实现异常检测任务特定的参数验证逻辑
         required_params = ["df", "feature_cols"]
         for param in required_params:
             if param not in params:

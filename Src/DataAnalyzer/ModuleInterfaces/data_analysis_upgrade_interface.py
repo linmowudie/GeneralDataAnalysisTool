@@ -4,8 +4,8 @@ import pandas as pd
 import logging
 
 from typing import Dict, List, Optional, Union, Any
-from ..AnalysisUpgrade.base_analyzer import BaseAnalyzer
-from ..AnalysisUpgrade.factory import AnalyzerFactory
+from ..AnalysisUpgrade.Cores.base_analyzer import BaseAnalyzer
+from ..AnalysisUpgrade.Cores.base_factory import BaseFactory
 
 logger = logging.getLogger(__name__)
 
