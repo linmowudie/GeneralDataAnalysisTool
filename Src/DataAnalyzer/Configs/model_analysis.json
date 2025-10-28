@@ -340,5 +340,84 @@
     "others": {
       "key_description": "其他任务类型的评估方法（暂空）"
     }
+  },
+  "model_mapping": {
+    "key_description": "模型名称到模块和类名的映射，用于动态导入",
+    "logisticregression": {
+      "module": "sklearn.linear_model",
+      "class": "LogisticRegression"
+    },
+    "decisiontreeclassifier": {
+      "module": "sklearn.tree",
+      "class": "DecisionTreeClassifier"
+    },
+    "randomforestclassifier": {
+      "module": "sklearn.ensemble",
+      "class": "RandomForestClassifier"
+    },
+    "svc": {
+      "module": "sklearn.svm",
+      "class": "SVC"
+    },
+    "kneighborsclassifier": {
+      "module": "sklearn.neighbors",
+      "class": "KNeighborsClassifier"
+    },
+    "xgboostclassifier": {
+      "module": "xgboost",
+      "class": "XGBClassifier"
+    },
+    "linearregression": {
+      "module": "sklearn.linear_model",
+      "class": "LinearRegression"
+    },
+    "decisiontreeregressor": {
+      "module": "sklearn.tree",
+      "class": "DecisionTreeRegressor"
+    },
+    "randomforestregressor": {
+      "module": "sklearn.ensemble",
+      "class": "RandomForestRegressor"
+    },
+    "kmeans": {
+      "module": "sklearn.cluster",
+      "class": "KMeans"
+    },
+    "meanshift": {
+      "module": "sklearn.cluster",
+      "class": "MeanShift"
+    },
+    "agglomerativeclustering": {
+      "module": "sklearn.cluster",
+      "class": "AgglomerativeClustering"
+    },
+    "dbscan": {
+      "module": "sklearn.cluster",
+      "class": "DBSCAN"
+    },
+    "pca": {
+      "module": "sklearn.decomposition",
+      "class": "PCA"
+    },
+    "tsne": {
+      "module": "sklearn.manifold",
+      "class": "TSNE"
+    },
+    "umap": {
+      "module": "umap",
+      "class": "UMAP"
+    },
+    "mlpclassifier": {
+      "module": "sklearn.neural_network",
+      "class": "MLPClassifier"
+    },
+    "mlpregressor": {
+      "module": "sklearn.neural_network",
+      "class": "MLPRegressor"
+    },
+    "standardscaler": {
+      "module": "sklearn.preprocessing",
+      "class": "StandardScaler"
+    }
   }
 }

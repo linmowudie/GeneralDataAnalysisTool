@@ -4,77 +4,115 @@ import pandas as pd
 import logging
 import json
 from sklearn.model_selection import train_test_split
-from sklearn.preprocessing import LabelEncoder, OneHotEncoder
+from sklearn.preprocessing import LabelEncoder
 import numpy as np
+import os
 
 logger = logging.getLogger(__name__)
 
 class BaseAnalyzer(ABC):
     """
-    数据分析器基类
-    
-    所有具体的分析器类都必须继承自此类，并实现其中的抽象方法。
-    此类提供了所有分析器共用的方法和属性。
+    数据分析器基类（抽象基类）
+
+    所有具体分析器（如分类、回归、聚类）必须继承此类并实现抽象方法。
+    本类提供统一的模型实例化、编码、划分、评估等通用能力，并确保：
+      - 模型只被实例化一次（通过 instantiate_model）
+      - 子类不得在自身方法中直接导入或创建模型实例
+      - 所有流程由 analyzer 驱动，保证一致性
+
+    子类应在以下方法中实现任务特定逻辑：
+        - load_params
+        - validate_params
+        - preprocess
+        - train
+        - postprocess
+        - get_feature_importance
+        - save_model_artifacts
+        - predict
+        - get_default_metrics
     """
 
     def __init__(self):
         """
-        初始化分析器基类
+        初始化分析器。子类可扩展初始化逻辑，但不应在此处实例化模型。
         """
-        pass
+        self._model_instance = None  # 内部缓存已实例化的模型（仅供 analyzer 使用）
+        self._fitted_encoders = {}   # 用于保存训练中使用的编码器（如 LabelEncoder）
 
     @abstractmethod
-    def load_params(self, config_path: str) -> Dict[str, Any]:
+    def load_params(self, model_name: str) -> Dict[str, Any]:
         """
-        从配置文件中加载任务参数
-        
+        从配置文件加载指定模型的参数（超参数、特征映射、默认指标等）
+
+        ⚠️ 覆写要求：
+          - 必须调用 self.load_config(...) 加载配置
+          - 返回字典格式：{'model_name': ..., 'hyper_params': ..., 'feature_cols': ..., 'target_col': ...}
+          - 不得在此方法中实例化模型
+
         参数:
-            config_path (str): 配置文件路径
-            
+            model_name (str): 模型名称（如 "random_forest"）
+
         返回:
-            Dict[str, Any]: 包含模型名称、超参数、特征列、目标列等的字典
+            Dict[str, Any]: 包含模型配置的字典
         """
         pass
 
     @abstractmethod
     def validate_params(self, params: Dict[str, Any]) -> bool:
         """
-        参数校验方法，检查当前任务所需的特定参数是否合法
-        
+        校验加载的参数是否合法（如必要字段是否存在、类型是否正确）
+
+        ⚠️ 覆写要求：
+          - 必须对关键字段（如 feature_cols, target_col）进行存在性和类型检查
+          - 若校验失败，抛出 ValueError
+          - 不得在此方法中修改参数或实例化模型
+
         参数:
-            params (Dict[str, Any]): 待校验的参数字典
-            
+            params (Dict[str, Any]): 参数字典
+
         返回:
-            bool: 校验是否通过
-            
+            bool: 校验通过返回 True
+
         异常:
-            ValueError: 当参数不合法时抛出
+            ValueError: 参数不合法时抛出
         """
         pass
 
     @abstractmethod
     def preprocess(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> tuple:
         """
-        数据预处理方法，定义任务特定的特征工程逻辑
-        
+        执行任务特定的数据预处理（如特征工程、缺失值处理、标准化等）
+
+        ⚠️ 覆写要求：
+          - 可调用基类的 fill_missing_values、feature_set_encoding 等方法
+          - 必须返回处理后的 (X_processed, y_processed)
+          - 若 y 为 None（如聚类），可只返回 X_processed
+          - 不得在此方法中实例化模型
+
         参数:
             X (pd.DataFrame): 特征数据
-            y (Optional[pd.Series]): 目标数据
-            
+            y (Optional[pd.Series]): 目标数据（可选）
+
         返回:
-            tuple: 预处理后的(X, y)数据
+            tuple: 预处理后的 (X, y) 数据
         """
         pass
 
     @abstractmethod
     def train(self, X_train: pd.DataFrame, y_train: Optional[pd.Series]) -> Any:
         """
-        模型训练方法，使用训练集数据拟合模型
-        
+        使用训练数据拟合模型
+
+        ⚠️ 覆写要求：
+          - 必须使用 self._model_instance（已在 analyzer 中实例化）
+          - 调用 model.fit(...) 完成训练
+          - 返回训练后的模型对象（通常为 self._model_instance）
+          - 禁止在此方法中重新实例化模型！
+
         参数:
-            X_train (pd.DataFrame): 训练特征数据
-            y_train (Optional[pd.Series]): 训练目标数据
-            
+            X_train (pd.DataFrame): 训练特征
+            y_train (Optional[pd.Series]): 训练标签
+
         返回:
             Any: 训练完成的模型对象
         """
@@ -83,54 +121,73 @@ class BaseAnalyzer(ABC):
     @abstractmethod
     def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series]) -> Dict[str, Any]:
         """
-        训练后处理方法，用于执行特征重要性提取、模型解释等操作
-        
+        训练后处理，如特征重要性提取、模型解释、中间结果保存等
+
+        ⚠️ 覆写要求：
+          - 可调用 get_feature_importance 等方法
+          - 返回字典格式的后处理结果
+          - 不得修改模型或重新训练
+
         参数:
             model (Any): 训练完成的模型
-            X (pd.DataFrame): 特征数据
-            y (Optional[pd.Series]): 目标数据
-            
+            X (pd.DataFrame): 特征数据（通常为训练集）
+            y (Optional[pd.Series]): 标签数据
+
         返回:
-            Dict[str, Any]: 包含后处理结果的字典
+            Dict[str, Any]: 后处理结果
         """
         pass
 
     @abstractmethod
     def get_feature_importance(self, model: Any) -> Dict[str, float]:
         """
-        获取特征重要性或权重的方法
-        
+        提取模型的特征重要性（如随机森林的 feature_importances_）
+
+        ⚠️ 覆写要求：
+          - 若模型不支持重要性，返回空字典或全 0
+          - 返回格式：{'feature_name': importance_value}
+
         参数:
             model (Any): 训练完成的模型
-            
+
         返回:
-            Dict[str, float]: 特征重要性字典，键为特征名，值为重要性分数
+            Dict[str, float]: 特征重要性字典
         """
         pass
 
     @abstractmethod
     def save_model_artifacts(self, model: Any, filepath: str) -> bool:
         """
-        模型产物持久化方法，负责将模型文件、编码器、特征列表等关键信息序列化保存
-        
+        保存模型及相关产物（模型文件、编码器、特征列表等）
+
+        ⚠️ 覆写要求：
+          - 使用 joblib/pickle 保存 model
+          - 同时保存编码器（self._fitted_encoders）、特征名等元数据
+          - 返回保存是否成功
+
         参数:
-            model (Any): 要保存的模型对象
-            filepath (str): 保存路径
-            
+            model (Any): 模型对象
+            filepath (str): 保存路径（不含扩展名）
+
         返回:
-            bool: 是否保存成功
+            bool: 是否成功
         """
         pass
 
     @abstractmethod
     def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
         """
-        封装的预测方法，接收新数据并输出模型预测结果
-        
+        使用训练好的模型进行预测
+
+        ⚠️ 覆写要求：
+          - 调用 model.predict(X)
+          - 若为分类任务且需解码，使用 self._fitted_encoders 还原原始标签
+          - 返回 pd.Series，index 与 X 一致
+
         参数:
-            model (Any): 训练完成的模型
-            X (pd.DataFrame): 待预测的特征数据
-            
+            model (Any): 训练好的模型
+            X (pd.DataFrame): 预测数据
+
         返回:
             pd.Series: 预测结果
         """
@@ -139,406 +196,323 @@ class BaseAnalyzer(ABC):
     @abstractmethod
     def get_default_metrics(self, model_type: str) -> List[str]:
         """
-        根据 model_type 从 model_analysis.json 配置文件中加载默认评估指标列表
-        
+        根据 model_type 返回默认评估指标列表
+
+        ⚠️ 覆写要求：
+          - 从配置文件读取或返回硬编码默认值
+          - 如分类返回 ["accuracy", "f1_score"]，回归返回 ["mse", "r2_score"]
+
         参数:
-            model_type (str): 模型类型，如 "classification", "regression" 等
-            
+            model_type (str): 模型类型（如 "classification"）
+
         返回:
-            List[str]: 默认评估指标列表
+            List[str]: 默认指标列表
         """
         pass
 
     @abstractmethod
     def analyzer(
-        self, 
-        df: pd.DataFrame, 
-        learn_type: str, 
-        model_type: str, 
+        self,
+        df: pd.DataFrame,
+        learn_type: str,
+        model_type: str,
         model: str,
-        random_state: int = 42, 
-        is_split: bool = True, 
+        random_state: int = 42,
+        is_split: bool = True,
         split_ratio: float = 0.2,
-        feature_cols: Optional[List[str]] = None, 
+        feature_cols: Optional[List[str]] = None,
         target_col: Optional[str] = None,
-        metrics_list: Optional[List[str]] = None, 
+        metrics_list: Optional[List[str]] = None,
         is_return_model_score: bool = True,
-        feature_cols_encoding: str = "auto", 
+        feature_cols_encoding: str = "auto",
         target_col_encoding: str = "auto",
-        test_set: Optional[pd.DataFrame] = None, 
+        test_set: Optional[pd.DataFrame] = None,
         model_params: Optional[Dict[str, Any]] = None
-        ) -> Dict[str, Any]:
+    ) -> Dict[str, Any]:
         """
-        执行完整分析流程的核心方法
-        
-        参数:
-            df (pd.DataFrame): 输入数据集，不能为空
-            learn_type (str): 学习类型，如 "ML"（机器学习）或 "DL"（深度学习）
-            model_type (str): 模型类别，如 "classification"、"regression"、"clustering"
-            model (str): 模型名称，如 "random_forest"、"xgboost"
-            random_state (int): 随机种子，用于复现实验结果，默认为42
-            is_split (bool): 是否自动划分训练/测试集，默认为True
-            split_ratio (float): 测试集占比，范围 (0,1)，仅当 is_split=True 时生效，默认为0.2
-            feature_cols (List[str]): 特征列名列表，不能为空
-            target_col (str): 目标列名，不能为空
-            metrics_list (List[str]): 评价指标列表，如 ["accuracy", "f1"]，默认使用默认指标
-            is_return_model_score (bool): 是否返回模型评估得分，默认为True
-            feature_cols_encoding (str): 特征列编码方式，支持 "onehot"、"label"、"ordinal"、"target"、"none"、"auto" 等，默认为"auto"
-            target_col_encoding (str): 目标列编码方式，分类任务常用 "label"，回归为 "none"，默认为"auto"
-            test_set (pd.DataFrame): 外部传入的测试集，仅当 is_split=False 时使用，默认为None
-            model_params (Dict[str, Any]): 模型特定超参数，如 {"n_estimators": 100, "max_depth": 10}，默认为{}
-            
-        返回:
-            Dict[str, Any]: 包含模型、评估结果等信息的字典
-              - model: 训练完成的模型对象
-              - model_score: 模型评估得分
-              - train_set: 实际用于训练的特征-标签数据集
-              - test_set: 实际用于测试的数据集
-              - feature_cols: 经过预处理后的最终特征列名
-              - encoding_method: 编码方式记录
+        执行完整分析流程的核心方法（模板方法模式）
+
+        ⚠️ 该方法由子类实现，但应遵循统一流程：
+          1. 加载参数 -> 2. 校验参数 -> 3. 预处理 -> 4. 划分数据 ->
+          5. 实例化模型 -> 6. 训练 -> 7. 预测与评估 -> 8. 后处理 -> 9. 保存
+
+        ⚠️ 子类不得在 analyzer 内部调用 instantiate_model 以外的方式创建模型！
+
+        （详见具体子类实现）
         """
         pass
 
+    def instantiate_model(self, model_name: str, random_state: int, model_params: Dict[str, Any]) -> Any:
+        """
+        【统一入口】实例化模型，确保全局只实例化一次
+
+        从 model_analysis.json 或默认映射中查找模型类并实例化。
+        该方法会被 analyzer 调用一次，子类不得重复调用。
+
+        参数:
+            model_name (str): 模型名称（不区分大小写）
+            random_state (int): 随机种子
+            model_params (Dict[str, Any]): 超参数
+
+        返回:
+            Any: 实例化的模型对象
+
+        异常:
+            ImportError, NotImplementedError: 模块或模型未找到
+        """
+        if model_params is None:
+            model_params = {}
+
+        # 统一处理模型名（转小写）
+        model_key = model_name.lower().replace(" ", "")
+
+        # 尝试加载配置文件中的映射
+        model_mapping = self._load_model_mapping()
+
+        if model_key not in model_mapping:
+            logger.error(f"不支持的模型: {model_name}")
+            raise NotImplementedError(f"模型 {model_name} 未在配置中定义")
+
+        try:
+            module_name = model_mapping[model_key]["module"]
+            class_name = model_mapping[model_key]["class"]
+            module = __import__(module_name, fromlist=[class_name])
+            model_class = getattr(module, class_name)
+
+            # 注入 random_state（若未提供）
+            if "random_state" not in model_params:
+                model_params["random_state"] = random_state
+
+            model = model_class(**model_params)
+            logger.info(f"模型 {model_name} 实例化成功: {model_class}")
+            return model
+        except ImportError as e:
+            logger.error(f"导入失败 {module_name}.{class_name}: {e}")
+            raise
+        except Exception as e:
+            logger.error(f"实例化模型失败: {e}")
+            raise
+
+    def _load_model_mapping(self) -> Dict[str, Dict[str, str]]:
+        """
+        内部方法：加载模型映射配置（优先从文件，失败则用默认）
+
+        返回:
+            Dict[str, Dict[str, str]]: 模型名 -> {module, class}
+        """
+        try:
+            config_dir = os.path.join(os.path.dirname(__file__), '..', 'Configs')
+            config_path = os.path.join(config_dir, 'model_analysis.json')
+            if os.path.exists(config_path):
+                with open(config_path, 'r', encoding='utf-8') as f:
+                    config = json.load(f)
+                return config.get('model_mapping', self._get_default_model_mapping())
+        except Exception as e:
+            logger.warning(f"加载 model_analysis.json 失败，使用默认映射: {e}")
+
+        return self._get_default_model_mapping()
+
+    def _get_default_model_mapping(self) -> Dict[str, Dict[str, str]]:
+        """返回内置的默认模型映射"""
+        return {
+            "logisticregression": {"module": "sklearn.linear_model", "class": "LogisticRegression"},
+            "decisiontreeclassifier": {"module": "sklearn.tree", "class": "DecisionTreeClassifier"},
+            "randomforestclassifier": {"module": "sklearn.ensemble", "class": "RandomForestClassifier"},
+            "svc": {"module": "sklearn.svm", "class": "SVC"},
+            "kneighborsclassifier": {"module": "sklearn.neighbors", "class": "KNeighborsClassifier"},
+            "xgboostclassifier": {"module": "xgboost", "class": "XGBClassifier"},
+            "linearregression": {"module": "sklearn.linear_model", "class": "LinearRegression"},
+            "decisiontreeregressor": {"module": "sklearn.tree", "class": "DecisionTreeRegressor"},
+            "randomforestregressor": {"module": "sklearn.ensemble", "class": "RandomForestRegressor"},
+            "kmeans": {"module": "sklearn.cluster", "class": "KMeans"},
+            "meanshift": {"module": "sklearn.cluster", "class": "MeanShift"},
+            "agglomerativeclustering": {"module": "sklearn.cluster", "class": "AgglomerativeClustering"},
+            "dbscan": {"module": "sklearn.cluster", "class": "DBSCAN"},
+            "pca": {"module": "sklearn.decomposition", "class": "PCA"},
+            "tsne": {"module": "sklearn.manifold", "class": "TSNE"},
+            "mlpclassifier": {"module": "sklearn.neural_network", "class": "MLPClassifier"},
+            "mlpregressor": {"module": "sklearn.neural_network", "class": "MLPRegressor"}
+        }
+
     def load_config(self, config_file: str) -> Dict[str, Any]:
         """
-        加载配置文件方法，从指定路径加载配置文件，返回字典格式的配置信息
-        
+        加载 JSON 配置文件
+
         参数:
-            config_file (str): 配置文件路径
-            
+            config_file (str): 文件路径
+
         返回:
-            Dict[str, Any]: 配置信息字典
-            
+            Dict[str, Any]: 配置字典
+
         异常:
-            FileNotFoundError: 配置文件不存在
-            json.JSONDecodeError: 配置文件格式错误
+            FileNotFoundError, json.JSONDecodeError
         """
         try:
             with open(config_file, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            logger.info(f"配置文件 {config_file} 加载成功")
+            logger.info(f"配置文件加载成功: {config_file}")
             return config
         except FileNotFoundError:
-            logger.error(f"配置文件 {config_file} 不存在")
+            logger.error(f"配置文件不存在: {config_file}")
             raise
-        except json.JSONDecodeError:
-            logger.error(f"配置文件 {config_file} 格式错误")
+        except json.JSONDecodeError as e:
+            logger.error(f"配置文件格式错误: {config_file}, 错误: {e}")
             raise
 
     def feature_set_encoding(self, feature_set: pd.DataFrame, encoding_type: str) -> pd.DataFrame:
         """
-        特征集编码方法，支持多种编码方式，自动识别类别型变量并执行相应编码
-        
+        对特征集进行编码（仅处理 object/category 列）
+
+        支持: 'onehot', 'label', 'auto'（>5个类别用 label，否则 onehot）, 'none'
+
         参数:
-            feature_set (pd.DataFrame): 待编码的特征数据集
-            encoding_type (str): 编码方式，支持 "onehot"、"label"、"ordinal"、"target"、"none"、"auto" 等
-            
+            feature_set (pd.DataFrame)
+            encoding_type (str)
+
         返回:
-            pd.DataFrame: 编码后的特征数据集
+            pd.DataFrame: 编码后特征集
         """
-        logger.info(f"对特征集进行 {encoding_type} 编码")
-        
-        # 识别类别型变量
-        categorical_columns = feature_set.select_dtypes(include=['object', 'category']).columns.tolist()
-        
-        if not categorical_columns:
-            logger.info("未发现类别型变量，跳过编码")
-            return feature_set
-            
+        logger.info(f"特征编码方式: {encoding_type}")
         if encoding_type == "none":
-            logger.info("编码方式为 'none'，跳过编码")
-            return feature_set
-            
-        # 复制数据以避免修改原始数据
-        encoded_features = feature_set.copy()
-        
-        if encoding_type == "label" or (encoding_type == "auto" and len(categorical_columns) > 5):
-            # 使用标签编码
-            for col in categorical_columns:
+            return feature_set.copy()
+
+        cat_cols = feature_set.select_dtypes(include=['object', 'category']).columns.tolist()
+        if not cat_cols:
+            return feature_set.copy()
+
+        if encoding_type == "label" or (encoding_type == "auto" and len(cat_cols) > 5):
+            df_encoded = feature_set.copy()
+            for col in cat_cols:
                 le = LabelEncoder()
-                encoded_features[col] = le.fit_transform(feature_set[col].astype(str))
-                logger.debug(f"列 {col} 使用标签编码完成")
-                
-        elif encoding_type == "onehot" or encoding_type == "auto":
-            # 使用独热编码
-            encoded_features = pd.get_dummies(feature_set, columns=categorical_columns, prefix=categorical_columns)
-            logger.debug(f"对列 {categorical_columns} 使用独热编码完成")
-            
-        return encoded_features
+                df_encoded[col] = le.fit_transform(df_encoded[col].astype(str))
+                self._fitted_encoders[f"feature_{col}"] = le
+        else:
+            df_encoded = pd.get_dummies(feature_set, columns=cat_cols, prefix=cat_cols)
+            # 可选：保存 one-hot 的列名映射（如有需要）
+        return df_encoded
 
     def target_col_encoding(self, target_col: pd.Series, encoding_type: str) -> tuple:
         """
-        目标列编码方法，根据任务类型及指定编码方式对目标变量进行编码
-        
-        参数:
-            target_col (pd.Series): 待编码的目标列
-            encoding_type (str): 编码方式，分类任务常用 "label"，回归为 "none"
-            
-        返回:
-            tuple: (编码后的目标列, 编码器对象)
-        """
-        logger.info(f"对目标列进行 {encoding_type} 编码")
-        
-        if encoding_type == "none":
-            logger.info("目标列编码方式为 'none'，跳过编码")
-            return target_col, None
-            
-        # 使用标签编码
-        le = LabelEncoder()
-        encoded_target = pd.Series(le.fit_transform(target_col), name=target_col.name, index=target_col.index)
-        logger.debug("目标列标签编码完成")
-        
-        return encoded_target, le
+        对目标列编码，返回编码后序列和编码器
 
-    def split_data_set(self, data_set: pd.DataFrame, train_size: float, stratify: Optional[pd.Series] = None) -> tuple:
-        """
-        数据集划分方法，根据train_size参数将数据划分为训练集和测试集
-        
         参数:
-            data_set (pd.DataFrame): 待划分的数据集
-            train_size (float): 训练集占比，范围 (0,1)
-            stratify (Optional[pd.Series]): 分层抽样依据列，默认为None
-            
+            target_col (pd.Series)
+            encoding_type (str): "label" 或 "none"
+
         返回:
-            tuple: (X_train, X_test, y_train, y_test) 或 (X_train, X_test) 的元组
+            tuple: (encoded_target, encoder)
         """
-        logger.info(f"按照 {train_size} 比例划分数据集")
-        
-        # 如果没有提供stratify参数，则不使用分层抽样
-        if stratify is not None:
-            try:
-                train_data, test_data = train_test_split(
-                    data_set, 
-                    train_size=train_size, 
-                    stratify=stratify,
-                    random_state=42
-                )
-            except ValueError as e:
-                logger.warning(f"分层抽样失败: {e}，使用普通划分")
-                train_data, test_data = train_test_split(
-                    data_set, 
-                    train_size=train_size,
-                    random_state=42
-                )
-        else:
+        if encoding_type == "none":
+            return target_col.copy(), None
+
+        le = LabelEncoder()
+        encoded = pd.Series(
+            le.fit_transform(target_col),
+            name=target_col.name,
+            index=target_col.index
+        )
+        self._fitted_encoders["target"] = le
+        return encoded, le
+
+    def split_data_set(self, data_set: pd.DataFrame, train_size: float,
+                       stratify: Optional[pd.Series] = None) -> tuple:
+        """
+        划分训练/测试集
+
+        参数:
+            data_set: 数据集
+            train_size: 训练占比
+            stratify: 分层变量
+
+        返回:
+            tuple: (train_data, test_data)
+        """
+        try:
             train_data, test_data = train_test_split(
-                data_set, 
-                train_size=train_size,
-                random_state=42
+                data_set, train_size=train_size, stratify=stratify, random_state=42
             )
-            
-        logger.debug(f"训练集大小: {len(train_data)}, 测试集大小: {len(test_data)}")
+        except Exception:
+            logger.warning("分层抽样失败，使用随机划分")
+            train_data, test_data = train_test_split(
+                data_set, train_size=train_size, random_state=42
+            )
         return train_data, test_data
 
     def validate_cols_exist(self, cols: List[str], data_set: pd.DataFrame) -> bool:
-        """
-        列存在性校验方法，检查指定列是否均存在于输入DataFrame中
-        
-        参数:
-            cols (List[str]): 待检查的列名列表
-            data_set (pd.DataFrame): 数据集
-            
-        返回:
-            bool: 列是否存在
-            
-        异常:
-            KeyError: 当列不存在时抛出
-        """
-        missing_cols = [col for col in cols if col not in data_set.columns]
-        if missing_cols:
-            logger.error(f"以下列在数据集中不存在: {missing_cols}")
-            raise KeyError(f"以下列在数据集中不存在: {missing_cols}")
+        """检查列是否存在"""
+        missing = [col for col in cols if col not in data_set.columns]
+        if missing:
+            raise KeyError(f"缺失列: {missing}")
         return True
 
-    def fill_missing_values(self, data_set: pd.DataFrame, cols: List[str], 
-                           fill_strategy: str = "mean") -> pd.DataFrame:
-        """
-        缺失值填充方法，支持多种填充策略
-        
-        参数:
-            data_set (pd.DataFrame): 包含缺失值的数据集
-            cols (List[str]): 需要填充的列名列表
-            fill_strategy (str): 填充策略，支持 "mean"(均值)、"median"(中位数)、"mode"(众数)、"forward"(前向填充) 等
-            
-        返回:
-            pd.DataFrame: 填充后的数据集
-        """
-        logger.info(f"使用 {fill_strategy} 策略填充缺失值")
-        
-        # 复制数据以避免修改原始数据
-        filled_data = data_set.copy()
-        
+    def fill_missing_values(self, data_set: pd.DataFrame, cols: List[str],
+                            fill_strategy: str = "mean") -> pd.DataFrame:
+        """填充缺失值"""
+        data = data_set.copy()
         for col in cols:
-            if col not in filled_data.columns:
-                logger.warning(f"列 {col} 不存在于数据集中，跳过")
+            if col not in data.columns:
                 continue
-                
-            if fill_strategy == "mean":
-                # 均值填充（仅适用于数值型）
-                if filled_data[col].dtype in ['int64', 'float64']:
-                    filled_data[col].fillna(filled_data[col].mean(), inplace=True)
-                else:
-                    logger.warning(f"列 {col} 不是数值型，无法使用均值填充")
-                    
-            elif fill_strategy == "median":
-                # 中位数填充（仅适用于数值型）
-                if filled_data[col].dtype in ['int64', 'float64']:
-                    filled_data[col].fillna(filled_data[col].median(), inplace=True)
-                else:
-                    logger.warning(f"列 {col} 不是数值型，无法使用中位数填充")
-                    
+            if fill_strategy == "mean" and data[col].dtype in ['int64', 'float64']:
+                data[col].fillna(data[col].mean(), inplace=True)
+            elif fill_strategy == "median" and data[col].dtype in ['int64', 'float64']:
+                data[col].fillna(data[col].median(), inplace=True)
             elif fill_strategy == "mode":
-                # 众数填充
-                mode_value = filled_data[col].mode()
-                if not mode_value.empty:
-                    filled_data[col].fillna(mode_value.iloc[0], inplace=True)
-                else:
-                    logger.warning(f"列 {col} 无众数，无法填充")
-                    
+                mode_val = data[col].mode()
+                if not mode_val.empty:
+                    data[col].fillna(mode_val.iloc[0], inplace=True)
             elif fill_strategy == "forward":
-                # 前向填充
-                filled_data[col].fillna(method='ffill', inplace=True)
-                
+                data[col].fillna(method='ffill', inplace=True)
             else:
-                logger.warning(f"未知的填充策略: {fill_strategy}")
-                
-        logger.debug("缺失值填充完成")
-        return filled_data
+                logger.warning(f"跳过列 {col} 的填充（策略不支持）")
+        return data
 
-    def build_model_instance(self, model_name: str, model_params: Optional[Dict[str, Any]] = None) -> Any:
-        """
-        根据模型名称和参数从模型注册表中实例化对应模型对象
-        
-        参数:
-            model_name (str): 模型名称
-            model_params (Optional[Dict[str, Any]]): 模型超参数
-            
-        返回:
-            Any: 实例化的模型对象
-            
-        异常:
-            NotImplementedError: 当模型未实现时抛出
-        """
-        logger.info(f"构建 {model_name} 模型实例")
-        
-        # 确保model_params是一个字典
-        if model_params is None:
-            model_params = {}
-            
-        # 定义模型映射字典
-        model_mapping = {
-            "logisticregression": ("sklearn.linear_model", "LogisticRegression"),
-            "decisiontreeclassifier": ("sklearn.tree", "DecisionTreeClassifier"),
-            "randomforestclassifier": ("sklearn.ensemble", "RandomForestClassifier"),
-            "svc": ("sklearn.svm", "SVC"),
-            "kneighborsclassifier": ("sklearn.neighbors", "KNeighborsClassifier"),
-            "xgboostclassifier": ("xgboost", "XGBClassifier"),
-            "linearregression": ("sklearn.linear_model", "LinearRegression"),
-            "decisiontreeregressor": ("sklearn.tree", "DecisionTreeRegressor"),
-            "randomforestregressor": ("sklearn.ensemble", "RandomForestRegressor"),
-            "kmeans": ("sklearn.cluster", "KMeans"),
-            "meanshift": ("sklearn.cluster", "MeanShift"),
-            "agglomerativeclustering": ("sklearn.cluster", "AgglomerativeClustering")
-        }
-        
-        # 根据模型名称导入并实例化模型
-        if model_name in model_mapping:
-            try:
-                module_name, class_name = model_mapping[model_name]
-                module = __import__(module_name, fromlist=[class_name])
-                model_class = getattr(module, class_name)
-                model = model_class(**model_params)
-                logger.debug(f"模型 {model_name} 实例化成功")
-                return model
-            except ImportError as e:
-                logger.error(f"导入模型 {model_name} 失败: {e}")
-                raise ImportError(f"无法导入 {model_name} 所需的库，请检查是否已安装")
-            except Exception as e:
-                logger.error(f"模型 {model_name} 实例化失败: {e}")
-                raise
-        else:
-            logger.error(f"未实现的模型: {model_name}")
-            raise NotImplementedError(f"模型 {model_name} 未实现")
-
-    def evaluate_model(self, model: Any, X_test: pd.DataFrame, y_test: pd.Series, 
-                      metrics: List[str]) -> Dict[str, float]:
-        """
-        通用模型评估方法，接收模型、测试数据和metrics_list，计算性能指标
-        
-        参数:
-            model (Any): 训练完成的模型
-            X_test (pd.DataFrame): 测试特征数据
-            y_test (pd.Series): 测试目标数据
-            metrics (List[str]): 评估指标列表
-            
-        返回:
-            Dict[str, float]: 评估结果字典，键为指标名，值为指标值
-        """
-        logger.info(f"使用指标 {metrics} 评估模型")
-        
-        # 获取模型预测结果
+    def evaluate_model(self, model: Any, X_test: pd.DataFrame, y_test: pd.Series,
+                       metrics: List[str]) -> Dict[str, float]:
+        """通用模型评估"""
         try:
             y_pred = model.predict(X_test)
         except Exception as e:
-            logger.error(f"模型预测失败: {e}")
+            logger.error(f"预测失败: {e}")
             return {}
-            
+
         results = {}
-        
         for metric in metrics:
             try:
                 if metric == "accuracy":
                     from sklearn.metrics import accuracy_score
                     results[metric] = accuracy_score(y_test, y_pred)
-                    
                 elif metric == "precision":
                     from sklearn.metrics import precision_score
-                    # 对于多分类问题，使用macro平均
-                    results[metric] = precision_score(y_test, y_pred, average='macro', zero_division='warn')
-                    
+                    results[metric] = precision_score(y_test, y_pred, average='macro', zero_division=0)
                 elif metric == "recall":
                     from sklearn.metrics import recall_score
-                    # 对于多分类问题，使用macro平均
-                    results[metric] = recall_score(y_test, y_pred, average='macro', zero_division='warn')
-                    
+                    results[metric] = recall_score(y_test, y_pred, average='macro', zero_division=0)
                 elif metric == "f1_score":
                     from sklearn.metrics import f1_score
-                    # 对于多分类问题，使用macro平均
-                    results[metric] = f1_score(y_test, y_pred, average='macro', zero_division='warn')
-                    
+                    results[metric] = f1_score(y_test, y_pred, average='macro', zero_division=0)
                 elif metric == "roc_auc":
                     from sklearn.metrics import roc_auc_score
-                    # 注意：对于多分类问题，roc_auc_score需要特殊处理
                     try:
-                        y_pred_proba = model.predict_proba(X_test)
-                        results[metric] = roc_auc_score(y_test, y_pred_proba, multi_class='ovr')
+                        y_proba = model.predict_proba(X_test)
+                        results[metric] = roc_auc_score(y_test, y_proba, multi_class='ovr')
                     except:
-                        # 如果无法计算概率，则跳过该指标
-                        logger.warning("无法计算ROC AUC指标")
-                        results[metric] = np.nan
-                        
+                        results[metric] = float('nan')
                 elif metric == "mse":
                     from sklearn.metrics import mean_squared_error
                     results[metric] = mean_squared_error(y_test, y_pred)
-                    
                 elif metric == "rmse":
                     from sklearn.metrics import mean_squared_error
-                    results[metric] = np.sqrt(mean_squared_error(y_test, y_pred))
-                    
+                    results[metric] = mean_squared_error(y_test, y_pred, squared=False)
                 elif metric == "mae":
                     from sklearn.metrics import mean_absolute_error
                     results[metric] = mean_absolute_error(y_test, y_pred)
-                    
                 elif metric == "r2_score":
                     from sklearn.metrics import r2_score
                     results[metric] = r2_score(y_test, y_pred)
-                    
                 else:
-                    logger.warning(f"未知的评估指标: {metric}")
-                    
+                    logger.warning(f"未知指标: {metric}")
+                    results[metric] = float('nan')
             except Exception as e:
-                logger.warning(f"计算指标 {metric} 时出错: {e}")
-                results[metric] = np.nan
-                
-        logger.debug("模型评估完成")
+                logger.warning(f"计算 {metric} 失败: {e}")
+                results[metric] = float('nan')
         return results
