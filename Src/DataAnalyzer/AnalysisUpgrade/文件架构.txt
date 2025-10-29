@@ -77,4 +77,6 @@ Src/DataAnalyzer/AnalysisUpgrade/
 │   └── config_loader.py                 # 配置加载
 │
 ├── __init__.py                          # 包入口
+├── 进度文档.md
+├── 文件架构.txt
 └── DATA_ANALYZER.md                     # 架构文档

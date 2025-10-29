@@ -1,4 +1,5 @@
 from abc import ABC, abstractmethod
+from pyclbr import Class
 from typing import Dict, List, Optional, Union, Any
 import pandas as pd
 import logging
@@ -7,6 +8,7 @@ from sklearn.model_selection import train_test_split
 from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import os
+import time
 
 logger = logging.getLogger(__name__)
 
@@ -30,6 +32,7 @@ class BaseAnalyzer(ABC):
         - save_model_artifacts
         - predict
         - get_default_metrics
+        - build_result
     """
 
     def __init__(self):
@@ -39,6 +42,11 @@ class BaseAnalyzer(ABC):
         self._model_instance = None  # 内部缓存已实例化的模型（仅供 analyzer 使用）
         self._fitted_encoders = {}   # 用于保存训练中使用的编码器（如 LabelEncoder）
 
+    # ==========================================
+    # 抽象方法 (Abstract Methods)
+    # 子类必须实现这些方法
+    # ==========================================
+
     @abstractmethod
     def load_params(self, model_name: str) -> Dict[str, Any]:
         """
@@ -46,19 +54,33 @@ class BaseAnalyzer(ABC):
 
         ⚠️ 覆写要求：
           - 必须调用 self.load_config(...) 加载配置
-          - 返回字典格式：{'model_name': ..., 'hyper_params': ..., 'feature_cols': ..., 'target_col': ...}
+          - 返回字典格式：{
+                            "model_info": List[str], # 即模型名、模块名、类名，便于实例化模型
+                            "default_model_params": model_params # 配置文件中的*_special_params下的键值对，键名为model_name
+                                                                    模型实例化输入参数是需要过滤掉键值对{"key_description": ",str}
+                                                                    这里不需要考虑，便于前端或终端选择模型是查看信息
+                          }
           - 不得在此方法中实例化模型
-
         参数:
-            model_name (str): 模型名称（如 "random_forest"）
+            model_name (str): 模型名称（如 "svc"）
 
         返回:
             Dict[str, Any]: 包含模型配置的字典
+            例：
+            {
+              "model_info": ["svc","sklearn.svm", "SVC"],
+                "default_model_params": {
+                    "C": 1.0,
+                    "kernel": "rbf",
+                    "gamma": "scale",
+                    "probability": True,
+                },
+            }
         """
         pass
 
     @abstractmethod
-    def validate_params(self, params: Dict[str, Any]) -> bool:
+    def validate_params(self, params: Dict[str, Any]) -> Dict[str, bool]:
         """
         校验加载的参数是否合法（如必要字段是否存在、类型是否正确）
 
@@ -66,6 +88,8 @@ class BaseAnalyzer(ABC):
           - 必须对关键字段（如 feature_cols, target_col）进行存在性和类型检查
           - 若校验失败，抛出 ValueError
           - 不得在此方法中修改参数或实例化模型
+          - 需要检测`analyzer`的model_params字段是否有输入，如果有则将{"input_params":True}添加至结果,
+            再经过检验输入参数与load_params返回的参数对，替换默认参数含有的键名，没有的直接过滤掉
 
         参数:
             params (Dict[str, Any]): 参数字典
@@ -79,15 +103,32 @@ class BaseAnalyzer(ABC):
         pass
 
     @abstractmethod
+    def replace_params(self, default_params: Dict[str, Any], params: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        替换默认参数
+
+        ⚠️ 腹泻要求：
+          - 禁止再次实例化或者调用instantiate_model实例化模型
+
+        参数:
+            default_params (Dict[str, Any]): 默认参数字典
+            params (Dict[str, Any]): 输入参数字典
+
+        返回:
+            Dict[str, Any]: 替换和过滤后的参数字典
+        """
+        pass
+
+    @abstractmethod
     def preprocess(self, X: pd.DataFrame, y: Optional[pd.Series] = None) -> tuple:
         """
-        执行任务特定的数据预处理（如特征工程、缺失值处理、标准化等）
+        执行任务特定的数据预处理（如特征工程、缺失值处理、标准化等），这个是对清洗模块的保证步骤，用于校正数据，不实现问题也不大
 
         ⚠️ 覆写要求：
           - 可调用基类的 fill_missing_values、feature_set_encoding 等方法
           - 必须返回处理后的 (X_processed, y_processed)
           - 若 y 为 None（如聚类），可只返回 X_processed
-          - 不得在此方法中实例化模型
+          - 只可以再次方法中实例化转换器的模型，用于对数据预处理
 
         参数:
             X (pd.DataFrame): 特征数据
@@ -175,21 +216,21 @@ class BaseAnalyzer(ABC):
         pass
 
     @abstractmethod
-    def predict(self, model: Any, X: pd.DataFrame) -> pd.Series:
+    def predict(self, model: Any, X: pd.DataFrame) -> Union[pd.Series, pd.DataFrame]:
         """
         使用训练好的模型进行预测
 
         ⚠️ 覆写要求：
           - 调用 model.predict(X)
           - 若为分类任务且需解码，使用 self._fitted_encoders 还原原始标签
-          - 返回 pd.Series，index 与 X 一致
+          - 返回 pd.Series 或 pd.DataFrame，index 与 X 一致
 
         参数:
             model (Any): 训练好的模型
             X (pd.DataFrame): 预测数据
 
         返回:
-            pd.Series: 预测结果
+            Union[pd.Series, pd.DataFrame]: 预测结果
         """
         pass
 
@@ -211,6 +252,36 @@ class BaseAnalyzer(ABC):
         pass
 
     @abstractmethod
+    def build_result(self, 
+                     model: Any,
+                     model_score: Optional[Dict[str, float]],
+                     feature_importance: Dict[str, float],
+                     postprocess_result: Dict[str, Any]) -> Dict[str, Any]:
+        """
+        构建并返回最终结果字典
+
+        ⚠️ 覆写要求：
+          - 必须返回包含所有分析结果的字典
+          - 应包括模型评分、特征重要性、后处理结果等
+          - 可以根据具体任务类型添加额外的返回字段
+
+        参数:
+            model (Any): 训练完成的模型
+            model_score (Optional[Dict[str, float]]): 模型评估得分
+            feature_importance (Dict[str, float]): 特征重要性
+            postprocess_result (Dict[str, Any]): 后处理结果
+
+        返回:
+            Dict[str, Any]: 完整的分析结果
+            结果的具体结构查看文档DATA_ANALYZER
+        """
+        pass
+
+    # ==========================================
+    # 模板方法 (Template Method)
+    # 定义标准流程，子类不应重写
+    # ==========================================
+
     def analyzer(
         self,
         df: pd.DataFrame,
@@ -232,15 +303,186 @@ class BaseAnalyzer(ABC):
         """
         执行完整分析流程的核心方法（模板方法模式）
 
-        ⚠️ 该方法由子类实现，但应遵循统一流程：
-          1. 加载参数 -> 2. 校验参数 -> 3. 预处理 -> 4. 划分数据 ->
-          5. 实例化模型 -> 6. 训练 -> 7. 预测与评估 -> 8. 后处理 -> 9. 保存
+        ⚠️ 该方法为模板方法，定义了标准的分析流程，子类不应重写此方法：
+          加载参数 -> 校验参数 -> 参数替换 -> 预处理 -> 划分数据 ->
+          实例化模型 -> 训练 -> 预测与评估 -> 后处理 -> 构建返回结果
 
-        ⚠️ 子类不得在 analyzer 内部调用 instantiate_model 以外的方式创建模型！
+        ⚠️ 子类在 analyzer 内部以调用 instantiate_model 的方式创建模型！
+            除非遇到无法解决的bug则自定义一个与以上方法类似的放法替换实例化模型的功能
+            实例化后的模型通过 self.model_instance 获取
 
-        （详见具体子类实现）
         """
-        pass
+        # 记录总执行时间
+        analyzer_start_time = time.perf_counter()
+        
+        # 1. 加载参数
+        step_start_time = time.perf_counter()
+        params_result = self.load_params(model)
+        model_info = params_result["model_info"]
+        default_model_params = params_result["default_model_params"]
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 加载参数耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 2. 校验参数
+        step_start_time = time.perf_counter()
+        validation_result = self.validate_params({
+            "df": df,
+            "learn_type": learn_type,
+            "model_type": model_type,
+            "model": model,
+            "random_state": random_state,
+            "is_split": is_split,
+            "split_ratio": split_ratio,
+            "feature_cols": feature_cols,
+            "target_col": target_col,
+            "metrics_list": metrics_list,
+            "is_return_model_score": is_return_model_score,
+            "feature_cols_encoding": feature_cols_encoding,
+            "target_col_encoding": target_col_encoding,
+            "test_set": test_set,
+            "model_params": model_params,
+            "model_info": model_info,
+            "default_model_params": default_model_params
+        })
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 校验参数耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 3. 参数替换
+        step_start_time = time.perf_counter()
+        if model_params and validation_result.get("input_params"):
+            final_model_params = self.replace_params(default_model_params, model_params)
+        else:
+            final_model_params = default_model_params
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 参数替换耗时: {step_elapsed_time:.4f} 秒")
+            
+        # 4. 预处理
+        step_start_time = time.perf_counter()
+        if feature_cols:
+            X_data = df[feature_cols].copy()
+            if isinstance(X_data, pd.Series):
+                X: pd.DataFrame = X_data.to_frame()
+            else:
+                X = X_data
+        else:
+            if target_col:
+                X_data = df.drop(columns=[target_col]).copy()
+            else:
+                X_data = df.copy()
+            if isinstance(X_data, pd.Series):
+                X = X_data.to_frame()
+            else:
+                X = X_data
+                
+        y_data = df[target_col].copy() if target_col else None
+        y: Optional[pd.Series] = None
+        if y_data is not None:
+            if isinstance(y_data, pd.DataFrame):
+                y = y_data.iloc[:, 0]  # 取第一列作为Series
+            else:
+                y = y_data
+        
+        X_processed, y_processed = self.preprocess(X, y)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 数据预处理耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 初始化测试集变量
+        X_test: Optional[pd.DataFrame] = None
+        y_test: Optional[pd.Series] = None
+        X_train: pd.DataFrame = X_processed
+        y_train: Optional[pd.Series] = y_processed
+        
+        # 5. 划分数据
+        step_start_time = time.perf_counter()
+        if is_split and test_set is None:
+            if y_processed is not None and target_col is not None:
+                train_data = pd.concat([X_processed, y_processed], axis=1)
+                train_subset, test_subset = self.split_data_set(train_data, 1 - split_ratio, y_processed)
+                X_train = train_subset.drop(columns=[target_col])
+                y_train = train_subset[target_col] if target_col in train_subset.columns else None
+                X_test = test_subset.drop(columns=[target_col])
+                y_test = test_subset[target_col] if target_col in test_subset.columns else None
+            else:
+                X_train, X_test = self.split_data_set(X_processed, 1 - split_ratio)
+                y_train = None
+        elif test_set is not None:
+            X_train = X_processed
+            y_train = y_processed
+            if feature_cols:
+                X_test_data = test_set[feature_cols].copy()
+                if isinstance(X_test_data, pd.Series):
+                    X_test = X_test_data.to_frame()
+                else:
+                    X_test = X_test_data
+            else:
+                if target_col:
+                    X_test_data = test_set.drop(columns=[target_col]).copy()
+                else:
+                    X_test_data = test_set.copy()
+                if isinstance(X_test_data, pd.Series):
+                    X_test = X_test_data.to_frame()
+                else:
+                    X_test = X_test_data
+            if X_test is not None:
+                X_test, _ = self.preprocess(X_test, None)
+        else:
+            X_train = X_processed
+            y_train = y_processed
+            X_test = X_processed
+            y_test = y_processed
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 数据划分耗时: {step_elapsed_time:.4f} 秒")
+            
+        # 6. 实例化模型
+        step_start_time = time.perf_counter()
+        self._model_instance = self.instantiate_model(model, random_state, final_model_params)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 模型实例化耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 7. 训练
+        step_start_time = time.perf_counter()
+        trained_model = self.train(X_train, y_train)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 模型训练耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 8. 预测与评估
+        step_start_time = time.perf_counter()
+        model_score = None
+        if is_return_model_score and X_test is not None and y_test is not None:
+            if metrics_list is None:
+                metrics_list = self.get_default_metrics(model_type)
+            model_score = self.evaluate_model(trained_model, X_test, y_test, metrics_list)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 模型评估耗时: {step_elapsed_time:.4f} 秒")
+            
+        # 9. 后处理
+        step_start_time = time.perf_counter()
+        postprocess_result = self.postprocess(trained_model, X_train, y_train)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 后处理耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 10. 特征重要性
+        step_start_time = time.perf_counter()
+        feature_importance = self.get_feature_importance(trained_model)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 特征重要性计算耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 11. 构建返回结果
+        step_start_time = time.perf_counter()
+        result = self.build_result(trained_model, model_score, feature_importance, postprocess_result)
+        step_elapsed_time = time.perf_counter() - step_start_time
+        logger.info(f"[analyzer] 构建结果耗时: {step_elapsed_time:.4f} 秒")
+        
+        # 总执行时间
+        analyzer_elapsed_time = time.perf_counter() - analyzer_start_time
+        logger.info(f"[analyzer] 总执行耗时: {analyzer_elapsed_time:.4f} 秒")
+        
+        return result
+
+    # ==========================================
+    # 具体实现方法 (Concrete Methods)
+    # 提供通用功能的实现
+    # ==========================================
 
     def instantiate_model(self, model_name: str, random_state: int, model_params: Dict[str, Any]) -> Any:
         """
@@ -273,9 +515,12 @@ class BaseAnalyzer(ABC):
             logger.error(f"不支持的模型: {model_name}")
             raise NotImplementedError(f"模型 {model_name} 未在配置中定义")
 
+        module_name = ""
+        class_name = ""
         try:
-            module_name = model_mapping[model_key]["module"]
-            class_name = model_mapping[model_key]["class"]
+            module_info = model_mapping[model_key]
+            module_name = module_info["module"]
+            class_name = module_info["class"]
             module = __import__(module_name, fromlist=[class_name])
             model_class = getattr(module, class_name)
 
@@ -483,13 +728,13 @@ class BaseAnalyzer(ABC):
                     results[metric] = accuracy_score(y_test, y_pred)
                 elif metric == "precision":
                     from sklearn.metrics import precision_score
-                    results[metric] = precision_score(y_test, y_pred, average='macro', zero_division=0)
+                    results[metric] = precision_score(y_test, y_pred, average='macro', zero_division='warn')
                 elif metric == "recall":
                     from sklearn.metrics import recall_score
-                    results[metric] = recall_score(y_test, y_pred, average='macro', zero_division=0)
+                    results[metric] = recall_score(y_test, y_pred, average='macro', zero_division='warn')
                 elif metric == "f1_score":
                     from sklearn.metrics import f1_score
-                    results[metric] = f1_score(y_test, y_pred, average='macro', zero_division=0)
+                    results[metric] = f1_score(y_test, y_pred, average='macro', zero_division='warn')
                 elif metric == "roc_auc":
                     from sklearn.metrics import roc_auc_score
                     try:
@@ -502,7 +747,7 @@ class BaseAnalyzer(ABC):
                     results[metric] = mean_squared_error(y_test, y_pred)
                 elif metric == "rmse":
                     from sklearn.metrics import mean_squared_error
-                    results[metric] = mean_squared_error(y_test, y_pred, squared=False)
+                    results[metric] = np.sqrt(mean_squared_error(y_test, y_pred))
                 elif metric == "mae":
                     from sklearn.metrics import mean_absolute_error
                     results[metric] = mean_absolute_error(y_test, y_pred)

@@ -1,5 +1,47 @@
 # 数据分析模块2.0版本文档
 
+## 内容导航
+
+- [模块功能描述](#模块功能描述) (第44行)
+- [公共接口：DataAnalysisUpgrade](#公共接口dataanalysisupgrade) (第52行)
+  - [位置](#位置) (第54行)
+  - [描述](#描述) (第58行)
+- [配置文件说明](#配置文件说明) (第64行)
+  - [model_analysis.json](#model_analysisjson) (第66行)
+- [输入参数](#输入参数) (第81行)
+- [返回参数](#返回参数) (第106行)
+- [参数校验机制](#参数校验机制) (第119行)
+  - [校验逻辑](#校验逻辑) (第123行)
+  - [日志输出规范](#日志输出规范) (第130行)
+- [三层架构设计](#三层架构设计) (第138行)
+  - [接口层 (Interface Layer)](#接口层-interface-layer) (第142行)
+  - [工厂层 (Factory Layer)](#工厂层-factory-layer) (第148行)
+  - [策略层 (Strategy Layer)](#策略层-strategy-layer) (第155行)
+- [基类 `base_analyzer.BaseAnalyzer`](#基类-base_analyzerbaseanalyzer) (第163行)
+  - [基类结构](#基类结构) (第167行)
+  - [子类必须实现的抽象方法](#子类必须实现的抽象方法) (第175行)
+  - [模板方法](#模板方法) (第191行)
+  - [供子类共用的具体方法](#供子类共用的具体方法) (第197行)
+- [底层处理器类 {Model}Analyzer 实现指南](#底层处理器类-modelanalyzer-实现指南) (第210行)
+  - [1. 类的基本结构](#1-类的基本结构) (第212行)
+  - [2. 方法实现详细指南](#2-方法实现详细指南) (第239行)
+    - [2.1 load_params 方法](#21-load_params-方法) (第239行)
+    - [2.2 validate_params 方法](#22-validate_params-方法) (第290行)
+    - [2.3 preprocess 方法](#23-preprocess-方法) (第358行)
+    - [2.4 train 方法](#24-train-方法) (第414行)
+    - [2.5 postprocess 方法](#25-postprocess-方法) (第467行)
+    - [2.6 get_feature_importance 方法](#26-get_feature_importance-方法) (第513行)
+    - [2.7 predict 方法](#27-predict-方法) (第592行)
+    - [2.8 save_model_artifacts 方法](#28-save_model_artifacts-方法) (第667行)
+    - [2.9 get_default_metrics 方法](#29-get_default_metrics-方法) (第725行)
+    - [2.10 analyzer 方法](#210-analyzer-方法) (第774行)
+- [异常处理](#异常处理) (第1235行)
+- [🔁 传参与执行流程详解](#-传参与执行流程详解) (第1251行)
+  - [执行流程：](#执行流程) (第1263行)
+- [支持的编码方式（参考）](#支持的编码方式参考) (第1376行)
+- [异常处理说明](#异常处理说明) (第1387行)
+- [版本变更说明（v2.0）](#版本变更说明v20) (第1396行)
+
 ## 模块功能描述
 
 本模块提供自动化数据分析能力，支持多种学习类型与模型组合，能够完成数据划分、特征编码、模型训练、评估打分等全流程操作。
@@ -123,34 +165,48 @@
   
 💡所有`Analyzer`类除`DataAnalysisUpgrade`都必须继承自此基类。
 
-### 供子类共用的方法
+### 基类结构
+
+基类采用了清晰的三层架构设计：
+
+1. **抽象方法层** - 子类必须实现的抽象方法
+2. **模板方法层** - 定义标准流程的模板方法（analyzer）
+3. **具体实现层** - 提供通用功能的具体方法
+
+### 子类必须实现的抽象方法
 
 | 方法名 | 描述 |
 | ---- | ---- |
-| feature_set_encoding | 特征集编码方法，支持 "onehot"、"label"、"ordinal"、"target"、"none"、"auto" 等编码方式，自动识别类别型变量并执行相应编码，返回编码后数据及编码器对象 |
-| target_col_encoding | 目标列编码方法，根据任务类型（分类/回归）及指定编码方式对目标变量进行编码，分类任务默认使用 "label" 编码，回归任务默认为 "none" |
-| split_data_set | 数据集划分方法，根据 is_split 和 split_ratio 参数将数据划分为训练集和测试集，支持分类任务的分层抽样（stratify） |
-| validate_cols_exist | 列存在性校验方法，检查 feature_cols 和 target_col 是否均存在于输入 DataFrame 中，缺失时报错并提示具体列名 |
-| fill_missing_values | 缺失值填充方法，支持均值、中位数、众数、前向填充等策略，可针对数值型和类别型特征分别处理 |
-| build_model_instance | 根据 model 名称和 model_params 参数从模型注册表中实例化对应模型对象，确保模型创建过程统一可控 |
-| evaluate_model | 通用模型评估方法，接收模型、测试数据和 metrics_list，统一调用对应评分函数计算性能指标 |
-| load_config | 加载配置文件方法，从指定路径加载配置文件，返回字典格式的配置信息 |
-
-### 子类必须覆写的方法
-
-| 方法名 | 描述 |
-| ---- | ---- |
-|instantiate_model | 模型实例化方法，根据模型名称和参数创建模型对象，并返回模型对象 |
-| analyzer | 执行完整分析流程的核心方法，包括数据预处理、模型训练、评估打分等步骤，返回标准化结果字典，是工厂调度的入口方法 |
+| load_params | 从配置文件中加载任务参数，如模型名称、超参数、特征列、目标列等，并返回字典 |
 | validate_params | 参数校验方法，检查当前任务所需的特定参数是否合法（如列名是否存在、模型参数范围等），校验失败时记录日志并抛出异常 |
+| replace_params | 参数替换方法，用于将用户输入的参数与默认参数进行合并和替换 |
 | preprocess | 数据预处理方法，定义任务特定的特征工程逻辑，如标准化、归一化、特征选择、降维等，必须在训练前调用 |
 | train | (不要在此实例化模型模型)训练方法，使用训练集数据拟合模型，需处理模型收敛、超参适配等细节，确保训练过程稳定 |
 | postprocess | 训练后处理方法，用于执行特征重要性提取、模型解释（如 SHAP）、结果缓存或中间状态保存等操作 |
 | get_feature_importance | 获取特征重要性或权重的方法，返回可解释的特征排序结果，用于下游可视化模块展示 |
-| predict | 封装的预测方法，接收新数据并输出模型预测结果，支持概率输出（分类）或数值预测（回归） |
 | save_model_artifacts | 模型产物持久化方法，负责将模型文件、编码器、特征列表等关键信息序列化保存，支持后续加载与部署 |
-| load_params | 从配置文件中加载任务参数，如模型名称、超参数、特征列、目标列等，并返回字典 | 
+| predict | 封装的预测方法，接收新数据并输出模型预测结果，支持概率输出（分类）或数值预测（回归） |
 | get_default_metrics | 根据 model_type 从 model_analysis.json 配置文件中加载默认评估指标列表，如分类任务返回 ["accuracy", "f1"]，回归任务返回 ["rmse", "r2"] |
+| build_result | 构建并返回最终结果字典，包含模型评分、特征重要性、后处理结果等 |
+
+### 模板方法
+
+| 方法名 | 描述 |
+| ---- | ---- |
+| analyzer | 执行完整分析流程的核心方法（模板方法模式），定义了标准的分析流程：加载参数 -> 校验参数 -> 参数替换 -> 预处理 -> 划分数据 -> 实例化模型 -> 训练 -> 预测与评估 -> 后处理 -> 构建返回结果 |
+
+### 供子类共用的具体方法
+
+| 方法名 | 描述 |
+| ---- | ---- |
+| instantiate_model | 模型实例化方法，根据模型名称和参数创建模型对象，并返回模型对象 |
+| feature_set_encoding | 特征集编码方法，支持 "onehot"、"label"、"auto"、"none" 等编码方式，自动识别类别型变量并执行相应编码 |
+| target_col_encoding | 目标列编码方法，根据指定编码方式对目标变量进行编码 |
+| split_data_set | 数据集划分方法，根据训练集占比将数据划分为训练集和测试集，支持分类任务的分层抽样（stratify） |
+| validate_cols_exist | 列存在性校验方法，检查指定列是否均存在于输入 DataFrame 中，缺失时报错并提示具体列名 |
+| fill_missing_values | 缺失值填充方法，支持均值、中位数、众数、前向填充等策略，可针对数值型和类别型特征分别处理 |
+| evaluate_model | 通用模型评估方法，接收模型、测试数据和 metrics_list，统一调用对应评分函数计算性能指标 |
+| load_config | 加载配置文件方法，从指定路径加载配置文件，返回字典格式的配置信息 |
 
 ## 底层处理器类 {Model}Analyzer 实现指南
 
@@ -244,7 +300,7 @@ def load_params(self, model_params: Optional[Dict[str, Any]] = None) -> Dict[str
 
 **示例实现**：
 
-```python
+```
 def validate_params(self, model_params: Dict[str, Any]) -> bool:
     """
     验证模型参数的合法性
@@ -311,7 +367,7 @@ def validate_params(self, model_params: Dict[str, Any]) -> bool:
 
 **示例实现**：
 
-```python
+```
 def preprocess(self, X: pd.DataFrame, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
     """
     数据预处理方法
@@ -368,7 +424,7 @@ def preprocess(self, X: pd.DataFrame, params: Optional[Dict[str, Any]] = None) -
 
 **示例实现**：
 
-```python
+```
 def train(self, X_train: pd.DataFrame, params: Optional[Dict[str, Any]] = None) -> Any:
     """
     模型训练方法
@@ -420,7 +476,7 @@ def train(self, X_train: pd.DataFrame, params: Optional[Dict[str, Any]] = None) 
 
 **示例实现**：
 
-```python
+```
 def postprocess(self, model: Any, X_train: pd.DataFrame, params: Optional[Dict[str, Any]] = None) -> Dict[str, Any]:
     """
     训练后处理方法
@@ -466,7 +522,7 @@ def postprocess(self, model: Any, X_train: pd.DataFrame, params: Optional[Dict[s
 
 **示例实现**：
 
-```python
+```
 def get_feature_importance(self, model: Any, feature_names: List[str]) -> Dict[str, float]:
     """
     获取特征重要性或权重
@@ -545,7 +601,7 @@ def get_feature_importance(self, model: Any, feature_names: List[str]) -> Dict[s
 
 **示例实现**：
 
-```python
+```
 def predict(self, model: Any, X: pd.DataFrame, params: Optional[Dict[str, Any]] = None) -> pd.DataFrame:
     """
     模型预测方法
@@ -620,7 +676,7 @@ def predict(self, model: Any, X: pd.DataFrame, params: Optional[Dict[str, Any]] 
 
 **示例实现**：
 
-```python
+```
 def save_model_artifacts(self, model: Any, save_path: str, params: Optional[Dict[str, Any]] = None) -> bool:
     """
     保存模型产物
@@ -677,7 +733,7 @@ def save_model_artifacts(self, model: Any, save_path: str, params: Optional[Dict
 
 **示例实现**：
 
-```python
+```
 def get_default_metrics(self, model_type: str) -> List[str]:
     """
     获取默认评估指标列表
@@ -718,19 +774,26 @@ def get_default_metrics(self, model_type: str) -> List[str]:
 
 #### 2.10 analyzer 方法
 
-**功能**：分析器的核心方法，协调整个分析流程。
+**功能**：分析器的核心方法（模板方法），协调整个分析流程。
 
 **实现步骤**：
-1. 验证和预处理输入数据
-2. 调用preprocess方法处理数据
-3. 调用train方法训练模型
-4. 调用postprocess方法进行后处理
-5. 评估模型（如果需要）
-6. 构建并返回标准格式的结果
+1. 加载参数
+2. 校验参数
+3. 参数替换
+4. 预处理
+5. 划分数据
+6. 实例化模型
+7. 训练模型
+8. 预测与评估
+9. 后处理
+10. 特征重要性提取
+11. 构建返回结果
+
+💡 注意：该方法为模板方法，定义了标准的分析流程，子类不应重写此方法。所有子类应通过实现抽象方法来定制特定任务的行为。
 
 **示例实现**：
 
-```python
+```
 def analyzer(
     self, 
     df: pd.DataFrame, 
@@ -891,7 +954,7 @@ def analyzer(
 
 以下是一个PCA分析器的完整实现示例，展示了所有方法的集成：
 
-```python
+```
 """
 PCA降维分析器
 """
