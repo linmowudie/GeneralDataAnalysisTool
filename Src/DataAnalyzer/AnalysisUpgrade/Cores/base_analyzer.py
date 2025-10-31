@@ -9,6 +9,9 @@ from sklearn.preprocessing import LabelEncoder
 import numpy as np
 import os
 import time
+from pathlib import Path
+
+from sklearn.utils import validation
 
 logger = logging.getLogger(__name__)
 
@@ -33,6 +36,10 @@ class BaseAnalyzer(ABC):
         - predict
         - get_default_metrics
         - build_result
+
+    方法职责说明：
+        - postprocess: 负责模型存储和训练集/测试集存储到 TempStorage 供可视化调用
+        - save_model_artifacts: 将模型保存至 ModelOutput 目录，该方法在模型后处理完后调用
     """
 
     def __init__(self):
@@ -47,37 +54,6 @@ class BaseAnalyzer(ABC):
     # 子类必须实现这些方法
     # ==========================================
 
-    @abstractmethod
-    def load_params(self, model_name: str) -> Dict[str, Any]:
-        """
-        从配置文件加载指定模型的参数（超参数、特征映射、默认指标等）
-
-        ⚠️ 覆写要求：
-          - 必须调用 self.load_config(...) 加载配置
-          - 返回字典格式：{
-                            "model_info": List[str], # 即模型名、模块名、类名，便于实例化模型
-                            "default_model_params": model_params # 配置文件中的*_special_params下的键值对，键名为model_name
-                                                                    模型实例化输入参数是需要过滤掉键值对{"key_description": ",str}
-                                                                    这里不需要考虑，便于前端或终端选择模型是查看信息
-                          }
-          - 不得在此方法中实例化模型
-        参数:
-            model_name (str): 模型名称（如 "svc"）
-
-        返回:
-            Dict[str, Any]: 包含模型配置的字典
-            例：
-            {
-              "model_info": ["svc","sklearn.svm", "SVC"],
-                "default_model_params": {
-                    "C": 1.0,
-                    "kernel": "rbf",
-                    "gamma": "scale",
-                    "probability": True,
-                },
-            }
-        """
-        pass
 
     @abstractmethod
     def validate_params(self, params: Dict[str, Any]) -> Dict[str, bool]:
@@ -160,13 +136,14 @@ class BaseAnalyzer(ABC):
         pass
 
     @abstractmethod
-    def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series]) -> Dict[str, Any]:
+    def postprocess(self, model: Any, X: pd.DataFrame, y: Optional[pd.Series]) -> bool:
         """
         训练后处理，如特征重要性提取、模型解释、中间结果保存等
 
         ⚠️ 覆写要求：
           - 可调用 get_feature_importance 等方法
-          - 返回字典格式的后处理结果
+          - 必须实现模型存储和训练集/测试集存储到 TempStorage 供可视化调用
+          - 直接返回 bool 值，因为结果不需要它参与构建
           - 不得修改模型或重新训练
 
         参数:
@@ -175,7 +152,7 @@ class BaseAnalyzer(ABC):
             y (Optional[pd.Series]): 标签数据
 
         返回:
-            Dict[str, Any]: 后处理结果
+            bool: 后处理是否成功
         """
         pass
 
@@ -199,11 +176,12 @@ class BaseAnalyzer(ABC):
     @abstractmethod
     def save_model_artifacts(self, model: Any, filepath: str) -> bool:
         """
-        保存模型及相关产物（模型文件、编码器、特征列表等）
+        保存模型及相关产物（模型文件、编码器、特征列表等）到 ModelOutput 目录
 
         ⚠️ 覆写要求：
           - 使用 joblib/pickle 保存 model
           - 同时保存编码器（self._fitted_encoders）、特征名等元数据
+          - 将模型保存至 ModelOutput 目录
           - 返回保存是否成功
 
         参数:
@@ -255,8 +233,13 @@ class BaseAnalyzer(ABC):
     def build_result(self, 
                      model: Any,
                      model_score: Optional[Dict[str, float]],
+                     train_set_path: str,
+                     test_set_path: str,
+                     feature_cols: List[str],
+                     encoding_method: Dict[str, str],
                      feature_importance: Dict[str, float],
-                     postprocess_result: Dict[str, Any]) -> Dict[str, Any]:
+                     model_path: str
+                     ) -> Dict[str, Any]:
         """
         构建并返回最终结果字典
 
@@ -268,12 +251,26 @@ class BaseAnalyzer(ABC):
         参数:
             model (Any): 训练完成的模型
             model_score (Optional[Dict[str, float]]): 模型评估得分
+            train_set_path (str): 训练集数据存储路径
+            test_set_path (str): 测试集数据存储路径
+            feature_cols (List[str]): 特征列
+            encoding_method (Dict[str, str]): 特征编码方法
             feature_importance (Dict[str, float]): 特征重要性
-            postprocess_result (Dict[str, Any]): 后处理结果
+            model_path (str): 模型存储路径
 
         返回:
             Dict[str, Any]: 完整的分析结果
-            结果的具体结构查看文档DATA_ANALYZER
+            key: value
+            {
+                "model": object,
+                "model_score": dict,
+                "train_set_path": str,
+                "test_set_path": str,
+                "feature_cols": list[str],
+                "encodeing_method": Dict[str, str],
+                "feature_importance": Dict[str, float],
+                "model_path": str
+            }
         """
         pass
 
@@ -311,22 +308,63 @@ class BaseAnalyzer(ABC):
             除非遇到无法解决的bug则自定义一个与以上方法类似的放法替换实例化模型的功能
             实例化后的模型通过 self.model_instance 获取
 
+        参数:
+            df (pd.DataFrame): 输入的数据集，用于训练和测试模型
+            learn_type (str): 学习类型（如 "supervised", "unsupervised"）
+            model_type (str): 模型类型（如 "classification", "regression", "clustering"）
+            model (str): 具体的模型名称（如 "randomforestclassifier", "svc"）
+            random_state (int): 随机种子，用于保证结果的可重现性，默认为 42
+            is_split (bool): 是否需要划分数据集，默认为 True
+            split_ratio (float): 数据集划分比例（测试集占比），默认为 0.2
+            feature_cols (Optional[List[str]]): 指定用作特征的列名列表，如果为 None 则使用除目标列外的所有列
+            target_col (Optional[str]): 目标列名，对于无监督学习可以为 None
+            metrics_list (Optional[List[str]]): 评估指标列表，如果为 None 则使用默认指标
+            is_return_model_score (bool): 是否返回模型评估得分，默认为 True
+            feature_cols_encoding (str): 特征列编码方式，可选 "auto", "onehot", "label", "none"，默认为 "auto"
+            target_col_encoding (str): 目标列编码方式，可选 "auto", "label", "none"，默认为 "auto"
+            test_set (Optional[pd.DataFrame]): 外部测试数据集，如果提供则不进行数据集划分
+            model_params (Optional[Dict[str, Any]]): 模型超参数字典，如果为 None 则使用默认参数
+
+        返回:
+            Dict[str, Any]: 包含模型、评估得分、特征重要性、后处理结果等的字典
+            
+        异常:
+            ValueError: 当参数校验失败或关键数据为空时抛出
         """
-        # 记录总执行时间
-        analyzer_start_time = time.perf_counter()
-        
-        # 1. 加载参数
-        step_start_time = time.perf_counter()
-        params_result = self.load_params(model)
+        # 本地参数定义
+        params_result: Dict[str, Any] = {} # 从配置文件加载的参数
+        model_info: List[str] = [] # 模型基本信息，包含模型名称、模块名、类型
+        default_model_params: Dict[str, Any] = {} # 训练模型的基本配置
+        validation_result:Dict[str, Any] = {} # 参数校验结果,内部包含对各个参数的调整信息
+        final_model_params: Dict[str, Any] = {} # 最终的模型参数
+        params: Dict[str, Any] = {}
+        X: Optional[pd.DataFrame] = None  # 特征数据
+        y: Optional[pd.Series] = None  # 目标数据
+        X_processed: Optional[pd.DataFrame] = None  # 预处理后的特征数据
+        y_processed: Optional[pd.Series] = None  # 预处理后的目标数据
+        X_train: Optional[pd.DataFrame] = None  # 训练特征数据
+        y_train: Optional[pd.Series] = None  # 训练目标数据
+        X_test: Optional[pd.DataFrame] = None  # 测试特征数据
+        y_test: Optional[pd.Series] = None  # 测试目标数据
+        trained_model: Any = None  # 训练后的模型
+        model_score: Optional[Dict[str, float]] = None  # 模型评估得分
+        postprocess_result: bool = False  # 后处理结果
+        feature_importance: Dict[str, float] = {}  # 特征重要性
+        result: Dict[str, Any] = {}  # 最终结果
+        encoding_method: Dict[str, str] = {}  # 编码方法
+        train_set_path: str = ""  # 训练集路径
+        test_set_path: str = ""  # 测试集路径
+        model_path: str = ""  # 模型路径
+
+        # 1. 加载模型参数
+        # 从配置文件中加载指定模型的默认参数和模型信息
+        params_result = self.load_model_params(model, model_type)
         model_info = params_result["model_info"]
         default_model_params = params_result["default_model_params"]
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 加载参数耗时: {step_elapsed_time:.4f} 秒")
         
         # 2. 校验参数
-        step_start_time = time.perf_counter()
+        # 调用子类实现的 validate_params 方法校验所有输入参数的有效性
         validation_result = self.validate_params({
-            "df": df,
             "learn_type": learn_type,
             "model_type": model_type,
             "model": model,
@@ -344,20 +382,120 @@ class BaseAnalyzer(ABC):
             "model_info": model_info,
             "default_model_params": default_model_params
         })
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 校验参数耗时: {step_elapsed_time:.4f} 秒")
-        
+        # 检查参数校验是否通过
+        if not validation_result.get("is_valid", False):
+            raise ValueError("参数校验失败")
+
         # 3. 参数替换
-        step_start_time = time.perf_counter()
+        # 如果用户提供了自定义模型参数，则替换默认参数
         if model_params and validation_result.get("input_params"):
             final_model_params = self.replace_params(default_model_params, model_params)
         else:
             final_model_params = default_model_params
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 参数替换耗时: {step_elapsed_time:.4f} 秒")
+
+        # 4. 更新参数
+        # 使用校验后的参数更新局部变量
+        params = validation_result["params"]
+        random_state = params.get("random_state", random_state)
+        is_split = params.get("is_split", is_split)
+        split_ratio = params.get("split_ratio", split_ratio)
+        feature_cols = params.get("feature_cols", feature_cols)
+        target_col = params.get("target_col", target_col)
+        metrics_list = params.get("metrics_list", metrics_list)
+        is_return_model_score = params.get("is_return_model_score", is_return_model_score)
+        feature_cols_encoding = params.get("feature_cols_encoding", feature_cols_encoding)
+        target_col_encoding = params.get("target_col_encoding", target_col_encoding)
+        
+        # 5. 准备数据
+        # 从原始数据中提取特征和目标数据
+        X, y = self._prepare_data(df, feature_cols, target_col)
+        
+        # 6. 预处理数据
+        # 对特征和目标数据进行预处理（如编码、缺失值处理等）
+        if X is not None:
+            X_processed, y_processed = self.preprocess(X, y)
+        else:
+            raise ValueError("特征数据不能为空")
+        
+        # 7. 划分数据集
+        # 根据配置划分训练集和测试集
+        if X_processed is not None:
+            X_train, X_test, y_train, y_test = self._split_dataset(
+                X_processed, y_processed, df, is_split, test_set, 
+                split_ratio, feature_cols, target_col
+            )
+        else:
+            raise ValueError("处理后的特征数据不能为空")
             
-        # 4. 预处理
-        step_start_time = time.perf_counter()
+        # 8. 实例化模型
+        # 根据模型名称和参数实例化具体的模型对象
+        self._model_instance = self.instantiate_model(model, random_state, final_model_params)
+        
+        # 9. 训练模型
+        # 使用训练数据训练模型
+        if X_train is not None:
+            trained_model = self.train(X_train, y_train)
+        else:
+            raise ValueError("训练数据不能为空")
+        
+        # 10. 评估模型
+        # 如果需要返回模型得分且测试数据存在，则进行模型评估
+        if is_return_model_score and X_test is not None and y_test is not None:
+            if metrics_list is None:
+                metrics_list = self.get_default_metrics(model_type)
+            model_score = self.evaluate_model(trained_model, X_test, y_test, metrics_list)
+            
+        # 11. 后处理
+        # 对训练完成的模型进行后处理（如特征重要性提取等）
+        if X_train is not None:
+            postprocess_success = self.postprocess(trained_model, X_train, y_train)
+            if not postprocess_success:
+                logger.warning("后处理执行失败")
+        else:
+            raise ValueError("训练数据不能为空")
+        
+        # 12. 特征重要性
+        # 提取模型的特征重要性信息
+        feature_importance = self.get_feature_importance(trained_model)
+
+        # 13. 保存模型
+        # 保存训练好的模型到指定路径
+        model_path = f"ModelOutput/自动保存/model_{int(time.time())}"
+        save_success = self.save_model_artifacts(trained_model, model_path)
+        if not save_success:
+            logger.warning("模型保存失败")
+
+        # 14. 构建结果
+        # 将所有结果组合成最终的返回字典
+        result = self.build_result(
+            model=trained_model,
+            model_score=model_score,
+            train_set_path=train_set_path,
+            test_set_path=test_set_path,
+            feature_cols=feature_cols if feature_cols is not None else [],
+            encoding_method=encoding_method,
+            feature_importance=feature_importance,
+            model_path=model_path
+        )
+        return result
+
+    def _prepare_data(self, df: pd.DataFrame, feature_cols: Optional[List[str]], 
+                      target_col: Optional[str]) -> tuple:
+        """
+        准备特征和目标数据
+
+        参数:
+            df (pd.DataFrame): 原始数据
+            feature_cols (Optional[List[str]]): 特征列名列表
+            target_col (Optional[str]): 目标列名
+
+        返回:
+            tuple: (X, y) 特征和目标数据
+        """
+        # 数据集检查
+        if df is None:
+            raise ValueError("数据集为空")
+
         if feature_cols:
             X_data = df[feature_cols].copy()
             if isinstance(X_data, pd.Series):
@@ -381,19 +519,40 @@ class BaseAnalyzer(ABC):
                 y = y_data.iloc[:, 0]  # 取第一列作为Series
             else:
                 y = y_data
-        
-        X_processed, y_processed = self.preprocess(X, y)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 数据预处理耗时: {step_elapsed_time:.4f} 秒")
-        
+                
+        return X, y
+
+    def _split_dataset(self, 
+                       X_processed: pd.DataFrame, 
+                       y_processed: Optional[pd.Series],
+                       df: pd.DataFrame,
+                       is_split: bool,
+                       test_set: Optional[pd.DataFrame],
+                       split_ratio: float,
+                       feature_cols: Optional[List[str]],
+                       target_col: Optional[str]) -> tuple:
+        """
+        划分数据集
+
+        参数:
+            X_processed (pd.DataFrame): 预处理后的特征数据
+            y_processed (Optional[pd.Series]): 预处理后的目标数据
+            df (pd.DataFrame): 原始数据
+            is_split (bool): 是否需要划分数据集
+            test_set (Optional[pd.DataFrame]): 测试数据集
+            split_ratio (float): 划分比例
+            feature_cols (Optional[List[str]]): 特征列名列表
+            target_col (Optional[str]): 目标列名
+
+        返回:
+            tuple: (X_train, X_test, y_train, y_test) 训练和测试数据集
+        """
         # 初始化测试集变量
         X_test: Optional[pd.DataFrame] = None
         y_test: Optional[pd.Series] = None
         X_train: pd.DataFrame = X_processed
         y_train: Optional[pd.Series] = y_processed
-        
-        # 5. 划分数据
-        step_start_time = time.perf_counter()
+
         if is_split and test_set is None:
             if y_processed is not None and target_col is not None:
                 train_data = pd.concat([X_processed, y_processed], axis=1)
@@ -430,54 +589,8 @@ class BaseAnalyzer(ABC):
             y_train = y_processed
             X_test = X_processed
             y_test = y_processed
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 数据划分耗时: {step_elapsed_time:.4f} 秒")
             
-        # 6. 实例化模型
-        step_start_time = time.perf_counter()
-        self._model_instance = self.instantiate_model(model, random_state, final_model_params)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 模型实例化耗时: {step_elapsed_time:.4f} 秒")
-        
-        # 7. 训练
-        step_start_time = time.perf_counter()
-        trained_model = self.train(X_train, y_train)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 模型训练耗时: {step_elapsed_time:.4f} 秒")
-        
-        # 8. 预测与评估
-        step_start_time = time.perf_counter()
-        model_score = None
-        if is_return_model_score and X_test is not None and y_test is not None:
-            if metrics_list is None:
-                metrics_list = self.get_default_metrics(model_type)
-            model_score = self.evaluate_model(trained_model, X_test, y_test, metrics_list)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 模型评估耗时: {step_elapsed_time:.4f} 秒")
-            
-        # 9. 后处理
-        step_start_time = time.perf_counter()
-        postprocess_result = self.postprocess(trained_model, X_train, y_train)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 后处理耗时: {step_elapsed_time:.4f} 秒")
-        
-        # 10. 特征重要性
-        step_start_time = time.perf_counter()
-        feature_importance = self.get_feature_importance(trained_model)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 特征重要性计算耗时: {step_elapsed_time:.4f} 秒")
-        
-        # 11. 构建返回结果
-        step_start_time = time.perf_counter()
-        result = self.build_result(trained_model, model_score, feature_importance, postprocess_result)
-        step_elapsed_time = time.perf_counter() - step_start_time
-        logger.info(f"[analyzer] 构建结果耗时: {step_elapsed_time:.4f} 秒")
-        
-        # 总执行时间
-        analyzer_elapsed_time = time.perf_counter() - analyzer_start_time
-        logger.info(f"[analyzer] 总执行耗时: {analyzer_elapsed_time:.4f} 秒")
-        
-        return result
+        return X_train, X_test, y_train, y_test
 
     # ==========================================
     # 具体实现方法 (Concrete Methods)
@@ -579,29 +692,28 @@ class BaseAnalyzer(ABC):
             "mlpregressor": {"module": "sklearn.neural_network", "class": "MLPRegressor"}
         }
 
-    def load_config(self, config_file: str) -> Dict[str, Any]:
+    def load_config(self) -> Dict[str, Any]:
         """
         加载 JSON 配置文件
 
-        参数:
-            config_file (str): 文件路径
-
         返回:
-            Dict[str, Any]: 配置字典
+            Dict[str, Any]: 解析后的配置字典
 
         异常:
-            FileNotFoundError, json.JSONDecodeError
+            FileNotFoundError: 当文件不存在时
+            json.JSONDecodeError: 当文件内容不是合法 JSON 时
         """
+        config_path = Path(__file__).parent.parent.parent / 'Configs' / 'model_analysis.json'
         try:
-            with open(config_file, 'r', encoding='utf-8') as f:
+            with open(config_path, 'r', encoding='utf-8') as f:
                 config = json.load(f)
-            logger.info(f"配置文件加载成功: {config_file}")
+            logger.info(f"配置文件加载成功: {config_path.resolve()}")
             return config
         except FileNotFoundError:
-            logger.error(f"配置文件不存在: {config_file}")
+            logger.error(f"配置文件不存在: {config_path}")
             raise
         except json.JSONDecodeError as e:
-            logger.error(f"配置文件格式错误: {config_file}, 错误: {e}")
+            logger.error(f"配置文件格式错误: {config_path}, 错误: {e}")
             raise
 
     def feature_set_encoding(self, feature_set: pd.DataFrame, encoding_type: str) -> pd.DataFrame:
@@ -761,3 +873,63 @@ class BaseAnalyzer(ABC):
                 logger.warning(f"计算 {metric} 失败: {e}")
                 results[metric] = float('nan')
         return results
+
+    def load_model_params(self, model_name: str, model_type: str) -> Dict[str, Any]:
+            """
+            从配置文件加载指定模型的参数（超参数、特征映射、默认指标等）
+            这是一个模板方法，子类可以直接使用而无需重新实现
+
+            参数:
+                model_name (str): 模型名称（如 "svc"）
+                model_type (str): 模型类型（如 "classification"）
+
+            返回:
+                Dict[str, Any]: 包含模型配置的字典
+                例：
+                {
+                "model_info": ["svc","sklearn.svm", "SVC"],
+                    "default_model_params": {
+                        "C": 1.0,
+                        "kernel": "rbf",
+                        "gamma": "scale",
+                        "probability": True,
+                    },
+                }
+            """
+            # 加载配置文件,包含所有配置信息
+            configs = self.load_config()
+            
+            # 获取模型特殊参数列表
+            ML_special_params = configs["ML_model_special_params"]
+            model_mapping = configs["model_mapping"]
+
+            # 判断模型是否存在
+            if model_type not in ML_special_params:
+                raise ValueError(f"模型类型{model_type}不存在")
+                
+            if model_name not in ML_special_params[model_type]:  
+                raise ValueError(f"模型{model_name}在{model_type}类型中不存在")
+
+            # 声明结果与模型信息列表
+            result: Dict[str, Any] = {}
+            model_info: List[str] = []
+            default_params: Dict[str, Any] = {}
+
+            # 按固定顺序插入模型信息
+            # 插入模型名
+            model_info.append(model_name)
+            # 插入模型模块名
+            model_info.append(model_mapping[model_name]["module"])
+            # 插入模型类名
+            model_info.append(model_mapping[model_name]["class"])
+
+            result["model_info"] = model_info
+
+            # 过滤键信息
+            default_params = {
+                key: value for key, value in ML_special_params[model_type][model_name].items() if key != "key_description"
+            }
+
+            result["default_model_params"] = default_params
+
+            return result
