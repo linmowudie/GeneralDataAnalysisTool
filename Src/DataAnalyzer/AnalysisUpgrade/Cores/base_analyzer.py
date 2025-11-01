@@ -271,6 +271,7 @@ class BaseAnalyzer(ABC):
                 "feature_importance": Dict[str, float],
                 "model_path": str
             }
+            
         """
         pass
 
