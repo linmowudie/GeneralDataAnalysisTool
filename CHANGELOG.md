@@ -1,5 +1,20 @@
 ﻿# CHANGELOG
 
+## [0.5.0] - 2026-08-08
+
+### 新增（Docker + minikube 部署）
+- 新增后端镜像 `deploy/docker/backend.Dockerfile`：python:3.12-slim 多阶段构建，uvicorn 单 worker 运行，内置 /api/health 健康检查，非 root 用户运行
+- 新增前端镜像 `deploy/docker/frontend.Dockerfile`：node 构建 + nginx 托管，nginx 模板（`nginx.conf.template`）启动时注入后端地址，`/api` 反代至后端 Service，支持 200MB 上传与 SPA 路由
+- 新增 k8s 清单 `deploy/k8s/`：backend/frontend 的 Deployment+Service、Kustomization（统一镜像版本）、可选 Ingress；运行期目录挂 emptyDir，探针指向 /api/health
+- 新增一键部署脚本 `deploy/deploy.ps1`（`minikube image build` 直进集群，无需 registry）与 `deploy/README.md` 部署指南；根目录新增 `.dockerignore`
+
+### 变更
+- `pyproject.toml` dependencies 补齐实际使用但未声明的 `markdown`（document_reader）与显式 `scipy`
+
+### 已知事项
+- 后端会话/步骤锁为进程内内存态，k8s 副本数必须为 1；如需持久化运行期数据需改用 PVC
+- 本机 Docker daemon 未运行，镜像未经实际构建验证；清单已通过 kustomize 渲染校验
+
 ## [0.4.1] - 2026-08-08
 
 ### 变更（Harness 评审发现修复）

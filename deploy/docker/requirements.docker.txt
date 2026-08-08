@@ -1,0 +1,23 @@
+# 与 pyproject.toml [project].dependencies 保持一致（Docker 构建专用）
+# 修改 pyproject 依赖后请同步本文件
+numpy>=1.21.0
+pandas>=1.3.0
+scikit-learn>=1.0.0
+matplotlib>=3.4.0
+seaborn>=0.11.0
+plotly>=5.0.0
+pymongo>=4.0.0
+redis>=4.0.0
+psycopg2>=2.9.0
+openpyxl>=3.0.0
+fastapi>=0.68.0
+uvicorn>=0.15.0
+pydantic>=1.8.0
+requests>=2.25.0
+jinja2>=3.0.0
+python-multipart>=0.0.5
+pyarrow>=17.0.0
+wordcloud>=1.9.4
+umap-learn>=0.5.0
+scipy>=1.10.0
+markdown>=3.4.0
