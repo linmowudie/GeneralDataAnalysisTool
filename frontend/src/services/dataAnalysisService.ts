@@ -4,14 +4,16 @@ import { sessionService } from './sessionService';
 /**
  * 模型配置接口定义
  */
+export interface ModelInfo {
+  class: string;
+  type: string;
+  init_params: string[];
+  default_params: Record<string, unknown>;
+}
+
 export interface ModelConfig {
-  [modelType: string]: {
-    [modelName: string]: {
-      class: string;
-      type: string;
-      init_params: string[];
-      default_params: Record<string, any>;
-    };
+  [taskType: string]: {
+    [modelName: string]: ModelInfo;
   };
 }
 
@@ -68,25 +70,41 @@ export class DataAnalysisService {
   }
 
   /**
-   * 获取模型配置
-   * @returns Promise<ModelConfig> 模型配置
+   * 获取模型配置（扁平化：{modelKey: ModelInfo}）
    */
-  async getModelConfig(): Promise<ModelConfig> {
+  async getModelConfig(): Promise<Record<string, ModelInfo>> {
     try {
-      // 如果已经获取过配置，直接返回缓存
       if (this.modelConfig) {
-        return this.modelConfig;
+        return this.flattenConfig(this.modelConfig);
       }
-      
-      // 从后端获取模型配置
       const response: any = await apiService.get('/api/analysis/model-config');
-      this.modelConfig = response.config || {};
-      return this.modelConfig || {};
+      this.modelConfig = (response.config || {}) as ModelConfig;
+      return this.flattenConfig(this.modelConfig);
     } catch (error) {
       console.error('获取模型配置失败:', error);
-      // 如果API调用失败，返回默认配置
-      return this.getDefaultModelConfig();
+      return {};
     }
+  }
+
+  /**
+   * 获取指定模型的元信息（init_params / default_params / type）
+   */
+  async getModelMeta(modelType: string): Promise<ModelInfo | null> {
+    const config = await this.getModelConfig();
+    return config[modelType] ?? null;
+  }
+
+  /**
+   * 将嵌套配置扁平化为 {modelKey: ModelInfo}
+   */
+  private flattenConfig(config: ModelConfig): Record<string, ModelInfo> {
+    const flat: Record<string, ModelInfo> = {};
+    for (const models of Object.values(config)) {
+      for (const [key, info] of Object.entries(models)) {
+        flat[key] = info;
+      }
+    }
+    return flat;
   }
 
   /**
@@ -106,19 +124,10 @@ export class DataAnalysisService {
   }
 
   /**
-   * 获取模型类型的描述
-   * @returns Record<string, string> 模型名称和描述的映射
+   * 获取模型类型的描述（从 model_config 的 type 字段推断）
    */
   getModelTypeDescriptions(): Record<string, string> {
-    // 这是一个示例映射，实际应该从后端获取或配置文件中读取
     return {
-      'lr': '线性回归模型 - 用于回归任务',
-      'rf': '随机森林模型 - 用于分类和回归任务',
-      'xgb': 'XGBoost模型 - 强大的梯度提升模型',
-      'svm': '支持向量机 - 用于分类和回归任务',
-      'dt': '决策树 - 直观的分类和回归模型',
-      'knn': 'K近邻算法 - 基于距离的分类方法',
-      'nb': '朴素贝叶斯 - 用于分类任务',
       'linearregression': '线性回归 - 基本回归算法',
       'ridge': '岭回归 - 带L2正则化的线性回归',
       'lasso': 'Lasso回归 - 带L1正则化的线性回归',
@@ -135,72 +144,6 @@ export class DataAnalysisService {
       'tsne': 't-SNE - 非线性降维',
       'apriori': 'Apriori算法 - 关联规则挖掘',
       'associationrules': '关联规则生成器'
-    };
-  }
-
-  /**
-   * 获取模型默认参数
-   * @param modelType 模型类型
-   * @returns Record<string, any> 默认参数配置
-   */
-  getDefaultParameters(modelType: string): Record<string, any> {
-    // 基础默认参数
-    const baseParams = {
-      'random_state': 42,
-      'is_split': true,
-      'split_ratio': 0.8,
-      'is_return_model_score': true,
-      'model_params': {}
-    };
-    
-    // 特殊模型的参数处理
-    switch (modelType) {
-      case 'rf':
-        baseParams.model_params = { n_estimators: 100 };
-        break;
-      case 'xgb':
-        baseParams.model_params = { n_estimators: 100, learning_rate: 0.1 };
-        break;
-      case 'svm':
-      case 'svc':
-        baseParams.model_params = { C: 1.0, kernel: 'rbf' };
-        break;
-      case 'decisiontreeclassifier':
-        baseParams.model_params = { max_depth: null, min_samples_split: 2 };
-        break;
-      case 'kmeans':
-        baseParams.model_params = { n_clusters: 3 };
-        break;
-      default:
-        break;
-    }
-    
-    return baseParams;
-  }
-
-  /**
-   * 获取默认模型配置（当API调用失败时使用）
-   * @returns ModelConfig 默认模型配置
-   */
-  private getDefaultModelConfig(): ModelConfig {
-    // 这里可以添加一个简化版的默认配置，基于已知的model_config.json结构
-    return {
-      'regression': {
-        'linearregression': {
-          'class': 'LinearRegression',
-          'type': 'regression',
-          'init_params': ['fit_intercept'],
-          'default_params': { 'fit_intercept': true }
-        }
-      },
-      'classification': {
-        'logisticregression': {
-          'class': 'LogisticRegression',
-          'type': 'classification',
-          'init_params': ['C', 'max_iter'],
-          'default_params': { 'C': 1.0, 'max_iter': 1000 }
-        }
-      }
     };
   }
 }

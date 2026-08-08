@@ -9,9 +9,9 @@ import os
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
 # 直接导入需要的模块，避免复杂的依赖
-from Src.DataAnalyzer.AnalysisUpgrade.Factory.main_factory import MainFactory
-from Src.DataAnalyzer.AnalysisUpgrade.Factory.ml_factory import MLFactory
-from Src.DataAnalyzer.AnalysisUpgrade.Factory.classification_factory import ClassificationFactory
+from backend.Models.analysis.upgrade.Factory.main_factory import MainFactory
+from backend.Models.analysis.upgrade.Factory.ml_factory import MLFactory
+from backend.Models.analysis.upgrade.Factory.classification_factory import ClassificationFactory
 
 
 def test_main_factory_dispatch():

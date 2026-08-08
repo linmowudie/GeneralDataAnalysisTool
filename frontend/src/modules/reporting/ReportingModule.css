@@ -1,10 +1,46 @@
-.reporting-module {
-  padding: 15px;
+/* 数据报表页样式 */
+
+.df-template-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-lg);
 }
 
-.reporting-module h3 {
-  margin-top: 0;
-  color: #722ed1;
-  border-bottom: 1px solid var(--border-color);
-  padding-bottom: 8px;
+.df-template-item {
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-md);
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  transition: border-color var(--motion-fast);
+}
+
+.df-template-item:hover {
+  border-color: var(--color-accent-violet);
+}
+
+.df-template-active {
+  border-color: var(--color-accent-lime);
+  background: rgba(194, 239, 78, 0.06);
+}
+
+.df-template-name {
+  font-weight: 600;
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.df-report-id {
+  margin-bottom: var(--sp-md);
+}
+
+.df-export-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-lg);
 }

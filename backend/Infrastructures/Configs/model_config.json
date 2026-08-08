@@ -1,0 +1,108 @@
+{
+    "regression": {
+        "linearregression": {
+            "class": "LinearRegression",
+            "type": "regression",
+            "init_params": ["fit_intercept"],
+            "default_params": {"fit_intercept": true}
+        },
+        "ridge": {
+            "class": "Ridge",
+            "type": "regression",
+            "init_params": ["alpha", "random_state"],
+            "default_params": {"alpha": 1.0, "random_state": 42}
+        },
+        "lasso": {
+            "class": "Lasso",
+            "type": "regression",
+            "init_params": ["alpha", "random_state"],
+            "default_params": {"alpha": 1.0, "random_state": 42}
+        }
+    },
+    "classification": {
+        "logisticregression": {
+            "class": "LogisticRegression",
+            "type": "classification",
+            "init_params": ["C", "max_iter", "fit_intercept"],
+            "default_params": {"C": 1.0, "max_iter": 1000, "fit_intercept": true, "solver": "liblinear"}
+        },
+        "decisiontreeclassifier": {
+            "class": "DecisionTreeClassifier",
+            "type": "classification",
+            "init_params": ["max_depth", "min_samples_split", "random_state"],
+            "default_params": {"max_depth": null, "min_samples_split": 2, "random_state": 42}
+        },
+        "kneighborsclassifier": {
+            "class": "KNeighborsClassifier",
+            "type": "classification",
+            "init_params": ["n_neighbors"],
+            "default_params": {"n_neighbors": 5}
+        },
+        "svc": {
+            "class": "SVC",
+            "type": "classification",
+            "init_params": ["C", "kernel", "random_state"],
+            "default_params": {"C": 1.0, "kernel": "rbf", "random_state": 42}
+        }
+    },
+    "clustering": {
+        "kmeans": {
+            "class": "KMeans",
+            "type": "clustering",
+            "init_params": ["n_clusters", "random_state"],
+            "default_params": {"n_clusters": 3, "random_state": 42}
+        },
+        "meanshift": {
+            "class": "MeanShift",
+            "type": "clustering",
+            "init_params": ["bandwidth"],
+            "default_params": {"bandwidth": null}
+        },
+        "dbscan": {
+            "class": "DBSCAN",
+            "type": "clustering",
+            "init_params": ["eps", "min_samples"],
+            "default_params": {"eps": 0.5, "min_samples": 5}
+        }
+    },
+    "dimensionality_reduction": {
+        "pca": {
+            "class": "PCA",
+            "type": "transformer",
+            "init_params": ["n_components"],
+            "default_params": {"n_components": 2}
+        },
+        "standardscaler": {
+            "class": "StandardScaler",
+            "type": "transformer",
+            "init_params": [],
+            "default_params": {}
+        },
+        "minmaxscaler": {
+            "class": "MinMaxScaler",
+            "type": "transformer",
+            "init_params": [],
+            "default_params": {}
+        },
+        "tsne": {
+            "class": "TSNE",
+            "type": "transformer",
+            "init_params": ["n_components", "random_state"],
+            "default_params": {"n_components": 2, "random_state": 42}
+        }
+    },
+    "association_rule_learning": {
+        "apriori": {
+            "class": "Apriori",
+            "type": "association",
+            "init_params": ["min_support"],
+            "default_params": {"min_support": 0.1}
+        },
+        "associationrules": {
+            "class": "AssociationRules",
+            "type": "association",
+            "init_params": [],
+            "default_params": {}
+        }
+    }
+}

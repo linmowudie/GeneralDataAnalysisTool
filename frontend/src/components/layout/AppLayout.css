@@ -1,0 +1,125 @@
+/* AppLayout —— Sentri 暗色壳层 */
+
+.df-layout {
+  min-height: 100vh;
+  background: transparent;
+}
+
+/* ---------- 侧边栏 ---------- */
+.df-sider {
+  background: var(--surface-night) !important;
+  border-right: 1px solid var(--hairline-violet);
+  display: flex;
+  flex-direction: column;
+  position: sticky;
+  top: 0;
+  height: 100vh;
+  overflow: hidden;
+}
+
+.df-sider .ant-layout-sider-children {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+}
+
+.df-brand {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-lg) var(--sp-lg) var(--sp-xl);
+}
+
+.df-brand-mark {
+  width: 38px;
+  height: 38px;
+  border-radius: var(--radius-md);
+  background: linear-gradient(135deg, var(--color-accent-violet), #8d7ff0);
+  color: #fff;
+  font-family: var(--font-display);
+  font-weight: 700;
+  font-size: 16px;
+  display: flex;
+  align-items: center;
+  justify-content: center;
+  letter-spacing: 0.5px;
+  flex-shrink: 0;
+}
+
+.df-brand-name {
+  font-size: 17px;
+  color: var(--text-on-dark);
+  line-height: 1.2;
+}
+
+.df-brand-sub {
+  color: var(--text-on-dark-muted);
+  margin-top: 2px;
+}
+
+.df-sider .ant-menu {
+  background: transparent !important;
+  border-inline-end: none !important;
+  padding: 0 var(--sp-sm);
+  flex: 1;
+}
+
+.df-nav-label {
+  display: inline-flex;
+  align-items: center;
+  gap: var(--sp-sm);
+  width: 100%;
+}
+
+.df-nav-dot {
+  width: 6px;
+  height: 6px;
+  border-radius: 50%;
+  background: var(--color-accent-lime);
+  margin-left: auto;
+  box-shadow: 0 0 8px rgba(194, 239, 78, 0.6);
+}
+
+.df-sider-footer {
+  padding: var(--sp-lg);
+  border-top: 1px solid var(--hairline-violet);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.df-sider-tip {
+  color: var(--text-on-dark-muted);
+  display: flex;
+  align-items: center;
+  gap: var(--sp-xs);
+}
+
+/* ---------- 顶栏 ---------- */
+.df-topbar {
+  background: var(--surface-night) !important;
+  border-bottom: 1px solid var(--hairline-violet);
+  height: 60px !important;
+  line-height: normal;
+  padding: 0 var(--sp-xl) !important;
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  position: sticky;
+  top: 0;
+  z-index: 100;
+}
+
+.df-topbar-left,
+.df-topbar-right {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+}
+
+/* ---------- 内容区 ---------- */
+.df-content {
+  background: transparent;
+  overflow-y: auto;
+  height: calc(100vh - 60px);
+}

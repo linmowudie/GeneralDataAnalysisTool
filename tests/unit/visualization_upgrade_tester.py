@@ -9,15 +9,15 @@ import hashlib
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 
 from . import visualization_upgrade_data_generator as vudg
-from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
-from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+from backend.Models.visualization.upgrade.factory import VisualizationFactory
+from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
 
 
 def get_figure_hash(fig):
     """获取matplotlib图形的hash值用于比较"""
-    # 将图形转换为数组并计算hash值
+    # 将图形转换为数组并计算hash值（buffer_rgba 兼容 matplotlib>=3.8）
     fig.canvas.draw()
-    buf = fig.canvas.tostring_rgb()
+    buf = bytes(fig.canvas.buffer_rgba())
     hash_val = hashlib.md5(buf).hexdigest()
     return hash_val
 

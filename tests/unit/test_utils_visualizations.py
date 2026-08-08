@@ -37,7 +37,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_confusion_matrix(self):
         """测试混淆矩阵绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_confusion_matrix import plot_confusion_matrix
+        from backend.Models.visualization.upgrade.utils.plot_confusion_matrix import plot_confusion_matrix
         y_true = [0, 1, 0, 1, 0, 1]
         y_pred = [0, 1, 1, 1, 0, 0]
         
@@ -49,7 +49,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_roc_curve_binary(self):
         """测试二分类ROC曲线绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_roc_curve import plot_roc_curve
+        from backend.Models.visualization.upgrade.utils.plot_roc_curve import plot_roc_curve
         y_true = [0, 1, 0, 1, 0, 1]
         y_pred_proba = np.array([[0.9, 0.1], [0.2, 0.8], [0.9, 0.1], [0.3, 0.7], [0.8, 0.2], [0.4, 0.6]])
         
@@ -61,7 +61,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_precision_recall_curve_binary(self):
         """测试二分类精确率-召回率曲线绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_precision_recall_curve import plot_precision_recall_curve
+        from backend.Models.visualization.upgrade.utils.plot_precision_recall_curve import plot_precision_recall_curve
         y_true = [0, 1, 0, 1, 0, 1]
         y_pred_proba = np.array([[0.9, 0.1], [0.2, 0.8], [0.9, 0.1], [0.3, 0.7], [0.8, 0.2], [0.4, 0.6]])
         
@@ -73,7 +73,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_feature_importance(self):
         """测试特征重要性图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_feature_importance import plot_feature_importance
+        from backend.Models.visualization.upgrade.utils.plot_feature_importance import plot_feature_importance
         importances = np.array([0.1, 0.3, 0.2, 0.4])
         feature_names = ['Feature 1', 'Feature 2', 'Feature 3', 'Feature 4']
         
@@ -85,7 +85,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_coefficients(self):
         """测试系数图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_coefficients import plot_coefficients
+        from backend.Models.visualization.upgrade.utils.plot_coefficients import plot_coefficients
         coefficients = np.array([0.5, -0.3, 0.8, -0.1])
         feature_names = ['Coef 1', 'Coef 2', 'Coef 3', 'Coef 4']
         
@@ -97,7 +97,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_actual_vs_predicted(self):
         """测试真实值vs预测值散点图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_actual_vs_predicted import plot_actual_vs_predicted
+        from backend.Models.visualization.upgrade.utils.plot_actual_vs_predicted import plot_actual_vs_predicted
         y_true = np.array([1, 2, 3, 4, 5])
         y_pred = np.array([1.1, 2.2, 2.8, 4.1, 4.9])
         
@@ -109,7 +109,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_residuals(self):
         """测试残差图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_residuals import plot_residuals
+        from backend.Models.visualization.upgrade.utils.plot_residuals import plot_residuals
         y_true = np.array([1, 2, 3, 4, 5])
         y_pred = np.array([1.1, 2.2, 2.8, 4.1, 4.9])
         
@@ -121,7 +121,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_silhouette(self):
         """测试轮廓系数图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_silhouette import plot_silhouette
+        from backend.Models.visualization.upgrade.utils.plot_silhouette import plot_silhouette
         # 创建测试数据
         cluster1 = np.random.randn(10, 2) + [2, 2]
         cluster2 = np.random.randn(10, 2) + [-2, -2]
@@ -136,7 +136,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_dendrogram(self):
         """测试树状图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_dendrogram import plot_dendrogram
+        from backend.Models.visualization.upgrade.utils.plot_dendrogram import plot_dendrogram
         # 创建简单的linkage矩阵
         linkage_matrix = np.array([
             [0, 1, 0.5, 2],
@@ -152,7 +152,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_before_after_distribution(self):
         """测试变换前后分布对比图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_before_after_distribution import plot_before_after_distribution
+        from backend.Models.visualization.upgrade.utils.plot_before_after_distribution import plot_before_after_distribution
         X_before = np.random.randn(100, 2)
         X_after = np.random.randn(100, 2) * 0.5
         
@@ -164,7 +164,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_embedding_scatter_2d(self):
         """测试2D嵌入空间散点图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_embedding_scatter import plot_embedding_scatter
+        from backend.Models.visualization.upgrade.utils.plot_embedding_scatter import plot_embedding_scatter
         embedding = np.random.randn(50, 2)
         labels = np.random.randint(0, 3, 50)
         
@@ -176,7 +176,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_embedding_scatter_3d(self):
         """测试3D嵌入空间散点图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_embedding_scatter import plot_embedding_scatter
+        from backend.Models.visualization.upgrade.utils.plot_embedding_scatter import plot_embedding_scatter
         embedding = np.random.randn(50, 3)
         labels = np.random.randint(0, 3, 50)
         
@@ -188,7 +188,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_missing_value_matrix(self):
         """测试缺失值矩阵绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_missing_value_matrix import plot_missing_value_matrix
+        from backend.Models.visualization.upgrade.utils.plot_missing_value_matrix import plot_missing_value_matrix
         data = np.random.randn(20, 5)
         # 添加一些缺失值
         data[0, 0] = np.nan
@@ -202,7 +202,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_word_cloud(self):
         """测试词云图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_word_cloud import plot_word_cloud
+        from backend.Models.visualization.upgrade.utils.plot_word_cloud import plot_word_cloud
         frequencies = {
             'Python': 100,
             'Java': 80,
@@ -219,7 +219,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_gauge_chart(self):
         """测试仪表盘图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_gauge_chart import plot_gauge_chart
+        from backend.Models.visualization.upgrade.utils.plot_gauge_chart import plot_gauge_chart
         fig, ax = plot_gauge_chart(75, 100, "测试仪表盘")
         
         self.assertIsNotNone(fig)
@@ -228,7 +228,7 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_plot_waterfall(self):
         """测试瀑布图绘制"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_waterfall import plot_waterfall
+        from backend.Models.visualization.upgrade.utils.plot_waterfall import plot_waterfall
         contributions = [10, -5, 15, -3, 7]
         labels = ['A', 'B', 'C', 'D', 'E']
         
@@ -240,9 +240,9 @@ class TestUtilsVisualizations(unittest.TestCase):
         
     def test_save_all_plots_to_test_images(self):
         """测试保存所有图形到TestImages目录"""
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_confusion_matrix import plot_confusion_matrix
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_feature_importance import plot_feature_importance
-        from Src.DataAnalyzer.DataVisualisationUpgrade.utils.plot_coefficients import plot_coefficients
+        from backend.Models.visualization.upgrade.utils.plot_confusion_matrix import plot_confusion_matrix
+        from backend.Models.visualization.upgrade.utils.plot_feature_importance import plot_feature_importance
+        from backend.Models.visualization.upgrade.utils.plot_coefficients import plot_coefficients
         
         test_images_dir = os.path.join(PROJECT_ROOT, 'TestImages')
         print(f"测试图片保存目录: {test_images_dir}")

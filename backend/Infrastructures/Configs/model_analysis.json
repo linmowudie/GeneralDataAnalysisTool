@@ -1,0 +1,423 @@
+{
+  "key_description": "根配置对象：定义分析器支持的模型与参数结构",
+  "version": "2.1.0",
+  "description": "分析器支持的模型列表",
+  "updated_at": "2025-10-24",
+  "author": "linmowudie PersonalAuthor",
+  "preprocessing_methods": [
+    "standardscaler",
+    "tsne",
+    "pca",
+    "umap"
+  ],
+  "preprocessing_special_params": {
+    "key_description": "为每个预处理方法指定可调超参数的取值范围，用于自动化调参",
+    "standardscaler": {
+      "key_description": "标准缩放器：将特征标准化为均值为0、方差为1",
+      "with_mean": [true, false],
+      "with_std": [true, false]
+    },
+    "pca": {
+      "key_description": "主成分分析：线性降维方法，n_components 可为整数或保留方差比例",
+      "n_components": [0.8, 0.9, 0.95, 0.99, 2, 3, 5, 10],
+      "svd_solver": ["auto", "full", "arpack", "randomized"]
+    },
+    "tsne": {
+      "key_description": "t-分布随机邻域嵌入：非线性降维，常用于高维数据可视化",
+      "n_components": [2, 3],
+      "perplexity": [5, 10, 30, 50],
+      "learning_rate": ["auto", 100, 200, 500],
+      "n_iter": [1000, 2000, 3000]
+    },
+    "umap": {
+      "key_description": "统一流形逼近与投影：高效非线性降维，保留局部和全局结构",
+      "n_components": [2, 3, 5],
+      "n_neighbors": [5, 10, 15, 30],
+      "min_dist": [0.1, 0.5, 0.9],
+      "metric": ["euclidean", "cosine", "manhattan"]
+    }
+  },
+  "support_ML_models": [
+    "logisticregression",
+    "decisiontreeclassifier",
+    "kneighborsclassifier",
+    "randomforestclassifier",
+    "xgboostclassifier",
+    "svc",
+    "linearregression",
+    "decisiontreeregressor",
+    "randomforestregressor",
+    "kmeans",
+    "meanshift",
+    "agglomerativeclustering"
+  ],
+  "ML_model_special_params": {
+    "key_description": "按任务类型组织机器学习模型的超参数配置，可通过model_params输入参数并与下列参数对比",
+    "classification": {
+      "key_description": "分类任务专用模型及其超参数搜索空间",
+      "logisticregression": {
+        "key_description": "逻辑回归分类器：适用于线性可分问题",
+        "C": [0.01, 0.1, 1.0, 10.0],
+        "penalty": ["l1", "l2", "elasticnet", null],
+        "solver": ["liblinear", "saga"],
+        "max_iter": [100, 200, 500]
+      },
+      "decisiontreeclassifier": {
+        "key_description": "决策树分类器：易于解释，可处理非线性关系",
+        "max_depth": [3, 5, 8, 10, null],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
+        "criterion": ["gini", "entropy"]
+      },
+      "kneighborsclassifier": {
+        "key_description": "K近邻分类器：基于距离的懒惰学习算法",
+        "n_neighbors": [3, 5, 7, 9],
+        "weights": ["uniform", "distance"],
+        "algorithm": ["auto", "ball_tree", "kd_tree", "brute"],
+        "p": [1, 2]
+      },
+      "randomforestclassifier": {
+        "key_description": "随机森林分类器：集成多个决策树，抗过拟合",
+        "n_estimators": [50, 100, 200],
+        "max_depth": [5, 8, 10, null],
+        "min_samples_split": [2, 5],
+        "min_samples_leaf": [1, 2],
+        "bootstrap": [true, false]
+      },
+      "xgboostclassifier": {
+        "key_description": "XGBoost 分类器：高效梯度提升框架，性能强大",
+        "n_estimators": [50, 100, 200],
+        "max_depth": [3, 6, 9],
+        "learning_rate": [0.01, 0.1, 0.2],
+        "subsample": [0.8, 0.9, 1.0],
+        "colsample_bytree": [0.8, 0.9, 1.0],
+        "gamma": [0, 0.1, 0.5]
+      },
+      "svc": {
+        "key_description": "支持向量机分类器：适用于高维空间和复杂边界",
+        "C": [0.1, 1, 10],
+        "kernel": ["linear", "rbf", "poly"],
+        "gamma": ["scale", "auto", 0.001, 0.01, 0.1, 1],
+        "degree": [2, 3, 4]
+      }
+    },
+    "regression": {
+      "key_description": "回归任务专用模型及其超参数搜索空间",
+      "linearregression": {
+        "key_description": "线性回归：建立特征与连续目标变量的线性关系",
+        "fit_intercept": [true, false]
+      },
+      "decisiontreeregressor": {
+        "key_description": "决策树回归器：非线性回归，易于解释",
+        "max_depth": [3, 5, 8, 10, null],
+        "min_samples_split": [2, 5, 10],
+        "min_samples_leaf": [1, 2, 4],
+        "criterion": ["squared_error", "absolute_error", "friedman_mse"]
+      },
+      "randomforestregressor": {
+        "key_description": "随机森林回归器：集成方法，稳定性好",
+        "n_estimators": [50, 100, 200],
+        "max_depth": [5, 8, 10, null],
+        "min_samples_split": [2, 5],
+        "min_samples_leaf": [1, 2],
+        "bootstrap": [true, false]
+      }
+    },
+    "clustering": {
+      "key_description": "聚类任务专用模型及其超参数配置",
+      "kmeans": {
+        "key_description": "K均值聚类：基于质心的划分式聚类",
+        "n_clusters": [2, 3, 4, 5, 6, 8, 10],
+        "init": ["k-means++", "random"],
+        "n_init": [10, 20],
+        "max_iter": [300, 500]
+      },
+      "meanshift": {
+        "key_description": "MeanShift 聚类：基于密度的聚类，无需指定簇数",
+        "bandwidth": [0.1, 0.5, 1.0, null],
+        "bin_seeding": [true, false]
+      },
+      "agglomerativeclustering": {
+        "key_description": "凝聚聚类：层次聚类的一种，自底向上合并",
+        "n_clusters": [2, 3, 4, 5],
+        "linkage": ["ward", "complete", "average", "single"],
+        "metric": ["euclidean", "manhattan", "cosine"]
+      }
+    },
+    "dimensionality_reduction": {
+      "key_description": "降维任务模型参数（主要用于无监督/可视化）",
+      "pca": {
+        "key_description": "主成分分析：线性降维，最大化方差保留",
+        "n_components": [2, 3, 5, 0.8, 0.9, 0.95]
+      },
+      "tsne": {
+        "key_description": "t-SNE：非线性降维，适合可视化高维数据",
+        "n_components": [2, 3],
+        "perplexity": [5, 30, 50]
+      },
+      "umap": {
+        "key_description": "UMAP：高效非线性降维，优于t-SNE的全局结构保持",
+        "n_components": [2, 3],
+        "n_neighbors": [5, 15, 30],
+        "min_dist": [0.1, 0.5]
+      }
+    },
+    "anomaly_detection": {
+      "key_description": "异常检测模型参数（当前未在support_ML_models中列出，预留扩展）",
+      "isolationforest": {
+        "key_description": "孤立森林：基于隔离机制的异常检测算法",
+        "n_estimators": [50, 100, 200],
+        "max_samples": ["auto", 0.8, 1.0],
+        "contamination": [0.01, 0.05, 0.1, "auto"]
+      },
+      "localoutlierfactor": {
+        "key_description": "局部离群因子：基于密度的异常检测",
+        "n_neighbors": [10, 20, 30],
+        "contamination": [0.01, 0.05, 0.1],
+        "novelty": [true]
+      }
+    },
+    "others": {
+      "key_description": "其他未归类的模型或自定义模型参数（暂空）"
+    }
+  },
+  "support_DL_models": [],
+  "DL_model_special_params": {
+    "key_description": "深度学习模型的特殊参数配置（当前未支持）"
+  },
+  "ML_model_evaluation_methods": {
+    "key_description": "按任务类型组织机器学习模型的默认与可选评估方法",
+    "classification": {
+      "key_description": "分类任务常用评估指标",
+      "accuracy": {
+        "key_description": "准确率：正确预测样本占总样本的比例",
+        "type": "ratio",
+        "range": "[0, 1]",
+        "recommended": true
+      },
+      "precision": {
+        "key_description": "精确率：预测为正类中实际为正类的比例",
+        "type": "ratio",
+        "range": "[0, 1]",
+        "average": ["macro", "micro", "weighted"]
+      },
+      "recall": {
+        "key_description": "召回率：实际正类中被正确预测的比例",
+        "type": "ratio",
+        "range": "[0, 1]",
+        "average": ["macro", "micro", "weighted"]
+      },
+      "f1_score": {
+        "key_description": "F1分数：精确率与召回率的调和平均",
+        "type": "ratio",
+        "range": "[0, 1]",
+        "average": ["macro", "micro", "weighted"],
+        "recommended": true
+      },
+      "roc_auc": {
+        "key_description": "ROC曲线下面积：衡量分类器整体性能，适用于不平衡数据",
+        "type": "area",
+        "range": "[0, 1]",
+        "multi_class": ["ovo", "ovr"]
+      },
+      "log_loss": {
+        "key_description": "对数损失：衡量概率输出的准确性，越小越好",
+        "type": "loss",
+        "range": "[0, ∞)",
+        "higher_is_better": false
+      },
+      "confusion_matrix": {
+        "key_description": "混淆矩阵：展示分类结果的详细分布",
+        "type": "matrix",
+        "output": "2D array"
+      }
+    },
+    "regression": {
+      "key_description": "回归任务常用评估指标",
+      "mse": {
+        "key_description": "均方误差：预测值与真实值差异的平方均值",
+        "type": "loss",
+        "range": "[0, ∞)",
+        "higher_is_better": false,
+        "recommended": true
+      },
+      "rmse": {
+        "key_description": "均方根误差：MSE的平方根，单位与目标一致",
+        "type": "loss",
+        "range": "[0, ∞)",
+        "higher_is_better": false
+      },
+      "mae": {
+        "key_description": "平均绝对误差：预测误差的绝对值均值",
+        "type": "loss",
+        "range": "[0, ∞)",
+        "higher_is_better": false
+      },
+      "r2_score": {
+        "key_description": "决定系数：模型解释方差的比例，1表示完美拟合",
+        "type": "variance_explained",
+        "range": "(-∞, 1]",
+        "recommended": true
+      },
+      "explained_variance_score": {
+        "key_description": "解释方差得分：预测值与真实值方差的匹配程度",
+        "type": "variance_explained",
+        "range": "(-∞, 1]"
+      }
+    },
+    "clustering": {
+      "key_description": "聚类任务评估指标（需真实标签或仅依赖数据结构）",
+      "silhouette_score": {
+        "key_description": "轮廓系数：衡量样本与其簇内其他样本的相似度 vs 与其他簇样本的不相似度",
+        "type": "cohesion_separation",
+        "range": "[-1, 1]",
+        "recommended": true
+      },
+      "calinski_harabasz_score": {
+        "key_description": "Calinski-Harabasz指数：簇间分散度与簇内凝聚度的比值",
+        "type": "ratio",
+        "range": "[0, ∞)"
+      },
+      "davies_bouldin_score": {
+        "key_description": "戴维斯-布尔丁指数：平均相似度比率，越小越好",
+        "type": "index",
+        "range": "[0, ∞)",
+        "higher_is_better": false
+      },
+      "adjusted_rand_score": {
+        "key_description": "调整兰德指数：衡量聚类结果与真实标签的一致性（需真实标签）",
+        "type": "similarity",
+        "range": "[-1, 1]"
+      },
+      "homogeneity_completeness_v_measure": {
+        "key_description": "同质性、完整性、V-measure：基于信息论的聚类评估",
+        "type": "information_theoretic",
+        "range": "[0, 1]"
+      }
+    },
+    "dimensionality_reduction": {
+      "key_description": "降维任务的评估方式（多用于可视化或作为中间步骤）",
+      "explained_variance_ratio": {
+        "key_description": "解释方差比例：降维后保留的原始方差百分比",
+        "type": "ratio",
+        "range": "[0, 1]"
+      },
+      "reconstruction_error": {
+        "key_description": "重构误差：降维后再重构的误差，越小越好",
+        "type": "error",
+        "range": "[0, ∞)",
+        "higher_is_better": false
+      },
+      "trustworthiness": {
+        "key_description": "可信度：衡量局部邻域结构在降维后是否保持",
+        "type": "local_structure",
+        "range": "[0, 1]"
+      },
+      "continuity": {
+        "key_description": "连续性：衡量全局结构是否在映射中保持",
+        "type": "global_structure",
+        "range": "[0, 1]"
+      }
+    },
+    "anomaly_detection": {
+      "key_description": "异常检测专用评估指标",
+      "precision_at_k": {
+        "key_description": "Top-K精确率：前K个预测为异常的样本中真实异常的比例",
+        "type": "ratio",
+        "range": "[0, 1]"
+      },
+      "roc_auc": {
+        "key_description": "ROC-AUC：适用于异常检测的概率输出评估",
+        "type": "area",
+        "range": "[0, 1]"
+      },
+      "average_precision": {
+        "key_description": "平均精确率：PR曲线下的面积，适用于类别极度不平衡场景",
+        "type": "area",
+        "range": "[0, 1]"
+      }
+    },
+    "others": {
+      "key_description": "其他任务类型的评估方法（暂空）"
+    }
+  },
+  "model_mapping": {
+    "key_description": "模型名称到模块和类名的映射，用于动态导入",
+    "logisticregression": {
+      "module": "sklearn.linear_model",
+      "class": "LogisticRegression"
+    },
+    "decisiontreeclassifier": {
+      "module": "sklearn.tree",
+      "class": "DecisionTreeClassifier"
+    },
+    "randomforestclassifier": {
+      "module": "sklearn.ensemble",
+      "class": "RandomForestClassifier"
+    },
+    "svc": {
+      "module": "sklearn.svm",
+      "class": "SVC"
+    },
+    "kneighborsclassifier": {
+      "module": "sklearn.neighbors",
+      "class": "KNeighborsClassifier"
+    },
+    "xgboostclassifier": {
+      "module": "xgboost",
+      "class": "XGBClassifier"
+    },
+    "linearregression": {
+      "module": "sklearn.linear_model",
+      "class": "LinearRegression"
+    },
+    "decisiontreeregressor": {
+      "module": "sklearn.tree",
+      "class": "DecisionTreeRegressor"
+    },
+    "randomforestregressor": {
+      "module": "sklearn.ensemble",
+      "class": "RandomForestRegressor"
+    },
+    "kmeans": {
+      "module": "sklearn.cluster",
+      "class": "KMeans"
+    },
+    "meanshift": {
+      "module": "sklearn.cluster",
+      "class": "MeanShift"
+    },
+    "agglomerativeclustering": {
+      "module": "sklearn.cluster",
+      "class": "AgglomerativeClustering"
+    },
+    "dbscan": {
+      "module": "sklearn.cluster",
+      "class": "DBSCAN"
+    },
+    "pca": {
+      "module": "sklearn.decomposition",
+      "class": "PCA"
+    },
+    "tsne": {
+      "module": "sklearn.manifold",
+      "class": "TSNE"
+    },
+    "umap": {
+      "module": "umap",
+      "class": "UMAP"
+    },
+    "mlpclassifier": {
+      "module": "sklearn.neural_network",
+      "class": "MLPClassifier"
+    },
+    "mlpregressor": {
+      "module": "sklearn.neural_network",
+      "class": "MLPRegressor"
+    },
+    "standardscaler": {
+      "module": "sklearn.preprocessing",
+      "class": "StandardScaler"
+    }
+  }
+}

@@ -7,7 +7,7 @@
 
 import pandas as pd
 import numpy as np
-from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
+from backend.Models.visualization import DataVisualization
 
 def main():
     # 创建示例数据

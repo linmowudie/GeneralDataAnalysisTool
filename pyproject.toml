@@ -43,16 +43,28 @@ dev = [
 
 [tool.setuptools.packages.find]
 where = ["."]
-include = ["Src*"]
+include = ["backend*"]
 namespaces = false
 
+[tool.setuptools]
+py-modules = ["run_api"]
+
 [project.scripts]
-general-data-analyzer = "Src.DataAnalyzer.core:main"
+general-data-analyzer = "run_api:start_server"
+
+[tool.pytest.ini_options]
+testpaths = ["tests/unit"]
+python_files = ["test_*.py", "*_test.py"]
+addopts = "-ra"
+
+[tool.black]
+line-length = 100
+target-version = ["py312"]
 
 [tool.unimport]
 
 sources = [
-    "Src",
+    "backend",
     "main.py",
     "tests",
     "examples"
@@ -68,7 +80,7 @@ exclude = [
     "Notebooks/",      # Jupyter notebooks (unimport 默认不检查 .ipynb)
     "docs/",           # 文档
     "test_images/",    # 图片
-    "Src/generaldataanalysistool.egg-info/", # 构建产物
+    "backend/generaldataanalysistool.egg-info/", # 构建产物
     "__pycache__",     # Python 缓存
     "\\.git",          # Git 目录
 ]

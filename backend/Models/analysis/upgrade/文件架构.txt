@@ -1,0 +1,82 @@
+﻿backend/Models/analysis/upgrade/
+│
+├── Cores/                            # 🌟 核心抽象层（设计模式基石）
+│   ├── base_analyzer.py             # 所有分析器的抽象基类
+│   ├── base_factory.py              # 抽象工厂基类（可选，增强类型提示）
+│   ├── base_strategy.py             # 抽象策略基类
+│   ├── analysis_context.py          # 策略执行上下文（控制执行流程）
+│   └── analysis_result.py           # 统一结果封装类
+│
+├── Factory/                         # 🏭 分层工厂体系（创建对象）
+│   ├── main_factory.py              # 主工厂：根据 learn_type 分发
+│   ├── ml_factory.py                # ML 工厂：创建任务分析器 + 策略
+│   ├── dl_factory.py                # DL 工厂（预留）
+│   ├── classification_factory.py    # 分类任务工厂
+│   ├── regression_factory.py        # 回归任务工厂
+│   ├── clustering_factory.py        # 聚类任务工厂
+│   ├── dimensionality_reduction_factory.py  # 降维任务工厂
+│   ├── anomaly_detection_factory.py # 异常检测任务工厂（预留）
+│   ├── transformer_factory.py       # 数据转换任务工厂
+│   └── __init__.py
+│
+├── Strategy/                        # 🧠 分层策略体系（控制行为）
+│   ├── classification_strategy.py   # 分类任务策略（训练+评估）
+│   ├── regression_strategy.py       # 回归任务策略
+│   ├── clustering_strategy.py       # 聚类任务策略
+│   ├── dimensionality_reduction_strategy.py  # 降维策略
+│   └── __init__.py
+│
+├── Tasks/                           # 🧩 任务实现层（具体模型）
+│   ├── classification/
+│   │   ├── analyzers/
+│   │   │   ├── logistic_regression.py    # LogisticRegression
+│   │   │   ├── decision_tree.py          # DecisionTreeClassifier
+│   │   │   ├── random_forest.py          # RandomForestClassifier
+│   │   │   ├── svc.py                    # SupportVectorClassifier
+│   │   │   ├── knn.py                    # KNeighborsClassifier
+│   │   │   └── xgboost.py                # XGBoostClassifier
+│   │   └── __init__.py
+│   │
+│   ├── regression/
+│   │   ├── analyzers/
+│   │   │   ├── linear_regression.py      # LinearRegression
+│   │   │   ├── decision_tree.py          # DecisionTreeRegressor
+│   │   │   ├── random_forest.py          # RandomForestRegressor
+│   │   │   └── xgboost.py                # XGBoostRegressor
+│   │   └── __init__.py
+│   │
+│   ├── clustering/
+│   │   ├── analyzers/
+│   │   │   ├── kmeans.py                 # KMeans
+│   │   │   ├── mean_shift.py             # MeanShift
+│   │   │   └── agglomerative.py          # AgglomerativeClustering
+│   │   └── __init__.py
+│   │
+│   ├── dimensionality_reduction/
+│   │   ├── analyzers/
+│   │   │   ├── pca.py                    # PCA
+│   │   │   ├── tsne.py                   # TSNE
+│   │   │   └── umap.py                   # UMAP
+│   │   └── __init__.py
+│   │
+│   └── transformer/                     # 数据转换（如标准化）
+│       ├── analyzers/
+│       │   ├── scaler.py               # StandardScaler, MinMaxScaler
+│       │   └── encoder.py              # OneHotEncoder
+│       └── __init__.py
+│
+├── Evaluation/                          # 📊 统一评估模块
+│   ├── classification_metrics.py        # accuracy, precision, recall, f1
+│   ├── regression_metrics.py            # mse, mae, r2
+│   ├── clustering_metrics.py            # silhouette, calinski_harabasz
+│   └── __init__.py
+│
+├── Utils/                               # 🛠️ 工具函数
+│   ├── logger.py                        # 日志
+│   ├── data_validator.py                # 数据校验
+│   └── config_loader.py                 # 配置加载
+│
+├── __init__.py                          # 包入口
+├── 进度文档.md
+├── 文件架构.txt
+└── DATA_ANALYZER.md                     # 架构文档

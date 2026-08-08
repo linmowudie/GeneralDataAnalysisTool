@@ -12,7 +12,7 @@ Write-Host "Starting data analysis tool project..." -ForegroundColor Green
 switch ($mode) {
     "frontend" {
         Write-Host "Starting frontend service..." -ForegroundColor Yellow
-        Set-Location -Path "$PSScriptRoot\frontend\dashboard"
+        Set-Location -Path "$PSScriptRoot\frontend"
         npm run dev
     }
     "backend" {
@@ -33,7 +33,7 @@ switch ($mode) {
         
         # Start frontend service
         Write-Host "Starting frontend dashboard service on http://localhost:5173" -ForegroundColor Cyan
-        Set-Location -Path "$PSScriptRoot\frontend\dashboard"
+        Set-Location -Path "$PSScriptRoot\frontend"
         npm run dev
     }
 }

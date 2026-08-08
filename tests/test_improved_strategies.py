@@ -12,9 +12,9 @@ from sklearn.cluster import KMeans
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.classification_strategy import ClassificationStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.regression_strategy import RegressionStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.clustering_strategy import ClusteringStrategy
+from backend.Models.analysis.upgrade.Strategy.classification_strategy import ClassificationStrategy
+from backend.Models.analysis.upgrade.Strategy.regression_strategy import RegressionStrategy
+from backend.Models.analysis.upgrade.Strategy.clustering_strategy import ClusteringStrategy
 
 
 def test_classification_strategy():

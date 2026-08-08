@@ -1,214 +1,29 @@
-/* 数据分析模块主容器 */
-.data-analysis-module {
-  padding: 20px;
-  background-color: #f9f9f9;
-  border-radius: 8px;
-  box-shadow: 0 2px 4px rgba(0, 0, 0, 0.1);
-  max-width: 100%;
-  overflow: hidden;
-}
+/* 数据分析页样式 */
 
-/* 数据分析模块标题 */
-.data-analysis-module h3 {
-  margin-top: 0;
-  color: #333;
-  border-bottom: 2px solid #4CAF50;
-  padding-bottom: 10px;
-  margin-bottom: 20px;
-}
-
-/* 加载状态 */
-.loading {
-  text-align: center;
-  padding: 40px;
-  font-size: 18px;
-  color: #666;
-}
-
-/* 参数组 */
-.data-analysis-module .parameter-group {
-  margin-bottom: 15px;
-  padding: 10px;
-  background-color: white;
-  border-radius: 6px;
-  box-shadow: 0 1px 3px rgba(0, 0, 0, 0.05);
-}
-
-/* 标签 */
-.data-analysis-module label {
-  display: block;
-  margin-bottom: 8px;
-  font-weight: 600;
-  color: #444;
-}
-
-/* 输入框和选择框 */
-.data-analysis-module input,
-.data-analysis-module select {
-  width: 100%;
-  padding: 8px 12px;
-  border: 1px solid #ddd;
-  border-radius: 4px;
-  font-size: 14px;
-  transition: border-color 0.3s;
-  box-sizing: border-box;
-}
-
-/* 输入框聚焦状态 */
-.data-analysis-module input:focus,
-.data-analysis-module select:focus {
-  outline: none;
-  border-color: #4CAF50;
-  box-shadow: 0 0 0 2px rgba(76, 175, 80, 0.2);
-}
-
-/* 复选框 */
-.data-analysis-module input[type="checkbox"] {
-  width: auto;
-  margin-right: 8px;
-  cursor: pointer;
-}
-
-/* 列选择器样式 */
-.column-selector {
-  max-height: 200px;
-  overflow-y: auto;
-  padding: 10px;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  background-color: #fafafa;
-}
-
-.column-selector.feature-columns {
-  display: flex;
-  flex-wrap: wrap;
-  gap: 10px;
-  max-height: 150px;
-}
-
-.checkbox-label {
+.df-form-row {
   display: flex;
   align-items: center;
-  padding: 6px 10px;
-  background-color: white;
-  border: 1px solid #e0e0e0;
-  border-radius: 4px;
-  font-size: 13px;
-  white-space: nowrap;
-  transition: all 0.2s;
-  cursor: pointer;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
 }
 
-.checkbox-label:hover {
-  background-color: #f0f9f0;
-  border-color: #4CAF50;
+.df-form-col {
+  flex-direction: column;
+  align-items: stretch;
 }
 
-.checkbox-label input[type="checkbox"] {
-  margin-right: 6px;
+.df-form-col .df-caption {
+  margin-bottom: var(--sp-xs);
 }
 
-.checkbox-label input[type="checkbox"]:disabled + span,
-.checkbox-label input[type="checkbox"]:disabled {
-  opacity: 0.5;
-  cursor: not-allowed;
+.df-model-desc {
+  margin: -6px 0 var(--sp-md);
+  color: var(--color-accent-violet);
 }
 
-/* 无数据和无参数消息 */
-.no-data-message,
-.no-params-message {
-  color: #999;
-  font-style: italic;
-  text-align: center;
-  padding: 20px;
-}
-
-/* 参数部分 */
-.parameter-section {
-  margin-top: 25px;
-  padding: 15px;
-  background-color: white;
-  border-radius: 6px;
-  border-left: 4px solid #4CAF50;
-}
-
-.parameter-section h4 {
-  margin-top: 0;
-  color: #333;
-  font-size: 16px;
-  margin-bottom: 15px;
-}
-
-/* 模型描述 */
-.model-description {
-  margin-top: 8px;
-  font-style: italic;
-  color: #666;
-  font-size: 0.9em;
-  padding: 8px 12px;
-  background-color: #f5f5f5;
-  border-radius: 4px;
-  border-left: 3px solid #2196F3;
-}
-
-/* 运行分析按钮 */
-.run-analysis-btn {
-  background-color: #4CAF50;
-  color: white;
-  border: none;
-  padding: 12px 24px;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 16px;
-  font-weight: 600;
-  margin-top: 20px;
-  transition: background-color 0.3s;
-  width: 100%;
-}
-
-/* 运行分析按钮悬停状态 */
-.run-analysis-btn:hover:not(:disabled) {
-  background-color: #45a049;
-  transform: translateY(-1px);
-  box-shadow: 0 2px 6px rgba(76, 175, 80, 0.3);
-}
-
-/* 运行分析按钮激活状态 */
-.run-analysis-btn:active:not(:disabled) {
-  transform: translateY(0);
-}
-
-/* 运行分析按钮禁用状态 */
-.run-analysis-btn:disabled {
-  background-color: #cccccc;
-  cursor: not-allowed;
-  transform: none;
-  box-shadow: none;
-}
-
-/* 错误消息 */
-.error-message {
-  color: #d32f2f;
-  background-color: #ffebee;
-  border-left: 4px solid #d32f2f;
-  padding: 12px 15px;
-  border-radius: 4px;
-  margin-bottom: 20px;
-  font-size: 14px;
-}
-
-/* 响应式调整 */
-@media (max-width: 768px) {
-  .data-analysis-module {
-    padding: 15px;
-  }
-  
-  .column-selector.feature-columns {
-    flex-direction: column;
-    max-height: 300px;
-  }
-  
-  .checkbox-label {
-    font-size: 14px;
-  }
+.df-section-divider {
+  height: 1px;
+  background: var(--color-border, rgba(255,255,255,0.08));
+  margin: var(--sp-md) 0;
 }

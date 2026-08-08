@@ -11,8 +11,8 @@ sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..', '..'))
 def test_imports():
     """测试导入是否正常"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
-        from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
         print("✓ 成功导入所有模块")
         return True
     except Exception as e:
@@ -22,7 +22,7 @@ def test_imports():
 def test_factory_creation():
     """测试工厂创建"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         factory = VisualizationFactory()
         print("✓ 成功创建工厂实例")
         return True
@@ -33,7 +33,7 @@ def test_factory_creation():
 def test_strategy_selector():
     """测试策略选择器"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+        from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
         selector = VisualizationStrategySelector()
         charts = selector.select_charts("classification", {})
         print(f"✓ 策略选择器工作正常，返回图表: {charts}")

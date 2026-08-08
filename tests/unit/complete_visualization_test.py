@@ -17,7 +17,7 @@ def test_common_chart_generation():
         X = np.random.rand(100, 2)
         y = np.random.rand(100)
         
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         
         factory = VisualizationFactory()
         
@@ -48,7 +48,7 @@ def test_common_chart_generation():
 def test_regression_strategies():
     """测试回归策略"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         from sklearn.linear_model import LinearRegression
         from sklearn.tree import DecisionTreeRegressor
         from sklearn.ensemble import RandomForestRegressor
@@ -111,7 +111,7 @@ def test_regression_strategies():
 def test_classification_strategies():
     """测试分类策略"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         from sklearn.linear_model import LogisticRegression
         from sklearn.tree import DecisionTreeClassifier
         from sklearn.ensemble import RandomForestClassifier
@@ -198,7 +198,7 @@ def test_classification_strategies():
 def test_clustering_strategies():
     """测试聚类策略"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         from sklearn.cluster import KMeans, MeanShift, AgglomerativeClustering
         
         factory = VisualizationFactory()
@@ -255,7 +255,7 @@ def test_clustering_strategies():
 def test_transformer_strategies():
     """测试变换器策略"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         from sklearn.decomposition import PCA
         from sklearn.preprocessing import StandardScaler
         
@@ -314,7 +314,7 @@ def test_transformer_strategies():
 def test_chart_selection():
     """测试图表选择功能"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+        from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
         
         selector = VisualizationStrategySelector()
         
@@ -339,7 +339,7 @@ def test_chart_selection():
 def test_factory_model_support():
     """测试工厂模型支持功能"""
     try:
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         
         factory = VisualizationFactory()
         

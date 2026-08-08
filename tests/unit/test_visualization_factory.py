@@ -27,11 +27,11 @@ class TestVisualizationFactory(unittest.TestCase):
         """测试后清理"""
         pass
 
-    @patch('Src.DataAnalyzer.DataVisualisationUpgrade.factory.os.path.dirname')
+    @patch('backend.Models.visualization.upgrade.factory.os.path.dirname')
     def test_factory_initialization(self, mock_dirname):
         """测试工厂初始化"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             # 模拟路径
             mock_dirname.return_value = PROJECT_ROOT
@@ -46,7 +46,7 @@ class TestVisualizationFactory(unittest.TestCase):
     def test_get_model_supported_tasks(self):
         """测试获取模型支持的任务类型"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             factory = VisualizationFactory()
             
@@ -67,7 +67,7 @@ class TestVisualizationFactory(unittest.TestCase):
     def test_get_supported_models(self):
         """测试获取支持的模型列表"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             factory = VisualizationFactory()
             supported_models = factory.get_supported_models()
@@ -82,7 +82,7 @@ class TestVisualizationFactory(unittest.TestCase):
     def test_is_common_chart(self):
         """测试判断是否为通用图表"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             factory = VisualizationFactory()
             
@@ -96,11 +96,11 @@ class TestVisualizationFactory(unittest.TestCase):
         except Exception as e:
             self.fail(f"判断通用图表失败: {e}")
 
-    @patch('Src.DataAnalyzer.DataVisualisationUpgrade.factory.VisualizationFactory._create_common_strategy')
+    @patch('backend.Models.visualization.upgrade.factory.VisualizationFactory._create_common_strategy')
     def test_create_common_strategy(self, mock_create_common):
         """测试创建通用图表策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             factory = VisualizationFactory()
             
@@ -120,7 +120,7 @@ class TestVisualizationFactory(unittest.TestCase):
     def test_select_charts(self):
         """测试选择图表类型"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+            from backend.Models.visualization.upgrade.factory import VisualizationFactory
             
             factory = VisualizationFactory()
             

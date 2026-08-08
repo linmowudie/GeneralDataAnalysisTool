@@ -1,587 +1,67 @@
-/* 定义主题颜色 */
-:root {
-  --primary-color: #1890ff;
-  --success-color: #52c41a;
-  --warning-color: #faad14;
-  --error-color: #f5222d;
-  --info-color: #13c2c2;
-  --text-color: #333;
-  --bg-color: #f0f2f5;
-  --border-color: #d9d9d9;
-  --hover-color: #e6f7ff;
-  --card-bg: #ffffff;
-  --shadow-color: rgba(0, 0, 0, 0.1);
-}
+/* Dashboard 工作台样式 */
 
-.dashboard-container {
-  width: 100%;
-  height: 100vh;
+.df-section-head {
   display: flex;
-  flex-direction: column;
-  background-color: var(--bg-color);
-  border: 1px solid var(--border-color);
-}
-
-.dashboard-header {
-  display: flex;
+  align-items: flex-end;
   justify-content: space-between;
-  align-items: center;
-  padding: 10px 20px;
-  background: linear-gradient(135deg, #1890ff 0%, #096dd9 100%);
-  border-bottom: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px rgba(0, 0, 0, 0.1);
+  margin: var(--sp-xxl) 0 var(--sp-lg);
 }
 
-.dashboard-header h2 {
-  margin: 0;
-  font-size: 24px;
-  color: white;
-  font-weight: 600;
-}
-
-.dashboard-tabs {
+/* 步骤卡片 */
+.df-step-card {
   display: flex;
-  gap: 5px;
-}
-
-.tab-button {
-  padding: 8px 20px;
-  border: 1px solid transparent;
-  background-color: rgba(255, 255, 255, 0.2);
+  flex-direction: column;
+  gap: var(--sp-sm);
   cursor: pointer;
-  border-radius: 4px 4px 0 0;
-  color: white;
-  transition: all 0.3s ease;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
 }
 
-.tab-button:hover {
-  background-color: rgba(255, 255, 255, 0.3);
-}
-
-.tab-button.active {
-  background-color: white;
-  border-bottom: 1px solid white;
-  font-weight: bold;
-  color: var(--primary-color);
-}
-
-/* 新增仪表盘内容区域样式 */
-.dashboard-dashboard-content {
-  flex: 1;
-  padding: 20px;
-  overflow-y: auto;
-  display: flex;
-  flex-direction: column;
-}
-
-/* 6+1布局网格 */
-.dashboard-grid-layout {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-  height: 100%;
-}
-
-/* 左侧6个卡片区域 */
-.dashboard-left-6cards {
-  flex: 1;
-  display: flex;
-  flex-direction: column;
-  gap: 20px;
-  overflow-y: auto;
-}
-
-/* 网格行 */
-.dashboard-grid-row {
-  display: flex;
-  gap: 20px;
-  flex: 1;
-}
-
-/* 网格卡片 */
-.dashboard-grid-card {
-  flex: 1;
-  background: var(--card-bg);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px var(--shadow-color);
-  overflow: hidden;
-  transition: all 0.3s ease;
-  display: flex;
-  flex-direction: column;
-}
-
-.dashboard-grid-card:hover {
-  box-shadow: 0 6px 16px var(--shadow-color);
-}
-
-/* 右侧用户信息区域 */
-.dashboard-right-userarea {
-  width: 300px;
-  display: flex;
-  flex-direction: column;
-  position: sticky;
-  top: 20px;
-  height: calc(100vh - 120px);
-  align-self: flex-start;
-  justify-content: center;
-}
-
-/* 卡片头部样式 */
-.dashboard-card-header {
-  padding: 15px 20px;
-  border-bottom: 1px solid var(--border-color);
-  display: flex;
-  justify-content: space-between;
-  align-items: center;
-  background-color: #fafafa;
-}
-
-.dashboard-card-header h3 {
-  margin: 0;
-  font-size: 16px;
-  font-weight: 600;
-  color: var(--text-color);
-}
-
-.dashboard-card-action {
-  padding: 4px 12px;
-  background: none;
-  border: 1px solid var(--primary-color);
-  color: var(--primary-color);
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  transition: all 0.3s ease;
-}
-
-.dashboard-card-action:hover {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-/* 卡片内容区域样式 */
-.dashboard-card-body {
-  padding: 20px;
-  flex: 1;
-  overflow-y: auto;
-}
-
-/* 统计数据展示 */
-.dashboard-stat-display {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  height: 100%;
-}
-
-.dashboard-stat-value-large {
-  margin: 0 0 15px 0;
-  font-size: 36px;
-  font-weight: 700;
-  color: var(--primary-color);
-}
-
-.dashboard-stat-detail {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #666;
-}
-
-.stat-success {
-  color: var(--success-color);
-  font-weight: 600;
-}
-
-.stat-warning {
-  color: var(--warning-color);
-  font-weight: 600;
-}
-
-/* 项目表格样式 */
-.dashboard-project-table {
-  width: 100%;
-  border-collapse: collapse;
-}
-
-.dashboard-project-table th {
-  text-align: left;
-  padding: 10px 0;
-  font-weight: 600;
-  color: var(--text-color);
-  font-size: 14px;
-  border-bottom: 1px solid var(--border-color);
-}
-
-.dashboard-project-table td {
-  padding: 12px 0;
-  font-size: 14px;
-  border-bottom: 1px solid #f0f0f0;
-}
-
-.dashboard-project-table tr:hover {
-  background-color: var(--hover-color);
-}
-
-/* 状态标签样式 */
-.dashboard-status-badge {
-  padding: 4px 10px;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-.dashboard-status-badge.completed {
-  background-color: rgba(82, 196, 26, 0.1);
-  color: var(--success-color);
-}
-
-.dashboard-status-badge.pending {
-  background-color: rgba(250, 173, 20, 0.1);
-  color: var(--warning-color);
-}
-
-/* 快速操作按钮样式 */
-.dashboard-quick-actions {
-  display: grid;
-  grid-template-columns: repeat(2, 1fr);
-  gap: 15px;
-  height: 100%;
-  align-content: center;
-}
-
-.dashboard-quick-action-btn {
-  padding: 15px 10px;
-  border: none;
-  border-radius: 6px;
-  cursor: pointer;
-  font-weight: 500;
-  font-size: 14px;
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  justify-content: center;
-  transition: all 0.3s ease;
-  color: white;
-}
-
-.dashboard-quick-action-btn:hover {
+.df-step-card:hover {
+  border-color: var(--color-accent-violet);
   transform: translateY(-2px);
-  box-shadow: 0 4px 12px rgba(0, 0, 0, 0.15);
 }
 
-.dashboard-quick-action-btn.primary {
-  background-color: var(--primary-color);
+.df-step-locked {
+  opacity: 0.55;
+  cursor: not-allowed;
 }
 
-.dashboard-quick-action-btn.success {
-  background-color: var(--success-color);
+.df-step-locked:hover {
+  border-color: var(--hairline-violet);
+  transform: none;
 }
 
-.dashboard-quick-action-btn.warning {
-  background-color: var(--warning-color);
-}
-
-.dashboard-quick-action-btn.error {
-  background-color: var(--error-color);
-}
-
-.dashboard-action-icon {
-  font-size: 28px;
-  margin-bottom: 8px;
-}
-
-/* 进行中项目样式 */
-.dashboard-progress-projects {
-  display: flex;
-  flex-direction: column;
-  gap: 15px;
-}
-
-.dashboard-progress-item {
-  margin-bottom: 15px;
-}
-
-.dashboard-progress-info {
-  display: flex;
-  justify-content: space-between;
-  margin-bottom: 5px;
-}
-
-.dashboard-progress-name {
-  font-weight: 500;
-  font-size: 14px;
-}
-
-.dashboard-progress-date {
-  font-size: 12px;
-  color: #999;
-}
-
-.dashboard-progress-bar {
-  height: 8px;
-  background-color: #f0f0f0;
-  border-radius: 4px;
-  overflow: hidden;
-}
-
-.dashboard-progress-fill {
-  height: 100%;
-  background: linear-gradient(90deg, var(--primary-color), #40a9ff);
-  border-radius: 4px;
-  transition: width 0.6s ease;
-}
-
-.dashboard-no-projects {
-  text-align: center;
-  color: #999;
-  font-style: italic;
-  padding: 20px 0;
-}
-
-/* 通知样式 */
-.dashboard-notifications {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dashboard-notification {
-  padding: 12px;
-  background-color: #fafafa;
-  border-radius: 4px;
-  border-left: 3px solid var(--info-color);
-  transition: all 0.3s ease;
-}
-
-.dashboard-notification:hover {
-  background-color: var(--hover-color);
-}
-
-.dashboard-notification.unread {
-  background-color: #e6f7ff;
-  border-left-color: var(--primary-color);
-  box-shadow: 0 2px 8px rgba(24, 144, 255, 0.1);
-}
-
-.dashboard-notification-content p {
-  margin: 0 0 5px 0;
-  font-size: 14px;
-  color: var(--text-color);
-}
-
-.dashboard-notification-time {
-  font-size: 12px;
-  color: #999;
-}
-
-/* 通知徽章样式 */
-.dashboard-notification-badge {
-  display: inline-block;
-  padding: 2px 8px;
-  background-color: var(--error-color);
-  color: white;
-  border-radius: 12px;
-  font-size: 12px;
-  font-weight: 500;
-}
-
-/* 已处理数据样式 */
-.dashboard-data-stats {
-  display: flex;
-  flex-direction: column;
-  align-items: center;
-  height: 100%;
-  justify-content: space-between;
-}
-
-.dashboard-data-types {
-  width: 100%;
-  display: flex;
-  flex-direction: column;
-  gap: 12px;
-}
-
-.dashboard-data-type-item {
+.df-step-top {
   display: flex;
   align-items: center;
-  gap: 10px;
+  gap: var(--sp-sm);
 }
 
-.dashboard-data-type-color {
-  width: 12px;
-  height: 12px;
-  border-radius: 50%;
+.df-step-index {
+  font-size: 22px;
+  color: var(--color-accent-violet);
 }
 
-.dashboard-data-type-color.csv {
-  background-color: var(--primary-color);
-}
-
-.dashboard-data-type-color.excel {
-  background-color: var(--success-color);
-}
-
-.dashboard-data-type-color.db {
-  background-color: var(--warning-color);
-}
-
-.dashboard-data-type-name {
+.df-step-icon {
+  font-size: 16px;
+  color: var(--text-on-dark-muted);
   flex: 1;
-  font-size: 14px;
 }
 
-.dashboard-data-type-size {
-  font-size: 12px;
-  color: #666;
+.df-step-name {
+  font-size: 17px;
+  font-weight: 600;
+  margin-top: var(--sp-xs);
 }
 
-/* 用户信息卡片样式 */
-.dashboard-user-info-card {
-  background: var(--card-bg);
-  border-radius: 8px;
-  border: 1px solid var(--border-color);
-  box-shadow: 0 2px 8px var(--shadow-color);
-  overflow: hidden;
-  padding: 25px;
-  margin: 0 auto;
-  width: 100%;
-}
-
-.dashboard-user-avatar {
-  display: flex;
-  justify-content: center;
-  margin-bottom: 20px;
-}
-
-.avatar-placeholder {
-  width: 80px;
-  height: 80px;
-  border-radius: 50%;
-  background: linear-gradient(135deg, var(--primary-color) 0%, #40a9ff 100%);
+.df-step-go {
+  margin-top: var(--sp-sm);
+  color: var(--color-accent-lime);
   display: flex;
   align-items: center;
-  justify-content: center;
-  color: white;
-  font-weight: 600;
-  font-size: 18px;
+  gap: var(--sp-xs);
 }
 
-.dashboard-user-details {
-  text-align: center;
-  margin-bottom: 30px;
-}
-
-.dashboard-user-details h4 {
-  margin: 0 0 10px 0;
-  font-size: 18px;
-  color: var(--text-color);
-}
-
-.dashboard-user-role,
-.dashboard-user-department,
-.dashboard-user-lastlogin {
-  margin: 5px 0;
-  font-size: 14px;
-  color: #666;
-}
-
-/* 用户操作按钮样式 */
-.dashboard-user-actions {
-  display: flex;
-  flex-direction: column;
-  gap: 10px;
-}
-
-.dashboard-user-action-btn {
-  padding: 12px 20px;
-  border: none;
-  border-radius: 4px;
-  cursor: pointer;
-  font-size: 14px;
-  font-weight: 500;
-  transition: all 0.3s ease;
-}
-
-.dashboard-user-action-btn:first-child {
-  background-color: var(--primary-color);
-  color: white;
-}
-
-.dashboard-user-action-btn:first-child:hover {
-  background-color: #40a9ff;
-}
-
-.dashboard-user-action-btn.logout {
-  background-color: #f5f5f5;
-  color: var(--text-color);
-  border: 1px solid var(--border-color);
-}
-
-.dashboard-user-action-btn.logout:hover {
-  background-color: #e8e8e8;
-}
-
-/* 响应式设计 */
-@media (max-width: 1200px) {
-  .dashboard-grid-layout {
-    flex-direction: column;
-  }
-
-  .dashboard-right-userarea {
-    width: 100%;
-    position: static;
-    height: auto;
-  }
-
-  .dashboard-user-info-card {
-    display: flex;
-    align-items: center;
-    gap: 20px;
-  }
-
-  .dashboard-user-avatar {
-    margin-bottom: 0;
-  }
-
-  .dashboard-user-details {
-    margin-bottom: 0;
-    text-align: left;
-  }
-
-  .dashboard-user-actions {
-    margin-left: auto;
-  }
-}
-
-@media (max-width: 768px) {
-  .dashboard-header {
-    flex-direction: column;
-    align-items: flex-start;
-    gap: 10px;
-  }
-
-  .dashboard-tabs {
-    width: 100%;
-    justify-content: space-around;
-  }
-
-  .dashboard-grid-row {
-    flex-direction: column;
-  }
-
-  .dashboard-quick-actions {
-    grid-template-columns: 1fr;
-  }
-
-  .dashboard-user-info-card {
-    flex-direction: column;
-    text-align: center;
-  }
-
-  .dashboard-user-actions {
-    width: 100%;
-    margin-left: 0;
-  }
+.df-step-locked .df-step-go {
+  color: var(--text-on-dark-muted);
 }

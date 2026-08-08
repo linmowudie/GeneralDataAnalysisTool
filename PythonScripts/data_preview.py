@@ -1,4 +1,4 @@
-#!/usr/bin/env python
+﻿#!/usr/bin/env python
 # -*- coding: utf-8 -*-
 """
 数据预览脚本
@@ -15,7 +15,7 @@ from pathlib import Path
 # 添加项目根目录到Python路径
 sys.path.append(os.path.dirname(os.path.dirname(os.path.abspath(__file__))))
 
-from Src.DataAnalyzer.TempStorage.manager import TempStorageManager
+from backend.Infrastructures.storage.temp_storage import temp_storage
 
 
 def preview_data(limit: int = 5) -> dict:
@@ -33,17 +33,15 @@ def preview_data(limit: int = 5) -> dict:
         包含数据预览信息的字典
     """
     try:
-        # 初始化临时存储管理器
-        storage_manager = TempStorageManager()
-        
-        # 检查是否有存储的数据
+        # 扫描会话级临时存储（TempStorage/{session_id}/{stage}.pkl）
+        base_path = temp_storage.base_path
         files = []
-        for stage in ['imported', 'cleaned', 'analyzed', 'visualized']:
-            stage_path = getattr(storage_manager, f"{stage}_path")
-            if stage_path.exists():
-                for file_path in stage_path.iterdir():
-                    if file_path.is_file():
-                        files.append((file_path, stage))
+        if base_path.exists():
+            for file_path in base_path.rglob("*.pkl"):
+                # 跳过 artifacts 目录（非数据阶段文件）
+                if "artifacts" in file_path.parts:
+                    continue
+                files.append((file_path, file_path.stem))
         
         if not files:
             return {

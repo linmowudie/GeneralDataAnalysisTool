@@ -1,239 +1,111 @@
-import React from 'react';
+import React, { useEffect, useState } from 'react';
+import { Button } from 'antd';
+import {
+  ImportOutlined,
+  TableOutlined,
+  FilterOutlined,
+  ExperimentOutlined,
+  BarChartOutlined,
+  FileTextOutlined,
+  RobotOutlined,
+  ArrowRightOutlined,
+  LockFilled,
+} from '@ant-design/icons';
 import { useNavigate } from 'react-router-dom';
+import { PageHeader, StatCard, StepStatusPill, LimeSquiggle } from '../../components/common/Common';
+import { useSession, STEP_ORDER, STEP_LABELS } from '../../context/SessionContext';
+import type { StepKey } from '../../context/SessionContext';
+import { dataPreviewService } from '../../services/dataPreviewService';
 import './Dashboard.css';
 
-interface DashboardProps {
-  onTabChange: (tab: 'dashboard' | 'analysis' | 'visualization') => void;
-}
+const STEP_META: Record<StepKey, { icon: React.ReactNode; route: string; desc: string }> = {
+  import: { icon: <ImportOutlined />, route: '/import', desc: '上传文件或从数据库导入' },
+  preview: { icon: <TableOutlined />, route: '/preview', desc: '查看数据概览与字段信息' },
+  cleaning: { icon: <FilterOutlined />, route: '/cleaning', desc: '处理缺失值、异常值与重复行' },
+  analysis: { icon: <ExperimentOutlined />, route: '/analysis', desc: '选择模型执行训练与评估' },
+  visualization: { icon: <BarChartOutlined />, route: '/visualization', desc: '生成统计图表与分析图' },
+  report: { icon: <FileTextOutlined />, route: '/report', desc: '汇总结果并导出分析报告' },
+};
 
-const Dashboard: React.FC<DashboardProps> = ({ onTabChange }) => {
+const Dashboard: React.FC = () => {
   const navigate = useNavigate();
+  const { sessionId, ready, stepStatus, isLocked, refreshStatus } = useSession();
+  const [dataset, setDataset] = useState<{ rows?: number; cols?: number } | null>(null);
 
-  const handleTabChange = (tab: 'dashboard' | 'analysis' | 'visualization') => {
-    onTabChange(tab);
-  };
-  // 模拟数据
-  const recentProjects = [
-    { id: 1, name: '乳腺癌数据分析', date: '2024-05-20', status: '已完成' },
-    { id: 2, name: '房价预测模型', date: '2024-05-18', status: '进行中' },
-    { id: 3, name: '糖尿病数据集清洗', date: '2024-05-15', status: '已完成' },
-  ];
+  useEffect(() => {
+    if (!ready) return;
+    refreshStatus();
+    (async () => {
+      try {
+        const res: any = await dataPreviewService.getDatasetInfo();
+        const info = res?.data || res?.info || res || {};
+        setDataset({
+          rows: info.total_records ?? info.total_rows ?? info.n_rows,
+          cols: info.features_count != null ? info.features_count + 1 : info.total_columns,
+        });
+      } catch {
+        setDataset(null);
+      }
+    })();
+  }, [refreshStatus, ready]);
 
-  const dataStats = {
-    totalProjects: 15,
-    completedProjects: 12,
-    pendingProjects: 3,
-    totalDataSize: '2.5GB',
-  };
-
-  const notifications = [
-    { id: 1, message: '新的数据清洗算法已上线', time: '10分钟前', isRead: false },
-    { id: 2, message: '系统将在今晚23:00-24:00进行维护', time: '2小时前', isRead: false },
-    { id: 3, message: '您的乳腺癌数据分析已完成', time: '昨天', isRead: true },
-  ];
-
-  const quickActions = [
-    { id: 1, name: '新建分析', icon: '+', color: 'primary' },
-    { id: 2, name: '导入数据', icon: '↥', color: 'success' },
-    { id: 3, name: '数据清洗', icon: '🧹', color: 'warning' },
-    { id: 4, name: '模型训练', icon: '⚙️', color: 'error' },
-  ];
-
-  // 用户信息
-  const userInfo = {
-    name: '数据分析用户',
-    role: '高级分析师',
-    department: '数据科学部',
-    lastLogin: '2024-05-20 09:30',
-  };
+  const completedCount = STEP_ORDER.filter((s) => stepStatus.completed_steps.includes(s)).length;
 
   return (
-    <div className="dashboard-container">
-      <div className="dashboard-header">
-        <h2>通用数据分析工具</h2>
-        <div className="dashboard-tabs">
-          <button className="tab-button active" onClick={() => handleTabChange('dashboard')}>仪表盘</button>
-          <button className="tab-button" onClick={() => handleTabChange('analysis')}>数据分析</button>
-          <button className="tab-button" onClick={() => handleTabChange('visualization')}>绘图</button>
-        </div>
+    <div className="df-page">
+      <PageHeader
+        eyebrow="DATAFORGE WORKSPACE"
+        title={
+          <>
+            数据分析<span className="df-lime-chip">流水线</span>工作台
+          </>
+        }
+        description="从数据导入到报表导出的完整闭环。按步骤推进，或直接交给 Agent 自动完成。"
+        extra={
+          <Button type="primary" icon={<RobotOutlined />} onClick={() => navigate('/agent')}>
+            Agent 自动分析
+          </Button>
+        }
+      />
+
+      <div className="df-grid-4">
+        <StatCard label="会话 ID" value={ready && sessionId ? sessionId.slice(0, 8) : '····'} accent="violet" hint="本地持久化会话" />
+        <StatCard label="已完成步骤" value={`${completedCount}/${STEP_ORDER.length}`} accent="lime" hint="流水线进度" />
+        <StatCard label="数据规模" value={dataset?.rows != null ? `${dataset.rows} × ${dataset.cols ?? '?'}` : '未导入'} accent="pink" hint="行 × 列" />
+        <StatCard label="分析引擎" value="5 层后端" accent="violet" hint="Interfaces → Cores" />
       </div>
 
-      {/* 仪表盘内容区域 - 按照设计图布局 */}
-      <div className="dashboard-dashboard-content">
-        {/* 主要内容区域 - 6+1布局 */}
-        <div className="dashboard-grid-layout">
-          {/* 左侧6个卡片区域 */}
-          <div className="dashboard-left-6cards">
-            {/* 第一行 */}
-            <div className="dashboard-grid-row">
-              {/* 快速操作卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>快速操作</h3>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="dashboard-quick-actions">
-                    {quickActions.map(action => (
-                      <button key={action.id} className={`dashboard-quick-action-btn ${action.color}`}>
-                        <span className="dashboard-action-icon">{action.icon}</span>
-                        <span>{action.name}</span>
-                      </button>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 总项目卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>总项目</h3>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="dashboard-stat-display">
-                    <p className="dashboard-stat-value-large">{dataStats.totalProjects}</p>
-                    <p className="dashboard-stat-detail">
-                      已完成: <span className="stat-success">{dataStats.completedProjects}</span>
-                    </p>
-                    <p className="dashboard-stat-detail">
-                      进行中: <span className="stat-warning">{dataStats.pendingProjects}</span>
-                    </p>
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 第二行 */}
-            <div className="dashboard-grid-row">
-              {/* 最近项目卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>最近项目</h3>
-                  <button className="dashboard-card-action">查看全部</button>
-                </div>
-                <div className="dashboard-card-body">
-                  <table className="dashboard-project-table">
-                    <thead>
-                      <tr>
-                        <th>项目名称</th>
-                        <th>日期</th>
-                        <th>状态</th>
-                      </tr>
-                    </thead>
-                    <tbody>
-                      {recentProjects.map(project => (
-                        <tr key={project.id}>
-                          <td>{project.name}</td>
-                          <td>{project.date}</td>
-                          <td>
-                            <span className={`dashboard-status-badge ${project.status === '已完成' ? 'completed' : 'pending'}`}>
-                              {project.status}
-                            </span>
-                          </td>
-                        </tr>
-                      ))}
-                    </tbody>
-                  </table>
-                </div>
-              </div>
-
-              {/* 进行中项目卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>进行中</h3>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="dashboard-progress-projects">
-                    {recentProjects.filter(p => p.status === '进行中').map(project => (
-                      <div key={project.id} className="dashboard-progress-item">
-                        <div className="dashboard-progress-info">
-                          <span className="dashboard-progress-name">{project.name}</span>
-                          <span className="dashboard-progress-date">{project.date}</span>
-                        </div>
-                        <div className="dashboard-progress-bar">
-                          <div className="dashboard-progress-fill" style={{ width: `${Math.random() * 80 + 20}%` }}></div>
-                        </div>
-                      </div>
-                    ))}
-                    {recentProjects.filter(p => p.status === '进行中').length === 0 && (
-                      <div className="dashboard-no-projects">暂无进行中项目</div>
-                    )}
-                  </div>
-                </div>
-              </div>
-            </div>
-
-            {/* 第三行 */}
-            <div className="dashboard-grid-row">
-              {/* 通知卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>通知</h3>
-                  <span className="dashboard-notification-badge">{notifications.filter(n => !n.isRead).length}</span>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="dashboard-notifications">
-                    {notifications.map(notification => (
-                      <div key={notification.id} className={`dashboard-notification ${!notification.isRead ? 'unread' : ''}`}>
-                        <div className="dashboard-notification-content">
-                          <p>{notification.message}</p>
-                          <span className="dashboard-notification-time">{notification.time}</span>
-                        </div>
-                      </div>
-                    ))}
-                  </div>
-                </div>
-              </div>
-
-              {/* 已处理数据卡片 */}
-              <div className="dashboard-grid-card">
-                <div className="dashboard-card-header">
-                  <h3>已处理数据</h3>
-                </div>
-                <div className="dashboard-card-body">
-                  <div className="dashboard-data-stats">
-                    <p className="dashboard-stat-value-large">{dataStats.totalDataSize}</p>
-                    <div className="dashboard-data-types">
-                      <div className="dashboard-data-type-item">
-                        <span className="dashboard-data-type-color csv"></span>
-                        <span className="dashboard-data-type-name">CSV文件</span>
-                        <span className="dashboard-data-type-size">1.2GB</span>
-                      </div>
-                      <div className="dashboard-data-type-item">
-                        <span className="dashboard-data-type-color excel"></span>
-                        <span className="dashboard-data-type-name">Excel文件</span>
-                        <span className="dashboard-data-type-size">800MB</span>
-                      </div>
-                      <div className="dashboard-data-type-item">
-                        <span className="dashboard-data-type-color db"></span>
-                        <span className="dashboard-data-type-name">数据库</span>
-                        <span className="dashboard-data-type-size">500MB</span>
-                      </div>
-                    </div>
-                  </div>
-                </div>
-              </div>
-            </div>
-          </div>
-
-          {/* 右侧用户信息区域 */}
-          <div className="dashboard-right-userarea">
-            <div className="dashboard-user-info-card">
-              <div className="dashboard-user-avatar">
-                <div className="avatar-placeholder">头像</div>
-              </div>
-              <div className="dashboard-user-details">
-                <h4>{userInfo.name}</h4>
-                <p className="dashboard-user-role">{userInfo.role}</p>
-                <p className="dashboard-user-department">{userInfo.department}</p>
-                <p className="dashboard-user-lastlogin">上次登录: {userInfo.lastLogin}</p>
-              </div>
-              <div className="dashboard-user-actions">
-                <button className="dashboard-user-action-btn">设置</button>
-                <button className="dashboard-user-action-btn logout">退出登录</button>
-              </div>
-            </div>
-          </div>
+      <div className="df-section-head">
+        <div>
+          <div className="df-eyebrow">PIPELINE</div>
+          <h2 className="df-card-title" style={{ margin: 0 }}>流程步骤</h2>
         </div>
+        <LimeSquiggle />
+      </div>
+
+      <div className="df-grid-3">
+        {STEP_ORDER.map((step, idx) => {
+          const meta = STEP_META[step];
+          const locked = isLocked(step);
+          return (
+            <div
+              key={step}
+              className={`df-card df-step-card ${locked ? 'df-step-locked' : ''}`}
+              onClick={() => !locked && navigate(meta.route)}
+            >
+              <div className="df-step-top">
+                <span className="df-step-index df-display">{String(idx + 1).padStart(2, '0')}</span>
+                <span className="df-step-icon">{locked ? <LockFilled /> : meta.icon}</span>
+                <StepStatusPill step={step} />
+              </div>
+              <div className="df-step-name">{STEP_LABELS[step]}</div>
+              <div className="df-caption">{meta.desc}</div>
+              <div className="df-step-go df-micro">
+                {locked ? '完成前置步骤后解锁' : '进入'} <ArrowRightOutlined />
+              </div>
+            </div>
+          );
+        })}
       </div>
     </div>
   );

@@ -16,7 +16,7 @@ def get_figure_hash(fig):
     """获取matplotlib图形的hash值用于比较"""
     # 将图形转换为数组并计算hash值
     fig.canvas.draw()
-    buf = fig.canvas.tostring_rgb()
+    buf = bytes(fig.canvas.buffer_rgba())
     hash_val = hashlib.md5(buf).hexdigest()
     return hash_val
 
@@ -39,7 +39,7 @@ def test_scatter_plot_hash():
         plt.close(fig_ref)
         
         # 使用模块生成图表
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         factory = VisualizationFactory()
         
         params = {
@@ -91,7 +91,7 @@ def test_line_plot_hash():
         plt.close(fig_ref)
         
         # 使用模块生成图表
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         factory = VisualizationFactory()
         
         params = {
@@ -141,7 +141,7 @@ def test_bar_plot_hash():
         plt.close(fig_ref)
         
         # 使用模块生成图表
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         factory = VisualizationFactory()
         
         params = {
@@ -190,7 +190,7 @@ def test_histogram_hash():
         plt.close(fig_ref)
         
         # 使用模块生成图表
-        from Src.DataAnalyzer.DataVisualisationUpgrade.factory import VisualizationFactory
+        from backend.Models.visualization.upgrade.factory import VisualizationFactory
         factory = VisualizationFactory()
         
         params = {

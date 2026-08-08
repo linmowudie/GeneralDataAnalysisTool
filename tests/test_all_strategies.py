@@ -15,12 +15,12 @@ from sklearn.ensemble import IsolationForest
 # 添加项目根目录到Python路径
 sys.path.insert(0, os.path.join(os.path.dirname(__file__), '..'))
 
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.classification_strategy import ClassificationStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.regression_strategy import RegressionStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.clustering_strategy import ClusteringStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.dimensionality_reduction_strategy import DimensionalityReductionStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.anomaly_detection_strategy import AnomalyDetectionStrategy
-from Src.DataAnalyzer.AnalysisUpgrade.Strategy.transformer_strategy import TransformerStrategy
+from backend.Models.analysis.upgrade.Strategy.classification_strategy import ClassificationStrategy
+from backend.Models.analysis.upgrade.Strategy.regression_strategy import RegressionStrategy
+from backend.Models.analysis.upgrade.Strategy.clustering_strategy import ClusteringStrategy
+from backend.Models.analysis.upgrade.Strategy.dimensionality_reduction_strategy import DimensionalityReductionStrategy
+from backend.Models.analysis.upgrade.Strategy.anomaly_detection_strategy import AnomalyDetectionStrategy
+from backend.Models.analysis.upgrade.Strategy.transformer_strategy import TransformerStrategy
 
 
 def create_test_data():

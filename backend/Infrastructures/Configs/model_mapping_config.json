@@ -1,0 +1,32 @@
+{
+    "model_mapping": {
+        "LinearRegression": "sklearn.linear_model.LinearRegression",
+        "Ridge": "sklearn.linear_model.Ridge",
+        "Lasso": "sklearn.linear_model.Lasso",
+        "LogisticRegression": "sklearn.linear_model.LogisticRegression",
+        "DecisionTreeClassifier": "sklearn.tree.DecisionTreeClassifier",
+        "KNeighborsClassifier": "sklearn.neighbors.KNeighborsClassifier",
+        "SVC": "sklearn.svm.SVC",
+        "KMeans": "sklearn.cluster.KMeans",
+        "MeanShift": "sklearn.cluster.MeanShift",
+        "DBSCAN": "sklearn.cluster.DBSCAN",
+        "StandardScaler": "sklearn.preprocessing.StandardScaler",
+        "MinMaxScaler": "sklearn.preprocessing.MinMaxScaler",
+        "PCA": "sklearn.decomposition.PCA",
+        "TSNE": "sklearn.manifold.TSNE"
+    },
+    "metrics_mapping": {
+        "regression": [
+            "mse",
+            "mae",
+            "r2"
+        ],
+        "classification": [
+            "accuracy"
+        ],
+        "clustering": [
+            "ari",
+            "silhouette"
+        ]
+    }
+}

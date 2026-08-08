@@ -31,7 +31,7 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_scatter_plot_strategy(self):
         """测试散点图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.scatter import ScatterPlotStrategy
+            from backend.Models.visualization.upgrade.common.scatter import ScatterPlotStrategy
             
             # 创建测试数据
             params = {
@@ -58,7 +58,7 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_line_plot_strategy(self):
         """测试折线图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.line import LinePlotStrategy
+            from backend.Models.visualization.upgrade.common.line import LinePlotStrategy
             
             # 创建测试数据
             params = {
@@ -85,7 +85,7 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_bar_plot_strategy(self):
         """测试柱状图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.bar import BarPlotStrategy
+            from backend.Models.visualization.upgrade.common.bar import BarPlotStrategy
             
             # 创建测试数据
             params = {
@@ -111,7 +111,7 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_histogram_strategy(self):
         """测试直方图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.histogram import HistogramStrategy
+            from backend.Models.visualization.upgrade.common.histogram import HistogramStrategy
             
             # 创建测试数据
             params = {
@@ -137,7 +137,7 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_box_plot_strategy(self):
         """测试箱线图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.box import BoxPlotStrategy
+            from backend.Models.visualization.upgrade.common.box import BoxPlotStrategy
             
             # 创建测试数据
             params = {
@@ -163,12 +163,12 @@ class TestCommonVisualizationStrategies(unittest.TestCase):
     def test_heatmap_strategy(self):
         """测试热力图策略"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.common.heatmap import HeatmapStrategy
+            from backend.Models.visualization.upgrade.common.heatmap import HeatmapStrategy
             
-            # 创建测试数据
+            # 创建测试数据（HeatmapStrategy 需要 X 参数）
             data = np.random.rand(5, 5)
             params = {
-                "data": data
+                "X": data
             }
             
             strategy = HeatmapStrategy(params)

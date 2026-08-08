@@ -30,7 +30,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_strategy_selector(self):
         """测试策略选择器"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             self.assertIsNotNone(selector)
@@ -40,7 +40,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_classification_strategy_selection(self):
         """测试分类策略选择"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             
@@ -61,7 +61,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_regression_strategy_selection(self):
         """测试回归策略选择"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             
@@ -76,7 +76,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_clustering_strategy_selection(self):
         """测试聚类策略选择"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             
@@ -91,7 +91,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_transformer_strategy_selection(self):
         """测试变换器策略选择"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             
@@ -105,7 +105,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_common_strategy_selection(self):
         """测试通用策略选择"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.strategy import VisualizationStrategySelector
+            from backend.Models.visualization.upgrade.strategy import VisualizationStrategySelector
             
             selector = VisualizationStrategySelector()
             
@@ -120,7 +120,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_base_strategy_abstract_methods(self):
         """测试基础策略抽象方法"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.base_visualization import VisualizationStrategy
+            from backend.Models.visualization.upgrade.base_visualization import VisualizationStrategy
             
             # 测试抽象类存在所需的方法
             self.assertTrue(hasattr(VisualizationStrategy, 'validate_params'))
@@ -133,7 +133,7 @@ class TestVisualizationStrategies(unittest.TestCase):
     def test_basic_visualization_strategy(self):
         """测试基础可视化策略实现"""
         try:
-            from Src.DataAnalyzer.DataVisualisationUpgrade.factory import BasicVisualizationStrategy
+            from backend.Models.visualization.upgrade.factory import BasicVisualizationStrategy
             
             params = {}
             strategy = BasicVisualizationStrategy(params)

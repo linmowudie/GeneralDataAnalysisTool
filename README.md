@@ -1,4 +1,4 @@
-# 通用数据分析工具 (General Data Analysis Tool)
+﻿# 通用数据分析工具 (General Data Analysis Tool)
 
 一个功能强大的数据分析和可视化工具包，支持多种机器学习算法和数据处理功能。
 
@@ -87,48 +87,52 @@ pip install -r requirements.txt
 ### 基本用法
 
 ```python
-from Src.DataAnalyzer.core import DataProcessingEngine
+from backend.Services import ManualWorkflow
+from backend.Services.workflows.context import WorkflowContext
+from backend.shared.types import StepName
 
-# 创建数据分析引擎实例
-engine = DataProcessingEngine()
+# 创建工作流与会话上下文
+workflow = ManualWorkflow()
+context = WorkflowContext("my_session")
 
 # 导入数据
-engine.import_data(resource_path='Data/iris.csv', resource_type='csv')
+workflow.execute_step(context, StepName.IMPORT, {
+    "resource_path": "Data/iris.csv", "resource_type": "csv"
+})
 
 # 清洗数据（标准模式）
-engine.clean_data(select_mode='standard', params_list=[])
+workflow.execute_step(context, StepName.CLEANING, {
+    "select_mode": "standard", "params_list": []
+})
 
 # 清洗数据（自定义模式）
-params = [
-    "handle_missing='fill'",
-    "fill_method='median'",
-    "outlier_method='iqr'"
-]
-engine.clean_data(select_mode='custom', params_list=params)
+# params = [
+#     "handle_missing='fill'",
+#     "fill_method='median'",
+#     "outlier_method='iqr'"
+# ]
+# workflow.execute_step(context, StepName.CLEANING, {
+#     "select_mode": "custom", "params_list": params
+# })
 
 # 分析数据
-result = engine.analyze_data(model='kmeans', target_col='target')
+result = workflow.execute_step(context, StepName.ANALYSIS, {
+    "model_type": "kmeans", "target_col": "target"
+})
 
-# 获取训练好的模型用于其他工作
-trained_model = result['trained_model']
-
-# 可视化结果（静态图表）
-engine.visualize_data()
-
-# 可视化结果（交互式图表）
-param_dict = {"interactive": True}  # 启用交互式可视化
-engine.visualize_data(param_dict)
+# 可视化结果
+workflow.execute_step(context, StepName.VISUALIZATION, {})
 
 # 生成报告
-engine.generate_report()
+workflow.execute_step(context, StepName.REPORT, {})
 
 # 查看步骤状态
-status = engine.get_step_status()
+status = context.steps.status()
 print(f"已完成步骤: {status['completed_steps']}")
 print(f"已锁定步骤: {status['locked_steps']}")
 
 # 重置分析步骤及其后续步骤
-engine.reset_step_and_following('analysis')
+context.reset_step(StepName.ANALYSIS)
 ```
 
 ### 脚本工具使用
@@ -153,10 +157,10 @@ python PythonScripts/model_extractor.py --manage           # 管理自动保存�
 
 启动Web服务：
 ```bash
-uvicorn api.main:app --reload
+python run_api.py
 ```
 
-访问 `http://localhost:8000/docs` 查看API文档。
+访问 `http://localhost:8000/api/documentation` 查看API文档。
 
 API提供了以下模型管理端点：
 - `POST /api/model/transfer` - 转移模型
@@ -172,43 +176,33 @@ API还提供了以下会话管理端点：
 
 ### 更多示例
 
-请查看 [examples/](examples/) 目录下的示例代码，了解如何使用各种功能：
-- [core_example.py](examples/core_example.py) - 核心引擎使用示例
-- [iris_comprehensive_analysis.py](examples/iris_comprehensive_analysis.py) - IRIS数据集综合分析示例
-- [comprehensive_dataset_analysis.py](examples/comprehensive_dataset_analysis.py) - 综合数据集分析示例
-- [mongodb_data_analysis_example.py](examples/mongodb_data_analysis_example.py) - MongoDB数据分析示例
-- [interactive_visualization_example.py](examples/interactive_visualization_example.py) - 交互式可视化示例（新增）
+请查看 [Example/](Example/) 目录下的示例代码，了解如何使用各种功能：
+- [core_example.py](Example/core_example.py) - 工作流完整流程示例
+- [comprehensive_dataset_analysis.py](Example/comprehensive_dataset_analysis.py) - 综合数据集分析示例
+- [mongodb_data_analysis_example.py](Example/mongodb_data_analysis_example.py) - MongoDB数据分析示例
+- [interactive_visualization_example.py](Example/interactive_visualization_example.py) - 交互式可视化示例
+- [database_import_example.py](Example/database_import_example.py) - 数据库导入示例
 
 ## 项目结构
 
 ```
 GeneralDataAnalysisTool/
 ├── Data/                 # 数据文件目录
-├── Src/                  # 源代码目录
-│   └── DataAnalyzer/     # 数据分析核心模块
-│       ├── TempStorage/  # 临时存储模块
-│       ├── analysis/     # 分析算法模块
-│       ├── cleaning/     # 数据清洗模块
-│       ├── importer/     # 数据导入模块
-│       ├── visualization/# 数据可视化模块
-│       │   ├── plots/           # 静态图表实现
-│       │   └── interactive_plots/ # 交互式图表实现
-│       └── ...           # 其他核心模块
+├── backend/              # 后端（四层架构 + 契约层）
+│   ├── Interfaces/       # 接口层：Web API（FastAPI）、控制器、SDK
+│   ├── Services/         # 服务层：工作流编排 + 功能部件（导入/清洗/分析/可视化/报表）
+│   ├── Cores/            # 核心层：Agent（数据画像、规划器、决策器）
+│   ├── Models/           # 模型层：机器学习/清洗/可视化/报表等可调用模型
+│   ├── Infrastructures/  # 基础设施层：配置、存储、导入器、日志
+│   └── shared/           # 跨层契约层
+├── frontend/             # 前端（React + TypeScript + Vite + Ant Design）
 ├── tests/                # 测试文件目录
-├── examples/             # 使用示例目录
+├── Example/              # 使用示例目录
 ├── PythonScripts/        # 实用脚本目录
-│   ├── data_converter.py # 数据格式转换脚本
-│   ├── batch_converter.py# 批量数据转换脚本
-│   ├── model_extractor.py# 模型提取脚本
-│   └── example_usage.py  # 脚本使用示例
-├── api/                  # Web API接口目录
-│   ├── main.py           # API主入口
-│   ├── model_extractor.py# 模型管理API
-│   └── ...               # 其他API模块
 ├── ModelOutput/          # 模型输出目录
 │   ├── 自动保存/          # 自动保存的模型
 │   └── 用户提取/          # 用户手动提取的模型
-└── docs/                 # 文档目录
+└── TechnicalDocuments/   # 文档目录
 ```
 
 ## 测试

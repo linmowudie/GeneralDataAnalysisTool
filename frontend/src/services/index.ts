@@ -55,3 +55,6 @@ export { reportingService } from './reportingService';
 
 // 步骤锁服务
 export { stepLockService } from './stepLockService';
+
+// Agent 自动分析服务
+export { agentService } from './agentService';
