@@ -1,5 +1,20 @@
 ﻿# CHANGELOG
 
+## [0.5.1] - 2026-08-21
+
+### 清理与整理
+- 删除根目录冗余文件：`test_image_save.py`（独立测试脚本）、`package-lock.json`（npm 误生成残留）、`__init__.py`（根目录不应有此文件）
+- 移动根目录设计文档图片至 `TechnicalDocuments/DesignImages/`：`仪表盘界面.png`、`前端设计图.png`、`消息返回格式.png`、`项目功能架构.png`、`项目架构.txt`、`项目流程图.png`
+- 删除测试产物目录：`TestImages/`、`TempStorage/`、`ReportOutput/`、`Logs/`（均已 gitignore）
+- 清空 `ModelOutput/` 下所有模型文件（运行时产物，目录结构保留）
+- 删除 `ScriptsOutput/sample_data.csv`（运行时生成文件）
+- 删除 `Data/` 目录冗余文件：`iris_test.db`、`iris_sklearn.csv`、`iris.html`、`iris.json`、`iris.xlsx`（保留主数据文件 `iris.csv`）
+
+### 目录结构优化
+- 根目录从 30+ 文件/目录精简至 20 个核心项
+- 设计文档统一归入 `TechnicalDocuments/DesignImages/`
+- 运行时产物目录（ModelOutput/、ScriptsOutput/）保留结构但清空内容
+
 ## [0.5.0] - 2026-08-08
 
 ### 新增（Docker + minikube 部署）
