@@ -1,0 +1,24 @@
+# 可选：使用 minikube ingress 插件时的统一入口
+# 前置：minikube addons enable ingress
+# 应用：kubectl apply -f deploy/k8s/ingress.yaml
+# 访问：minikube ip 对应的 host，或在本机 hosts 中将 gdat.local 指向 minikube ip
+apiVersion: networking.k8s.io/v1
+kind: Ingress
+metadata:
+  name: gdat-ingress
+  annotations:
+    nginx.ingress.kubernetes.io/proxy-body-size: 200m
+    nginx.ingress.kubernetes.io/proxy-read-timeout: "600"
+    nginx.ingress.kubernetes.io/proxy-send-timeout: "600"
+spec:
+  rules:
+    - host: gdat.local
+      http:
+        paths:
+          - path: /
+            pathType: Prefix
+            backend:
+              service:
+                name: frontend-svc
+                port:
+                  number: 80

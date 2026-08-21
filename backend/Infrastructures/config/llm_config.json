@@ -1,0 +1,7 @@
+{
+  "provider": "mock",
+  "api_key": "",
+  "model": "",
+  "timeout": 30,
+  "enabled": false
+}

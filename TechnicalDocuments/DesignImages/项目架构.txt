@@ -1,0 +1,130 @@
+项目结构：F:\ProjectCode\GeneralDataAnalysisTool
+
+├── Data/                                     # 数据文件目录，存放各种数据集文件
+│   ├── breast_cancer.csv                     # 乳腺癌数据集
+│   ├── california_housing.csv                # 加利福尼亚房价数据集
+│   ├── diabetes.csv                          # 糖尿病数据集
+│   ├── iris.csv / iris.json / iris.xlsx      # 鸢尾花数据集（多格式）
+│   ├── iris_test.db                          # SQLite 测试数据库
+│   ├── linnerud.csv                          # Linnerud数据集
+│   └── wine.csv                              # 葡萄酒数据集
+│
+├── Logs/                                     # 日志文件目录
+│
+├── backend/                                  # 后端（五层架构，依赖方向单向向下）
+│   ├── Interfaces/                           # 接口层：对外入口
+│   │   ├── web/                              # Web API（FastAPI 应用与路由）
+│   │   ├── controllers/                      # 控制器（会话注册表、步骤控制器）
+│   │   └── sdk/                              # Python SDK（不经 HTTP 直调控制器）
+│   │
+│   ├── Services/                             # 服务层：业务编排与功能部件
+│   │   ├── workflows/                        # 工作流（上下文、状态机、构建器、Agent 工作流）
+│   │   └── components/                       # 步骤部件（导入/预览/清洗/分析/可视化/报表，直调 Models 层）
+│   │
+│   ├── Cores/                                # 核心层：领域能力
+│   │   └── agent/                            # Agent（数据画像、规划器、决策器）
+│   │
+│   ├── Models/                               # 模型层：可调用的模型集合（机器学习/清洗/可视化/报表）
+│   │   ├── registry.py                       # 模型注册表（数据源 model_config.json）
+│   │   ├── factory.py                        # 模型工厂
+│   │   ├── wrappers/                         # sklearn 模型薄封装（按任务分包）
+│   │   ├── cleaning/                         # 清洗模型（CleanData / CleanDataMode）
+│   │   ├── analysis/                         # 分析模型（DataAnalyzer / analyze_data）
+│   │   │   └── upgrade/                      # 分析升级版（工厂+策略模式：Cores/Factory/Strategy/Evaluation/Utils）
+│   │   ├── visualization/                    # 可视化模型（DataVisualization 分发器）
+│   │   │   ├── Plots/                        # 静态图表插件目录
+│   │   │   ├── InteractivePlots/             # 交互式图表插件目录
+│   │   │   ├── registry.py                   # 图表注册器
+│   │   │   ├── interactive_registry.py       # 交互式图表注册器
+│   │   │   ├── interactive.py                # 交互式可视化主类
+│   │   │   └── upgrade/                      # 可视化升级版（策略+工厂：factory/strategy/base_visualization/common/utils）
+│   │   └── reporting.py                      # 报表生成模型（Report）
+│   │
+│   ├── Infrastructures/                      # 基础设施层
+│   │   ├── config/                           # 配置管理（转发 Configs）
+│   │   ├── Configs/                          # 配置文件目录（配置唯一来源）
+│   │   │   ├── config_manager.py             # 配置管理器
+│   │   │   ├── model_config.json             # 模型配置（16 个模型，按任务类型分组）
+│   │   │   ├── model_mapping_config.json     # 模型映射配置
+│   │   │   ├── model_analysis.json           # 升级版分析配置
+│   │   │   ├── model_visualization.json      # 模型可视化映射配置
+│   │   │   └── database_config.json          # 数据库配置
+│   │   ├── storage/                          # 存储（临时存储、模型存储、报表存储）
+│   │   ├── importers/                        # 导入器（FileImporter / DbImporter）
+│   │   │   └── db_handlers/                  # 数据库处理器（sqlite/mysql/mongodb/redis）
+│   │   ├── llm_gateway/                      # LLM 网关
+│   │   ├── logging/                          # 日志配置（log_setting）
+│   │   └── serialization.py                  # 序列化
+│   │
+│   └── shared/                               # 跨层契约层（类型、异常定义）
+│       └── types.py                          # Artifact/StepName/异常等共享类型
+│
+├── frontend/                                 # 前端（React 19 + TypeScript + Vite 7 + Ant Design 5）
+│   ├── src/
+│   │   ├── components/                       # 通用组件（ErrorBoundary、RouteGuard 等）
+│   │   ├── context/                          # 会话上下文（SessionContext）
+│   │   ├── modules/                          # 功能模块（按路由懒加载）
+│   │   │   ├── dashboard/                    # 仪表盘
+│   │   │   ├── data-import/                  # 数据导入
+│   │   │   ├── data-preview/                 # 数据预览
+│   │   │   ├── data-cleaning/                # 数据清洗
+│   │   │   ├── data-analysis/                # 数据分析
+│   │   │   ├── visualization/                # 数据可视化
+│   │   │   ├── reporting/                    # 数据报表
+│   │   │   └── agent/                        # Agent 自动分析
+│   │   ├── services/                         # API 服务层（apiService + 各模块服务）
+│   │   ├── App.tsx                           # 应用根组件（路由 + 守卫 + 错误边界）
+│   │   └── main.tsx                          # 入口
+│   ├── vite.config.ts                        # Vite 配置（proxy、别名、分包）
+│   └── package.json                          # 前端依赖
+│
+├── TechnicalDocuments/                       # 文档目录
+│   ├── API文档.md                            # API文档
+│   ├── 后端分层架构详细设计文档.md            # 后端架构设计
+│   ├── 前端架构与组件设计文档.md              # 前端架构设计
+│   ├── 前端开发进度文档.md                    # 前端开发进度
+│   ├── 接口文档.md                            # 接口文档
+│   ├── ModifyGoals/                          # 修改目标目录
+│   └── ModuleInterfaces/                     # 模块接口文档目录
+│
+├── Example/                                  # 示例代码目录
+│   ├── comprehensive_dataset_analysis.py     # 综合数据集分析示例
+│   ├── core_example.py                       # 核心功能示例
+│   ├── database_import_example.py            # 数据库导入示例
+│   ├── extended_interactive_visualization_example.py # 扩展交互式可视化示例
+│   ├── interactive_visualization_example.py  # 交互式可视化示例
+│   ├── mongodb_data_analysis_example.py      # MongoDB数据分析示例
+│   └── no_model_visualization_example.py     # 无模型可视化示例
+│
+├── PythonScripts/                            # 脚本目录
+│   ├── batch_converter.py                    # 批量转换器脚本
+│   ├── count_lines.py                        # 代码行数统计脚本
+│   ├── data_converter.py                     # 数据转换器脚本
+│   ├── data_preview.py                       # 数据预览脚本
+│   ├── example_usage.py                      # 脚本使用示例
+│   ├── generator.py                          # 数据生成器脚本
+│   ├── import_to_mongodb.py                  # MongoDB数据导入脚本
+│   ├── model_extractor.py                    # 模型提取器脚本
+│   └── running_timer.py                      # 性能计时装饰器脚本
+│
+├── tests/                                    # 测试目录
+│   ├── api_tests/                            # API 接口测试（PowerShell 脚本）
+│   ├── unit/                                 # 单元测试目录
+│   ├── run_tests.py                          # 测试运行器
+│   ├── test_all_strategies.py                # 全策略测试
+│   ├── test_factory_dispatch.py              # 工厂分发测试
+│   └── test_improved_strategies.py           # 改进策略测试
+│
+├── TempStorage/                              # 会话临时数据（运行时生成）
+├── ModelOutput/                              # 模型输出目录
+├── ReportOutput/                             # 报表输出目录
+│
+├── .gitignore                                # Git忽略文件配置
+├── .python-version                           # Python版本配置
+├── CHANGELOG.md                              # 变更日志
+├── README.md                                 # 项目说明文档
+├── main.py                                   # 引擎演示入口
+├── run_api.py                                # API 服务启动入口（uvicorn）
+├── pyproject.toml                            # Python项目配置文件
+├── requirements.txt                          # 依赖包列表
+└── uv.lock                                   # UV工具锁定文件

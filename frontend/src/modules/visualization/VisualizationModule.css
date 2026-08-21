@@ -1,0 +1,33 @@
+/* 数据可视化页样式 */
+
+.df-viz-config {
+  margin-bottom: var(--sp-xl);
+}
+
+.df-viz-fields {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: center;
+  gap: var(--sp-lg) var(--sp-xl);
+}
+
+.df-viz-fields .df-form-row {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  margin-bottom: 0;
+}
+
+.df-viz-images {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-lg);
+}
+
+.df-viz-img {
+  max-width: 640px;
+  width: 100%;
+  border-radius: var(--radius-md);
+  border: 1px solid var(--hairline-violet);
+  background: #fff;
+}

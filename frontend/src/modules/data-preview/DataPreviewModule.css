@@ -1,0 +1,16 @@
+/* 数据预览页样式 */
+
+.df-preview-block {
+  margin-top: var(--sp-xl);
+}
+
+.df-null {
+  color: var(--color-accent-pink);
+  opacity: 0.7;
+}
+
+.df-page > .ant-spin-nested-loading {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xl);
+}

@@ -16,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.DataAnalyzer.VisualizationModule.interactive import InteractiveVisualization
+from backend.Models.visualization.interactive import InteractiveVisualization
 
 
 class TestInteractiveVisualizationBase(unittest.TestCase):
@@ -55,7 +55,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
         self.assertEqual(viz.size, None)
         self.assertEqual(viz.hover_data, ['category'])
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_scatter_plot(self, mock_px):
         """测试散点图"""
         mock_fig = MagicMock()
@@ -76,7 +76,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
             labels={'x': 'X Axis', 'y': 'Y Axis'}
         )
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_line_plot(self, mock_px):
         """测试折线图"""
         mock_fig = MagicMock()
@@ -96,7 +96,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
             labels={'x': 'X Axis', 'y': 'Y Axis'}
         )
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_bar_plot(self, mock_px):
         """测试条形图"""
         mock_fig = MagicMock()
@@ -116,7 +116,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
             labels={'x': 'X Axis', 'y': 'Y Axis'}
         )
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_histogram(self, mock_px):
         """测试直方图"""
         mock_fig = MagicMock()
@@ -135,8 +135,8 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
             labels={'x': 'X Axis', 'y': 'Y Axis'}
         )
         
-    @patch('Src.DataAnalyzer.visualization.interactive.go.Figure')
-    @patch('Src.DataAnalyzer.visualization.interactive.go')
+    @patch('backend.Models.visualization.interactive.go.Figure')
+    @patch('backend.Models.visualization.interactive.go')
     def test_heatmap(self, mock_go_module, mock_figure):
         """测试热力图"""
         mock_fig = MagicMock()
@@ -150,7 +150,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
         self.assertEqual(fig, mock_fig)
         mock_go_module.Heatmap.assert_called_once()
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_box_plot(self, mock_px):
         """测试箱线图"""
         mock_fig = MagicMock()
@@ -170,7 +170,7 @@ class TestInteractiveVisualizationBase(unittest.TestCase):
             labels={'x': 'X Axis', 'y': 'Y Axis'}
         )
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_violin_plot(self, mock_px):
         """测试小提琴图"""
         mock_fig = MagicMock()

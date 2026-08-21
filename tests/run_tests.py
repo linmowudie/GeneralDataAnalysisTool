@@ -16,10 +16,12 @@ if PROJECT_ROOT not in sys.path:
 
 def run_all_tests():
     """运行所有单元测试"""
-    # 发现并运行测试
+    # 发现并运行测试（同时收录 test_*.py 与遗留的 *_test.py 命名文件）
     loader = unittest.TestLoader()
-    suite = loader.discover('tests/unit', pattern='test_*.py')
-    
+    suite = unittest.TestSuite()
+    for pattern in ('test_*.py', '*_test.py'):
+        suite.addTests(loader.discover('tests/unit', pattern=pattern))
+
     # 运行测试
     runner = unittest.TextTestRunner(verbosity=2)
     result = runner.run(suite)

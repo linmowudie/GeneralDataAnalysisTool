@@ -1,0 +1,79 @@
+/* Agent 自动分析页样式 */
+
+.df-agent-run {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-sm);
+}
+
+.df-agent-action {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+  cursor: pointer;
+  transition: border-color var(--motion-fast), transform var(--motion-fast);
+}
+
+.df-agent-action:hover {
+  border-color: var(--color-accent-violet);
+  transform: translateY(-2px);
+}
+
+.df-agent-action-primary {
+  border-color: rgba(194, 239, 78, 0.4);
+}
+
+.df-agent-action-primary:hover {
+  border-color: var(--color-accent-lime);
+}
+
+.df-agent-icon {
+  font-size: 22px;
+  color: var(--color-accent-violet);
+}
+
+.df-agent-action-primary .df-agent-icon {
+  color: var(--color-accent-lime);
+}
+
+.df-agent-name {
+  font-size: 16px;
+  font-weight: 600;
+}
+
+/* 候选方法列表 */
+.df-candidate-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+}
+
+.df-candidate {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  padding: var(--sp-sm) var(--sp-md);
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-md);
+}
+
+.df-candidate-rank {
+  font-size: 18px;
+  color: var(--color-accent-lime);
+}
+
+.df-candidate-model {
+  min-width: 140px;
+}
+
+.df-candidate-reason {
+  flex: 1;
+  text-align: right;
+}
+
+.df-best-row {
+  display: flex;
+  flex-wrap: wrap;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-sm);
+}

@@ -1,0 +1,154 @@
+/* 通用组件样式（基于 index.css 设计 tokens） */
+
+.df-page-header {
+  display: flex;
+  align-items: flex-end;
+  justify-content: space-between;
+  gap: var(--sp-xl);
+  margin-bottom: var(--sp-xl);
+}
+
+.df-page-title {
+  font-size: 30px;
+  margin: var(--sp-xs) 0 0;
+  color: var(--text-on-dark);
+}
+
+.df-page-desc {
+  margin: var(--sp-sm) 0 0;
+  max-width: 640px;
+}
+
+.df-page-header-extra {
+  display: flex;
+  align-items: center;
+  gap: var(--sp-md);
+  flex-shrink: 0;
+}
+
+/* 统计卡片 */
+.df-stat-card {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  position: relative;
+  overflow: hidden;
+}
+
+.df-stat-label {
+  color: var(--text-on-dark-muted);
+}
+
+.df-stat-value {
+  font-size: 34px;
+  line-height: 1.1;
+}
+
+.df-stat-lime .df-stat-value {
+  color: var(--color-accent-lime);
+}
+
+.df-stat-pink .df-stat-value {
+  color: var(--color-accent-pink);
+}
+
+.df-stat-violet .df-stat-value {
+  color: var(--color-accent-violet);
+}
+
+/* 状态 pill 变体 */
+.df-pill-done {
+  color: var(--color-accent-lime);
+  border-color: rgba(194, 239, 78, 0.35);
+}
+
+.df-pill-locked {
+  color: var(--color-accent-pink);
+  border-color: rgba(250, 127, 170, 0.35);
+}
+
+.df-squiggle {
+  display: block;
+}
+
+/* 页面容器 */
+.df-page {
+  padding: var(--sp-xl) var(--sp-xxl) var(--sp-xxl);
+  max-width: 1280px;
+  margin: 0 auto;
+  width: 100%;
+}
+
+.df-grid-2 {
+  display: grid;
+  grid-template-columns: repeat(2, 1fr);
+  gap: var(--sp-xl);
+}
+
+.df-grid-3 {
+  display: grid;
+  grid-template-columns: repeat(3, 1fr);
+  gap: var(--sp-xl);
+}
+
+.df-grid-4 {
+  display: grid;
+  grid-template-columns: repeat(4, 1fr);
+  gap: var(--sp-lg);
+}
+
+.df-stack {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xl);
+}
+
+@media (max-width: 1100px) {
+  .df-grid-4 {
+    grid-template-columns: repeat(2, 1fr);
+  }
+  .df-grid-3 {
+    grid-template-columns: 1fr;
+  }
+  .df-grid-2 {
+    grid-template-columns: 1fr;
+  }
+}
+
+/* 卡片标题 */
+.df-card-title {
+  font-size: 20px;
+  font-weight: 600;
+  margin: 0 0 var(--sp-lg);
+}
+
+.df-card-eyebrow {
+  margin-bottom: var(--sp-xs);
+}
+
+/* 空态 */
+.df-empty {
+  display: flex;
+  flex-direction: column;
+  align-items: center;
+  justify-content: center;
+  gap: var(--sp-md);
+  padding: var(--sp-xxl);
+  color: var(--text-on-dark-muted);
+  text-align: center;
+}
+
+/* 结果 JSON 块 */
+.df-result-json {
+  margin: var(--sp-sm) 0 0;
+  padding: var(--sp-md);
+  background: var(--surface-night);
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-md);
+  max-height: 320px;
+  overflow: auto;
+  color: var(--text-on-dark-muted);
+  font-size: 12px;
+  white-space: pre-wrap;
+  word-break: break-all;
+}

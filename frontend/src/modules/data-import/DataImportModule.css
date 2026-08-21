@@ -1,0 +1,14 @@
+/* 数据导入页样式 */
+
+.df-upload-title {
+  font-size: 16px;
+  font-weight: 500;
+}
+
+.df-db-form {
+  max-width: 760px;
+}
+
+.df-import-result {
+  margin-top: var(--sp-xl);
+}

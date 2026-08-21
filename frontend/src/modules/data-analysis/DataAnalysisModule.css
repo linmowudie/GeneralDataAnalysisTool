@@ -1,0 +1,29 @@
+/* 数据分析页样式 */
+
+.df-form-row {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: var(--sp-md);
+  margin-bottom: var(--sp-md);
+}
+
+.df-form-col {
+  flex-direction: column;
+  align-items: stretch;
+}
+
+.df-form-col .df-caption {
+  margin-bottom: var(--sp-xs);
+}
+
+.df-model-desc {
+  margin: -6px 0 var(--sp-md);
+  color: var(--color-accent-violet);
+}
+
+.df-section-divider {
+  height: 1px;
+  background: var(--color-border, rgba(255,255,255,0.08));
+  margin: var(--sp-md) 0;
+}

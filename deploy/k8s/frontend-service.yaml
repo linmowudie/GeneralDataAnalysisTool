@@ -1,0 +1,16 @@
+apiVersion: v1
+kind: Service
+metadata:
+  name: frontend-svc
+  labels:
+    app: frontend
+spec:
+  # minikube 下用 NodePort 暴露，访问方式：minikube service frontend-svc
+  # 如启用 ingress 插件，可改用 Ingress（见 ingress.yaml）
+  type: NodePort
+  selector:
+    app: frontend
+  ports:
+    - name: http
+      port: 80
+      targetPort: 80

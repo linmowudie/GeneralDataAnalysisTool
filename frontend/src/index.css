@@ -1,0 +1,244 @@
+/* ============================================================
+   DataForge 设计系统 — Sentri-Inspired（sentry DESIGN.md）
+   深紫午夜画布 + 电光青柠强调 + 热粉点缀
+   ============================================================ */
+
+:root {
+  /* ---- Colors: Brand & Accent ---- */
+  --color-primary: #150f23;          /* midnight violet，最强动作色 */
+  --color-ink-deep: #1f1633;         /* 英雄画布 / 亮面墨色 */
+  --color-on-primary: #ffffff;
+  --color-accent-lime: #c2ef4e;      /* 签名强调：仅用于关键词 chip / 关键状态 */
+  --color-accent-pink: #fa7faa;      /* 次要点缀 */
+  --color-accent-violet: #6a5fc1;    /* 链接 / 主交互色 */
+  --color-accent-violet-deep: #422082;
+  --color-accent-violet-mid: #79628c;
+
+  /* ---- Colors: Surface ---- */
+  --surface-canvas-dark: #1f1633;    /* 应用主画布 */
+  --surface-night: #150f23;          /* 暗画布上的卡片/代码块 */
+  --surface-raised: #241a3d;         /* 悬浮层（派生：卡片 hover） */
+  --surface-canvas-light: #ffffff;
+  --hairline-violet: #362d59;        /* 暗卡片 1px 边框 */
+  --hairline-cool: #cfcfdb;
+  --hairline-cloud: #e5e7eb;
+
+  /* ---- Colors: Text ---- */
+  --text-on-dark: #ffffff;
+  --text-on-dark-muted: rgba(255, 255, 255, 0.72);
+  --text-on-dark-faint: rgba(255, 255, 255, 0.42);
+  --text-ink: #1f1633;
+  --ring-focus: rgba(157, 193, 245, 0.55);
+
+  /* ---- Typography ---- */
+  --font-display: 'Space Grotesk', 'Rubik', system-ui, sans-serif;
+  --font-ui: 'Rubik', -apple-system, system-ui, 'Segoe UI', 'PingFang SC', 'Microsoft YaHei', sans-serif;
+  --font-code: 'Monaco', 'Menlo', 'Ubuntu Mono', 'Consolas', monospace;
+
+  /* ---- Rounded ---- */
+  --radius-xs: 4px;
+  --radius-sm: 6px;
+  --radius-md: 8px;
+  --radius-lg: 10px;
+  --radius-xl: 12px;
+  --radius-xxl: 18px;
+  --radius-full: 9999px;
+
+  /* ---- Spacing（8px 基准） ---- */
+  --sp-xxs: 2px;
+  --sp-xs: 4px;
+  --sp-sm: 8px;
+  --sp-md: 12px;
+  --sp-lg: 16px;
+  --sp-xl: 24px;
+  --sp-xxl: 32px;
+  --sp-section: 96px;
+
+  /* ---- Elevation ---- */
+  --shadow-l1: rgba(0, 0, 0, 0.08) 0 2px 8px 0;
+  --shadow-l2: rgba(0, 0, 0, 0.1) 0 10px 15px -3px, rgba(0, 0, 0, 0.1) 0 4px 6px -4px;
+  --shadow-glow: rgba(21, 15, 35, 0.9) 0 0 8px 6px;
+
+  /* ---- Motion ---- */
+  --ease-smooth: cubic-bezier(0.4, 0, 0.2, 1);
+  --transition-fast: all 0.18s var(--ease-smooth);
+  --transition-base: all 0.3s var(--ease-smooth);
+
+  /* ---- Layout ---- */
+  --sidebar-width: 232px;
+  --topbar-height: 60px;
+}
+
+/* ============ Base ============ */
+* {
+  box-sizing: border-box;
+}
+
+html,
+body,
+#root {
+  height: 100%;
+  margin: 0;
+  padding: 0;
+}
+
+body {
+  font-family: var(--font-ui);
+  font-size: 16px;
+  font-weight: 500;
+  line-height: 1.5;
+  color: var(--text-on-dark);
+  background-color: var(--surface-canvas-dark);
+  -webkit-font-smoothing: antialiased;
+}
+
+/* 星空纹理画布（低透明度白点，替代阴影做氛围深度） */
+body::before {
+  content: '';
+  position: fixed;
+  inset: 0;
+  z-index: 0;
+  pointer-events: none;
+  background-image:
+    radial-gradient(1px 1px at 12% 24%, rgba(255, 255, 255, 0.28) 50%, transparent 51%),
+    radial-gradient(1px 1px at 68% 12%, rgba(255, 255, 255, 0.2) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 42% 68%, rgba(255, 255, 255, 0.16) 50%, transparent 51%),
+    radial-gradient(1px 1px at 86% 44%, rgba(255, 255, 255, 0.22) 50%, transparent 51%),
+    radial-gradient(1px 1px at 24% 86%, rgba(255, 255, 255, 0.14) 50%, transparent 51%),
+    radial-gradient(1.5px 1.5px at 92% 82%, rgba(255, 255, 255, 0.12) 50%, transparent 51%);
+}
+
+#root {
+  position: relative;
+  z-index: 1;
+}
+
+::selection {
+  background: var(--color-accent-lime);
+  color: var(--color-ink-deep);
+}
+
+/* ============ 排版工具类 ============ */
+.df-display {
+  font-family: var(--font-display);
+  font-weight: 700;
+  line-height: 1.15;
+}
+
+.df-eyebrow {
+  font-size: 15px;
+  font-weight: 500;
+  text-transform: uppercase;
+  letter-spacing: 0.2px;
+  color: var(--text-on-dark-muted);
+}
+
+.df-caption {
+  font-size: 14px;
+  font-weight: 400;
+  line-height: 1.43;
+  color: var(--text-on-dark-muted);
+}
+
+.df-micro {
+  font-size: 10px;
+  font-weight: 600;
+  letter-spacing: 0.25px;
+  text-transform: uppercase;
+}
+
+.df-code {
+  font-family: var(--font-code);
+  font-size: 14px;
+}
+
+/* 青柠关键词高亮 chip（签名组件：仅包裹标题中的单个关键词） */
+.df-lime-chip {
+  background: var(--color-accent-lime);
+  color: var(--color-ink-deep);
+  border-radius: var(--radius-xs);
+  padding: 0 12px;
+  font-style: normal;
+}
+
+/* ============ 表面与卡片 ============ */
+.df-card {
+  background: var(--surface-night);
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-xl);
+  padding: var(--sp-xl);
+  transition: var(--transition-fast);
+}
+
+.df-card:hover {
+  border-color: var(--color-accent-violet-mid);
+}
+
+.df-card-lg {
+  background: var(--color-ink-deep);
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-xxl);
+  padding: var(--sp-xxl);
+}
+
+/* ============ Pills ============ */
+.df-pill {
+  display: inline-flex;
+  align-items: center;
+  gap: 6px;
+  background: var(--surface-night);
+  border: 1px solid var(--hairline-violet);
+  color: var(--text-on-dark);
+  font-size: 12px;
+  line-height: 1.43;
+  padding: 4px 8px;
+  border-radius: var(--radius-xs);
+}
+
+.df-pill-violet {
+  background: var(--color-accent-violet-mid);
+  border-color: transparent;
+  color: var(--text-on-dark);
+  padding: 4px 12px;
+  border-radius: var(--radius-xl);
+}
+
+/* ============ 滚动条 ============ */
+::-webkit-scrollbar {
+  width: 10px;
+  height: 10px;
+}
+
+::-webkit-scrollbar-track {
+  background: var(--surface-canvas-dark);
+}
+
+::-webkit-scrollbar-thumb {
+  background: var(--hairline-violet);
+  border-radius: var(--radius-full);
+  border: 2px solid var(--surface-canvas-dark);
+}
+
+::-webkit-scrollbar-thumb:hover {
+  background: var(--color-accent-violet-mid);
+}
+
+/* ============ antd 深色微调 ============ */
+.ant-btn {
+  font-weight: 700;
+  letter-spacing: 0.2px;
+}
+
+.ant-card {
+  transition: var(--transition-fast);
+}
+
+.ant-modal .ant-modal-content {
+  background: var(--surface-night);
+  border: 1px solid var(--hairline-violet);
+}
+
+/* 表格数字使用等宽 */
+.ant-table-cell {
+  font-variant-numeric: tabular-nums;
+}

@@ -1,0 +1,40 @@
+/* 数据清洗页样式 */
+
+.df-mode-list {
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-sm);
+  margin-bottom: var(--sp-lg);
+}
+
+.df-mode-item {
+  border: 1px solid var(--hairline-violet);
+  border-radius: var(--radius-md);
+  padding: var(--sp-sm) var(--sp-md);
+  cursor: pointer;
+  transition: border-color var(--motion-fast), background var(--motion-fast);
+  display: flex;
+  flex-direction: column;
+  gap: var(--sp-xs);
+}
+
+.df-mode-item:hover {
+  border-color: var(--color-accent-violet);
+}
+
+.df-mode-active {
+  border-color: var(--color-accent-lime);
+  background: rgba(194, 239, 78, 0.06);
+}
+
+.df-mode-name {
+  color: var(--text-on-dark);
+  font-size: 13px;
+}
+
+.df-clean-option {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  margin-bottom: var(--sp-md);
+}

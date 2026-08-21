@@ -14,7 +14,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.DataAnalyzer.reporting import Report
+from backend.Models.reporting import Report
 
 
 class TestReporting(unittest.TestCase):

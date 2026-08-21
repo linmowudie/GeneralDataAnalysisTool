@@ -16,9 +16,9 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.DataAnalyzer.ModuleInterfaces.data_visualization import DataVisualization
-from Src.DataAnalyzer.VisualizationModule.interactive import InteractiveVisualization
-from Src.DataAnalyzer.VisualizationModule.interactive_registry import interactive_plot_registry
+from backend.Models.visualization import DataVisualization
+from backend.Models.visualization.interactive import InteractiveVisualization
+from backend.Models.visualization.interactive_registry import interactive_plot_registry
 
 
 class TestInteractiveVisualization(unittest.TestCase):
@@ -108,7 +108,7 @@ class TestInteractiveVisualization(unittest.TestCase):
         self.assertEqual(interactive_viz.x, 'feature1')
         self.assertEqual(interactive_viz.y, 'feature2')
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_interactive_scatter_plot(self, mock_px):
         """测试交互式散点图"""
         mock_fig = MagicMock()
@@ -129,7 +129,7 @@ class TestInteractiveVisualization(unittest.TestCase):
         self.assertEqual(fig, mock_fig)
         mock_px.scatter.assert_called_once()
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_interactive_line_plot(self, mock_px):
         """测试交互式折线图"""
         mock_fig = MagicMock()
@@ -150,7 +150,7 @@ class TestInteractiveVisualization(unittest.TestCase):
         self.assertEqual(fig, mock_fig)
         mock_px.line.assert_called_once()
         
-    @patch('Src.DataAnalyzer.visualization.interactive.px')
+    @patch('backend.Models.visualization.interactive.px')
     def test_interactive_bar_plot(self, mock_px):
         """测试交互式条形图"""
         mock_fig = MagicMock()

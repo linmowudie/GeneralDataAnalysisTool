@@ -16,7 +16,7 @@ if PROJECT_ROOT not in sys.path:
 # ==================================================
 
 # 导入需要的模块
-from Src.DataAnalyzer.AnalysisModule.analyzer import analyze_data
+from backend.Models.analysis import analyze_data
 
 def connect_to_mongodb():
     """

@@ -5,6 +5,7 @@
 import unittest
 import sys
 import os
+import numpy as np
 import pandas as pd
 from unittest.mock import Mock, patch, MagicMock
 
@@ -15,7 +16,7 @@ PROJECT_ROOT = os.path.dirname(os.path.dirname(os.path.dirname(os.path.abspath(_
 if PROJECT_ROOT not in sys.path:
     sys.path.insert(0, PROJECT_ROOT)
 
-from Src.DataAnalyzer.AnalysisModule.analyzer import AnalyzeData
+from backend.Models.analysis import AnalyzeData
 
 
 class TestAnalyzer(unittest.TestCase):
@@ -45,7 +46,7 @@ class TestAnalyzer(unittest.TestCase):
         self.assertEqual(analyzer.kwargs['split_ratio'], 0.8)
         self.assertEqual(analyzer.kwargs['target_col'], "target")
         
-    @patch('Src.DataAnalyzer.analysis.analyzer.LinearRegression')
+    @patch('sklearn.linear_model.LinearRegression')
     @patch('sklearn.model_selection.train_test_split')
     def test_run_method_with_split(self, mock_train_test_split, mock_model_class):
         """测试运行方法（带数据分割）"""
@@ -57,10 +58,12 @@ class TestAnalyzer(unittest.TestCase):
         
         mock_train_test_split.return_value = (X_train, X_test, y_train, y_test)
         
-        # 创建模拟模型
+        # 创建模拟模型（fit 返回自身；predict 按输入长度返回，与 sklearn 估计器行为一致）
         mock_model = Mock()
-        mock_model.fit.return_value = None
-        mock_model.predict.return_value = [0]
+        mock_model.fit.return_value = mock_model
+        mock_model.predict.side_effect = lambda X: [0] * len(X)
+        mock_model.coef_ = np.array([1.0, 1.0])
+        mock_model.intercept_ = 0.0
         mock_model_class.return_value = mock_model
         
         # 创建分析器并运行
@@ -80,13 +83,15 @@ class TestAnalyzer(unittest.TestCase):
         self.assertIn('y_train', result)
         self.assertIn('y_test', result)
         
-    @patch('Src.DataAnalyzer.analysis.analyzer.LinearRegression')
+    @patch('sklearn.linear_model.LinearRegression')
     def test_run_method_without_split(self, mock_model_class):
         """测试运行方法（不带数据分割）"""
-        # 创建模拟模型
+        # 创建模拟模型（fit 返回自身；predict 按输入长度返回，与 sklearn 估计器行为一致）
         mock_model = Mock()
-        mock_model.fit.return_value = None
-        mock_model.predict.return_value = [0, 1, 0, 1, 0]
+        mock_model.fit.return_value = mock_model
+        mock_model.predict.side_effect = lambda X: [0] * len(X)
+        mock_model.coef_ = np.array([1.0, 1.0])
+        mock_model.intercept_ = 0.0
         mock_model_class.return_value = mock_model
         
         # 创建分析器并运行
